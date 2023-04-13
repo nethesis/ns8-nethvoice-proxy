@@ -6,6 +6,7 @@
 .
 ├── CHANGELOG.md
 ├── LICENSE
+├── Makefile
 ├── README.md
 └── modules
     ├── kamailio
@@ -18,7 +19,10 @@
     ├── postgres
     │   ├── Dockerfile
     │   ├── Makefile
-    │   └── init_db.sql
+    │   └── migrations
+    │       ├── 01_init_kamailio_db.sql
+    │       ├── 02_insert_data_version.sql
+    │       └── 03_insert_data_rtpengine.sql
     ├── redis
     │   ├── Dockerfile
     │   ├── Makefile
@@ -41,22 +45,22 @@
 ### Kamailio
 
 Kamailio® (successor of former OpenSER and SER) is an Open Source SIP Server released under GPLv2+, able to handle thousands of call setups per second
-https://www.kamailio.org/w/
+Website: [kamailio](https://www.kamailio.org/w/)
 
 ### Postgres
 
 PostgreSQL is a powerful, open source object-relational database system with over 35 years of active development that has earned it a strong reputation for reliability, feature robustness, and performance.
-https://www.postgresql.org/
+Website: [postgresql](https://www.postgresql.org/)
 
 ### Redis
 
 The open source, in-memory data store used by millions of developers as a database, cache, streaming engine, and message broker.
-https://redis.io/
+Website: [redis](https://redis.io/)
 
 ### RTPengine
 
 The Sipwise NGCP rtpengine is a proxy for RTP traffic and other UDP based media traffic. It's meant to be used with the Kamailio SIP proxy and forms a drop-in replacement for any of the other available RTP and media proxies.
-https://github.com/sipwise/rtpengine
+Website: [RTPengine](https://github.com/sipwise/rtpengine)
 
 ---
 
