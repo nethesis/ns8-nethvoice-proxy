@@ -44,22 +44,22 @@
 
 ### Kamailio
 
-Kamailio® (successor of former OpenSER and SER) is an Open Source SIP Server released under GPLv2+, able to handle thousands of call setups per second
+Kamailio® (successor of former OpenSER and SER) is an Open Source SIP Server released under GPLv2+, able to handle thousands of call setups per second.  
 Website: [kamailio](https://www.kamailio.org/w/)
 
 ### Postgres
 
-PostgreSQL is a powerful, open source object-relational database system with over 35 years of active development that has earned it a strong reputation for reliability, feature robustness, and performance.
+PostgreSQL is a powerful, open source object-relational database system with over 35 years of active development that has earned it a strong reputation for reliability, feature robustness, and performance.  
 Website: [postgresql](https://www.postgresql.org/)
 
 ### Redis
 
-The open source, in-memory data store used by millions of developers as a database, cache, streaming engine, and message broker.
+The open source, in-memory data store used by millions of developers as a database, cache, streaming engine, and message broker.  
 Website: [redis](https://redis.io/)
 
 ### RTPengine
 
-The Sipwise NGCP rtpengine is a proxy for RTP traffic and other UDP based media traffic. It's meant to be used with the Kamailio SIP proxy and forms a drop-in replacement for any of the other available RTP and media proxies.
+The Sipwise NGCP rtpengine is a proxy for RTP traffic and other UDP based media traffic. It's meant to be used with the Kamailio SIP proxy and forms a drop-in replacement for any of the other available RTP and media proxies.  
 Website: [RTPengine](https://github.com/sipwise/rtpengine)
 
 ---
