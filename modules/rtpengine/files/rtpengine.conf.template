@@ -1,0 +1,16 @@
+[rtpengine]
+table = 0
+
+interface = external/${PUBLIC_IP}
+listen-ng = 127.0.0.1:19999
+listen-cli = 127.0.0.1:2224
+
+timeout = 60
+silent-timeout = 3600
+final-timeout = 36000
+
+tos = 184
+
+port-min = ${RTP_PORT_MIN}
+port-max = ${RTP_PORT_MAX}
+
