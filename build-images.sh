@@ -7,14 +7,33 @@ set -e
 images=()
 # The image will be pushed to GitHub container registry
 repobase="ghcr.io/nethesis"
-# Configure the image name
-reponame="nethvoice-proxy"
 
-make build
-images+=("${repobase}/${reponame}-postgres")
-images+=("${repobase}/${reponame}-kamailio")
-images+=("${repobase}/${reponame}-redis")
-images+=("${repobase}/${reponame}-rtpengine")
+# Configure the image name
+reponame="nethvoice-proxy-postgres"
+# Build and commit the image
+buildah bud -t "${repobase}/${reponame}" modules/postgres
+# Append the image URL to the images array
+images+=("${repobase}/${reponame}")
+
+# Configure the image name
+reponame="nethvoice-proxy-kamailio"
+# Build and commit the image
+buildah bud -t "${repobase}/${reponame}" modules/kamailio
+# Append the image URL to the images array
+images+=("${repobase}/${reponame}")
+
+# Configure the image name
+reponame="nethvoice-proxy-redis"
+# Build and commit the image
+buildah bud -t "${repobase}/${reponame}" modules/redis
+# Append the image URL to the images array
+images+=("${repobase}/${reponame}")
+
+# Configure the image name
+reponame="nethvoice-proxy-rtpengine"
+buildah bud -t "${repobase}/${reponame}" modules/rtpengine
+# Append the image URL to the images array
+images+=("${repobase}/${reponame}")
 
 # Setup CI when pushing to Github.
 # Warning! docker::// protocol expects lowercase letters (,,)
