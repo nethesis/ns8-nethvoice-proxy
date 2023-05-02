@@ -35,6 +35,43 @@ buildah bud -t "${repobase}/${reponame}" modules/rtpengine
 # Append the image URL to the images array
 images+=("${repobase}/${reponame}")
 
+
+# Configure the image name
+reponame="nethvoice-proxy"
+# Create a new empty container image
+container=$(buildah from scratch)
+
+# Reuse existing nodebuilder-kickstart container, to speed up builds
+if ! buildah containers --format "{{.ContainerName}}" | grep -q nodebuilder-nethvoice-proxy; then
+    echo "Pulling NodeJS runtime..."
+    buildah from --name nodebuilder-nethvoice-proxy -v "${PWD}:/usr/src:Z" docker.io/library/node:lts
+fi
+
+echo "Build static UI files with node..."
+buildah run \
+    --workingdir=/usr/src/ui \
+    --env="NODE_OPTIONS=--openssl-legacy-provider" \
+    nodebuilder-nethvoice-proxy \
+    sh -c "yarn install && yarn build"
+
+# Add imageroot directory to the container image
+buildah add "${container}" imageroot /imageroot
+buildah add "${container}" ui/dist /ui
+# Setup the entrypoint, ask to reserve one TCP port with the label and set a rootless container
+buildah config --entrypoint=/ \
+    --label="org.nethserver.rootfull=0" \
+    --label="org.nethserver.images=docker.io/jmalloc/echo-server:latest873a4eb4b18f44f7e08c9ee463cee1e48029728a" \
+    --label="org.nethserver.images=${repobase}/nethvoice-proxy-postgres:${IMAGETAG:-latest} \
+    ${repobase}/nethvoice-proxy-kamailio:${IMAGETAG:-latest} \
+    ${repobase}/nethvoice-proxy-redis:${IMAGETAG:-latest} \
+    ${repobase}/nethvoice-proxy-rtpengine:${IMAGETAG:-latest}" \
+    "${container}"
+# Commit the image
+buildah commit "${container}" "${repobase}/${reponame}"
+
+# Append the image URL to the images array
+images+=("${repobase}/${reponame}")
+
 # Setup CI when pushing to Github.
 # Warning! docker::// protocol expects lowercase letters (,,)
 if [[ -n "${CI}" ]]; then
