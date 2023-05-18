@@ -60,7 +60,6 @@ buildah add "${container}" ui/dist /ui
 # Setup the entrypoint, ask to reserve one TCP port with the label and set a rootless container
 buildah config --entrypoint=/ \
     --label="org.nethserver.rootfull=0" \
-    --label="org.nethserver.images=docker.io/jmalloc/echo-server:latest873a4eb4b18f44f7e08c9ee463cee1e48029728a" \
     --label="org.nethserver.images=${repobase}/nethvoice-proxy-postgres:${IMAGETAG:-latest} \
     ${repobase}/nethvoice-proxy-kamailio:${IMAGETAG:-latest} \
     ${repobase}/nethvoice-proxy-redis:${IMAGETAG:-latest} \
