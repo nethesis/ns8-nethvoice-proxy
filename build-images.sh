@@ -60,6 +60,7 @@ buildah add "${container}" ui/dist /ui
 # Setup the entrypoint, ask to reserve one TCP port with the label and set a rootless container
 buildah config --entrypoint=/ \
     --label="org.nethserver.rootfull=0" \
+    --label="org.nethserver.authorizations=node:fwadm" \
     --label="org.nethserver.images=${repobase}/nethvoice-proxy-postgres:${IMAGETAG:-latest} \
     ${repobase}/nethvoice-proxy-kamailio:${IMAGETAG:-latest} \
     ${repobase}/nethvoice-proxy-redis:${IMAGETAG:-latest} \
