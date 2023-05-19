@@ -61,6 +61,7 @@ buildah add "${container}" ui/dist /ui
 buildah config --entrypoint=/ \
     --label="org.nethserver.rootfull=0" \
     --label="org.nethserver.authorizations=node:fwadm" \
+    --label="org.nethserver.tcp-ports-demand=2" \
     --label="org.nethserver.images=${repobase}/nethvoice-proxy-postgres:${IMAGETAG:-latest} \
     ${repobase}/nethvoice-proxy-kamailio:${IMAGETAG:-latest} \
     ${repobase}/nethvoice-proxy-redis:${IMAGETAG:-latest} \
