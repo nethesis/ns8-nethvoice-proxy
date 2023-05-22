@@ -1,0 +1,22 @@
+[Unit]
+Description=RTPengine
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+EnvironmentFile=%S/state/environment
+WorkingDirectory=%S/state
+Restart=always
+ExecStartPre=/bin/rm -f %t/rtpengine.pid %t/rtpengine.ctr-id
+ExecStart=/usr/bin/podman run \
+    --detach \
+    --env 'RTP_*' \
+    --conmon-pidfile=%t/rtpengine.pid \
+    --cidfile=%t/rtpengine.ctr-id \
+    --cgroups=no-conmon \
+    --network=host \
+    --replace --name=%N \
+    ${NETHVOICE_PROXY_RTPENGINE_IMAGE}
+ExecStop=/usr/bin/podman stop --ignore --cidfile %t/rtpengine.ctr-id -t 10
+ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/rtpengine.ctr-id
+PIDFile=%t/rtpengine.pid
+Type=forking
