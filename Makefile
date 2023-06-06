@@ -1,44 +1,25 @@
-build:
-	cd modules/postgres && make build
-	cd modules/redis && make build
-	cd modules/rtpengine && make build
-	cd modules/kamailio && make build
+default:
+	cat Makefile
+init:
+	mkdir -p ~/pgdata
+	chmod 777 ~/pgdata
+run-all:
+	podman run -d --name postgres \
+	-p 127.0.0.1:5432:5432 \
+	--env-file=.env\
+	-v ~/pgdata:/var/lib/postgresql/data:z \
+	ghcr.io/nethesis/nethvoice-proxy-postgres:latest
+	podman run -d --name redis --env-file=.env --publish=127.0.0.1:6380:6379 ghcr.io/nethesis/nethvoice-proxy-redis:latest
+	podman run -d --name rtpengine --env-file=.env --network=host ghcr.io/nethesis/nethvoice-proxy-rtpengine:latest
+	podman run -d --name kamailio --env-file=.env --network=host ghcr.io/nethesis/nethvoice-proxy-kamailio:latest
+log:
+	podman logs -f --tail=20 kamailio redis rtpengine postgres
 
-build-postgres:
-	cd modules/postgres && make build
-
-build-redis:
-	cd modules/redis && make build
-
-build-rtpengine:
-	cd modules/rtpengine && make build
-
-build-kamailio:
-	cd modules/kamailio && make build
-
-
-run:
-	cd modules/postgres && make run
-	cd modules/redis && make run
-	cd modules/rtpengine && make run
-	cd modules/kamailio && make run
-
-run-postgres:
-	cd modules/postgres && make run
-
-run-redis:
-	cd modules/redis && make run
-
-run-rtpengine:
-	cd modules/rtpengine && make run
-
-run-kamailio:
-	cd modules/kamailio && make run
-
-
-
-rebuild-rtpengine:
-	docker rm -f rtpengine && make build-rtpengine && make run-rtpengine
-
-rebuild-kamailio:
-	docker rm -f kamailio && make build-kamailio && make run-kamailio
+stop-all:
+	podman stop kamailio redis rtpengine postgres
+clean-all:
+	podman rm -f kamailio redis rtpengine postgres
+start-all:
+	podman start kamailio redis rtpengine postgres
+restart-all:
+	podman restart kamailio redis rtpengine postgres
