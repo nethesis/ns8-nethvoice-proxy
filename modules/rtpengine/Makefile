@@ -1,5 +1,5 @@
-REGISTRY_URL = ghcr.io/nethvoice-proxy
-APP_NAME = rtpengine
+REGISTRY_URL = ghcr.io/nethesis
+APP_NAME = nethvoice-proxy-rtpengine
 REGISTRY_NAME = ${REGISTRY_URL}/$(APP_NAME)
 TODAY = $(shell date '+%Y%m%d')
 

@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2023 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import os
+import agent
+
+agent.assert_exp(agent.remove_public_service(os.environ['MODULE_ID']))
+

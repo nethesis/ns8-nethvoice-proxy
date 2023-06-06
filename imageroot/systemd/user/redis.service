@@ -1,0 +1,21 @@
+[Unit]
+Description=Redis server
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+EnvironmentFile=%S/state/environment
+WorkingDirectory=%S/state
+Restart=always
+ExecStartPre=/bin/rm -f %t/redis.pid %t/redis.ctr-id
+ExecStart=/usr/bin/podman run \
+    --detach \
+    --conmon-pidfile=%t/redis.pid \
+    --cidfile=%t/redis.ctr-id \
+    --cgroups=no-conmon \
+    --publish=127.0.0.1:${REDIS_PORT}:6379 \
+    --replace --name=%N \
+    ${NETHVOICE_PROXY_REDIS_IMAGE}
+ExecStop=/usr/bin/podman stop --ignore --cidfile %t/redis.ctr-id -t 10
+ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/redis.ctr-id
+PIDFile=%t/redis.pid
+Type=forking

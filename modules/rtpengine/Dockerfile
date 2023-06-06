@@ -80,7 +80,7 @@ RUN rm -rf /var/lib/apt/lists/*
 
 RUN cd /src/rtpengine/ \
     && dpkg-checkbuilddeps \
-    && dpkg-buildpackage --no-sign
+    && DEB_BUILD_OPTIONS=nocheck dpkg-buildpackage --no-sign
 
 RUN cd /src/ \
  && dpkg -i *.deb

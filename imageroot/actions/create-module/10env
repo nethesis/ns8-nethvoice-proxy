@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2023 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+import os
+import agent
+import uuid
+
+module_id = os.environ["MODULE_ID"]
+tcp_ports = os.environ["TCP_PORTS"].split(',')
+
+agent.set_env('ENV', 'prod')
+agent.set_env('POSTGRES_USER', 'postgres')
+agent.set_env('POSTGRES_PASSWORD', uuid.uuid4())
+agent.set_env('POSTGRES_HOST', '127.0.0.1')
+agent.set_env('POSTGRES_PORT', tcp_ports[0])
+agent.set_env('POSTGRES_DB', 'kamailio')
+agent.set_env('REDIS_HOST', '127.0.0.1')
+agent.set_env('REDIS_PORT', tcp_ports[1])
+agent.set_env('KML_SERVER_HEADER', f"NethServer 8 {module_id}")
+agent.set_env('KML_UA_HEADER', f"NethServer 8 {module_id}")
+agent.set_env('KML_SIP_URL', '127.0.0.')
+agent.set_env('KML_INTERNAL_NETWORK', '127.*.*.*')
+agent.set_env('RTP_PORT_MIN', '10000')
+agent.set_env('RTP_PORT_MAX', '20000')
