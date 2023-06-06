@@ -93,3 +93,20 @@ Website: [RTPengine](https://github.com/sipwise/rtpengine)
     make build
     make run && make log
     ```
+
+---
+
+## How to run remotely (DEV or PROD Virtual Machine)
+
+1. Copy in the remote server the `Makefile`
+1. Run the `init` stage to creation of `ENV` file and needed folder (`only first time`)
+
+    ```bash
+    make init
+    ```
+
+1. Run all the pods
+
+    ```bash
+    make run-all
+    ```
