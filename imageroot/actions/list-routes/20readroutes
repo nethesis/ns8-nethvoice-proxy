@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2022 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import sys
+import os
+import agent
+# Try to parse the stdin as JSON.
+# If parsing fails, output everything to stderr
+data = json.load(sys.stdin)
+
+agent_id = os.getenv("AGENT_ID", "")
+if not agent_id:
+    raise Exception("AGENT_ID not found inside the environemnt")
+
+# Connect to redis
+rdb = agent.redis_connect(privileged=True)
+
+#FIXME this is only a mockup
+routes = []
+for route_domain in rdb.keys(f'{agent_id}/routers/*'):
+    route = {}
+    route["domain"] = os.path.basename(route_domain)
+    route["address"] = list(rdb.smembers(f'{agent_id}/routers/{route["domain"]}'))
+    routes.append(route)
+json.dump(routes, fp=sys.stdout)
+
