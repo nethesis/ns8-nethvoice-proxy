@@ -25,7 +25,7 @@ routes = []
 for route_domain in rdb.keys(f'{agent_id}/routers/*'):
     route = {}
     route["domain"] = os.path.basename(route_domain)
-    route["address"] = list(rdb.smembers(f'{agent_id}/routers/{route["domain"]}'))
+    route["address"] = [{ "uri": uri, "description": description}  for uri, description in rdb.hgetall(f'{agent_id}/routers/{route["domain"]}').items()]
     routes.append(route)
 json.dump(routes, fp=sys.stdout)
 

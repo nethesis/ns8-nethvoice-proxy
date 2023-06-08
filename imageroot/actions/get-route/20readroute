@@ -23,5 +23,5 @@ rdb = agent.redis_connect(privileged=True)
 #FIXME this is only a mockup
 route = {}
 if rdb.exists(f'{agent_id}/routers/{data["domain"]}'):
-    route["address"] = list(rdb.smembers(f'{agent_id}/routers/{data["domain"]}'))
+    route["address"] = [ { "uri": uri, "description": description}  for uri, description in rdb.hgetall(f'{agent_id}/routers/{data["domain"]}').items()]
 json.dump(route, fp=sys.stdout)
