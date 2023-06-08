@@ -35,6 +35,19 @@ Remove a route
     ...    {"domain":"ns8.test"}
     Should Be Empty    ${response}
 
+Remove all address from a route
+    Run task    module/${module_id}/add-route
+    ...    {"domain":"ns8.test2", "address":[{"uri":"sip:127.0.0.1:5080","description":"module1"}]}
+    Run task    module/${module_id}/add-route
+    ...    {"domain":"ns8.test2", "address":[{"uri":"sip:127.0.0.1:5081","description":"module2"}]}
+    Run task    module/${module_id}/remove-route
+    ...    {"domain":"ns8.test2", "address":[{"uri":"sip:127.0.0.1:5080","description":"module1"}]}
+    Run task    module/${module_id}/remove-route
+    ...    {"domain":"ns8.test2", "address":[{"uri":"sip:127.0.0.1:5081","description":"module2"}]}
+    ${response} =  Run task    module/${module_id}/get-route
+    ...    {"domain":"ns8.test2"}
+    Should Be Empty    ${response}
+
 Get list of routes
     Run task    module/${module_id}/add-route
     ...    {"domain":"ns8.test", "address":[{"uri":"sip:127.0.0.1:5080","description":"module1"}]}
@@ -51,4 +64,3 @@ List of routes should be empty
     ...    {"domain":"ns8.test1"}
     ${response} =  Run task    module/${module_id}/list-routes    {}
     Should Be Empty    ${response}
-
