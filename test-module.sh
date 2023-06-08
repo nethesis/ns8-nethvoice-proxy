@@ -23,6 +23,7 @@ podman run -i \
     mkdir ~/outputs
     cd /home/pwuser/ns8-module
     robot -v NODE_ADDR:${LEADER_NODE} \
+        --console dotted \
         -v IMAGE_URL:${IMAGE_URL} \
         -v SSH_KEYFILE:/home/pwuser/ns8-key \
 	-d ~/outputs /home/pwuser/ns8-module/tests/
