@@ -9,7 +9,7 @@ Input can't be empty
 
 Domain is required
     ${response} =  Run task    module/${module_id}/add-route
-    ...    {"address": ["sip:127.0.0.1:5080"]}    rc_expected=10    decode_json=False
+    ...    {"address": [{"uri": "sip:127.0.0.1:5080", "description": "module1"}]}    rc_expected=10    decode_json=False
 
 Address list is required
     ${response} =  Run task    module/${module_id}/add-route
@@ -17,8 +17,20 @@ Address list is required
 
 Domain can't be empty
     ${response} =  Run task    module/${module_id}/add-route
-    ...    {"domain":"", "address":["sip:127.0.0.1:5080"]}    rc_expected=10    decode_json=False
+    ...    {"domain":"", "address":[{"uri": "sip:127.0.0.1:5080", "description": "module1"}]}    rc_expected=10    decode_json=False
 
 Address list can't be empty
     ${response} =  Run task    module/${module_id}/add-route
     ...    {"domain":"ns8.test", "address":[]}    rc_expected=10    decode_json=False
+
+URI field is required
+    ${response} =  Run task    module/${module_id}/add-route
+    ...    {"domain":"ns8.test", "address":[{"description": "module1"}]}    rc_expected=10    decode_json=False
+
+URI field is can't be empty
+    ${response} =  Run task    module/${module_id}/add-route
+    ...    {"domain":"ns8.test", "address":[{"uri": "", "description": "module1"}]}    rc_expected=10    decode_json=False
+
+Description field is required
+    ${response} =  Run task    module/${module_id}/add-route
+    ...    {"domain":"ns8.test", "address":[{"uri": "sip:127.0.0.1:5080"}]}    rc_expected=10    decode_json=False

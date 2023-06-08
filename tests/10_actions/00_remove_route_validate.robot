@@ -9,11 +9,11 @@ Input can't be empty
 
 Domain is required
     ${response} =  Run task    module/${module_id}/remove-route
-    ...    {"address": ["sip:127.0.0.1:5080"]}    rc_expected=10    decode_json=False
+    ...    {"address": [{"uri": "sip:127.0.0.1:5080", "description": "module1"}]}    rc_expected=10    decode_json=False
 
 Domain can't be empty
     ${response} =  Run task    module/${module_id}/remove-route
-    ...    {"domain":"", "address":["sip:127.0.0.1:5080"]}    rc_expected=10    decode_json=False
+    ...    {"domain":"", "address": [{"uri": "sip:127.0.0.1:5080", "description": "module1"}]}    rc_expected=10    decode_json=False
     ${response} =  Run task    module/${module_id}/add-route
     ...    {"doamin":""}    rc_expected=10    decode_json=False
 
