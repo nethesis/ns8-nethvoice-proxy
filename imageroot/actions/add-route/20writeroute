@@ -8,18 +8,45 @@
 import json
 import sys
 import os
-import agent
+import subprocess
 # Try to parse the stdin as JSON.
 # If parsing fails, output everything to stderr
 data = json.load(sys.stdin)
 
-agent_id = os.getenv("AGENT_ID", "")
-if not agent_id:
-    raise Exception("AGENT_ID not found inside the environemnt")
+# Prepare the query with the new route configuration
+query = ""
 
-# Connect to redis
-rdb = agent.redis_connect(privileged=True)
+# Chek if a domain is registred
+with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
+        print(f'SELECT COALESCE(json_agg(nethvoice_proxy_routes.*), \'[]\'::json) FROM nethvoice_proxy_routes WHERE domain=\'{data["domain"]}\';\n', file=psql.stdin)
+        proxy_route , _ = psql.communicate()
+        proxy_route = json.loads(proxy_route)
 
-#FIXME this is only a mockup
+if not proxy_route:
+    # Add domain into nethvoice_proxy_routes table if not already exists
+    with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
+        print(f'WITH proxy_route AS (INSERT INTO nethvoice_proxy_routes (domain) VALUES (\'{data["domain"]}\') RETURNING *) SELECT JSON_AGG(proxy_route.*) from proxy_route;\n', file=psql.stdin)
+        proxy_route, _ = psql.communicate()
+        proxy_route = json.loads(proxy_route)
+
+        # Create dialplan and domain for the rule
+        query += (
+                  f'INSERT INTO dialplan (dpid, pr, match_op, match_exp, match_len, subst_exp, repl_exp, attrs) VALUES (1,1,0,\'{data["domain"]}\',0,\'(.*)\',{proxy_route[0]["setid"]},{proxy_route[0]["setid"]});\n'
+                  f'INSERT INTO domain (domain, did) VALUES ( \'{data["domain"]}\', \'{data["domain"]}\');\n'
+                  )
+
+# Check if we have to add or modify an addres
 for addres in data["address"]:
-    rdb.hset(f'{agent_id}/routers/{data["domain"]}', addres["uri"], addres["description"])
+    with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
+        print(f'SELECT COALESCE(json_agg(dispatcher.*), \'[]\'::json) FROM dispatcher WHERE destination=\'{addres["uri"]}\' AND setid={proxy_route[0]["setid"]};\n', file=psql.stdin)
+        destination, _ = psql.communicate()
+        destination = json.loads(destination)
+
+    if not destination:
+        query += f'INSERT INTO dispatcher (setid,  destination, description) VALUES ({proxy_route[0]["setid"]},\'{addres["uri"]}\',\'{addres["description"]}\');\n'
+    else:
+        query +=  f'UPDATE dispatcher SET description = \'{addres["description"]}\' WHERE id={destination[0]["id"]};\n'
+
+# Write the route
+with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-qU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, text=True) as psql:
+        print(query,file=psql.stdin)
