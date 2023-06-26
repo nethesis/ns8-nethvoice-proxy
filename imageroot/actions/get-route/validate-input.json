@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "get-route input",
+  "$id": "http://schema.nethserver.org/nethvoice-proxy/get-route-input.json",
+  "description": "Retrieve a VoIP route",
+  "examples": [
+    {
+      "domain": "ns8.test"
+    }
+  ],
+  "type": "object",
+  "required": ["domain"],
+  "properties": {
+    "domain": {
+      "type": "string",
+      "title": "SIP domain",
+      "format": "idn-hostname",
+      "minLength": 1,
+      "examples": ["ns8.test"]
+    }
+  }
+}

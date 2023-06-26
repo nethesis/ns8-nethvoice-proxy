@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "remove-route input",
+  "$id": "http://schema.nethserver.org/nethvoice-proxy/remove-route-input.json",
+  "description": "Remove a VoIP route",
+  "examples": [
+    {
+      "domain": "voice.nethserver.org",
+      "address": ["sip:127.0.0.1:5080", "sip:127.0.0.1:5081"]
+    },
+    {
+      "domain": "voice.nethserver.org"
+    }
+  ],
+  "type": "object",
+  "required": ["domain"],
+  "additionalProperties": false,
+  "properties": {
+    "domain": {
+      "type": "string",
+      "title": "SIP domain",
+      "format": "idn-hostname",
+      "minLength": 1,
+      "examples": ["voice.nethserver.org"]
+    },
+    "address": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["uri", "description"],
+        "properties": {
+          "uri": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "title": "Description of the destination, can be used for store the NethVoice module ID/UUID"
+          }
+        }
+      },
+      "title": "Backend Asterisk",
+      "description": "A list of Asterisk URI."
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "get-route output",
+  "$id": "http://schema.nethserver.org/nethvoice-proxy/add-route-output.json",
+  "description": "Retrieve a Voip route",
+  "examples": [
+    {
+      "address": ["sip:127.0.0.1:5080", "sip:127.0.0.1:5081"]
+    }
+  ],
+  "type": "object",
+  "oneOf": [
+    {
+      "required": ["address"],
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["uri", "description"],
+            "properties": {
+              "uri": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "type": "string",
+                "title": "Description of the destination, can be used for store the NethVoice module ID/UUID"
+              }
+            }
+          },
+          "title": "Backend Asterisk",
+          "description": "A list of Asterisk URI."
+        }
+      }
+    },
+    {
+      "additionalProperties": false,
+      "properties": {}
+    }
+  ]
+}
