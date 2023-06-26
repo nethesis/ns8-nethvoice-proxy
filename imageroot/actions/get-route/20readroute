@@ -8,20 +8,25 @@
 import json
 import sys
 import os
-import agent
+import subprocess
 # Try to parse the stdin as JSON.
 # If parsing fails, output everything to stderr
 data = json.load(sys.stdin)
 
-agent_id = os.getenv("AGENT_ID", "")
-if not agent_id:
-    raise Exception("AGENT_ID not found inside the environemnt")
-
-# Connect to redis
-rdb = agent.redis_connect(privileged=True)
-
-#FIXME this is only a mockup
 route = {}
-if rdb.exists(f'{agent_id}/routers/{data["domain"]}'):
-    route["address"] = [ { "uri": uri, "description": description}  for uri, description in rdb.hgetall(f'{agent_id}/routers/{data["domain"]}').items()]
+
+# Chek if a domain is registred
+with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
+        print(f'SELECT COALESCE(json_agg(nethvoice_proxy_routes.*), \'[]\'::json) FROM nethvoice_proxy_routes;\n', file=psql.stdin)
+        proxy_route , _ = psql.communicate()
+        proxy_route = json.loads(proxy_route)
+
+if proxy_route:
+    with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
+        print(f'SELECT json_agg(dispatcher.*) FROM dispatcher WHERE setid=\'{proxy_route[0]["setid"]}\';\n', file=psql.stdin)
+        address, _ = psql.communicate()
+        address = json.loads(address)
+
+    route["address"] = [ { "uri": addres["destination"], "description": addres["description"] }  for addres in address ]
+
 json.dump(route, fp=sys.stdout)
