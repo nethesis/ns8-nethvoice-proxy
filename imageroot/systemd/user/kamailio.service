@@ -9,6 +9,7 @@ EnvironmentFile=%S/state/environment
 WorkingDirectory=%S/state
 Restart=always
 ExecStartPre=/bin/rm -f %t/kmalio.pid %t/kmalio.ctr-id
+ExecStartPre=-runagent install-certificates
 ExecStart=/usr/bin/podman run \
     --env=ENV \
     --env=SIP_PORT \
@@ -22,6 +23,7 @@ ExecStart=/usr/bin/podman run \
     --cgroups=no-conmon \
     --network=host \
     --replace --name=%N \
+    --volume=./kamailio-certificates:/etc/kamailio/tls:Z \
     ${NETHVOICE_PROXY_KAMAILIO_IMAGE}
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/kmalio.ctr-id -t 10
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/kmalio.ctr-id
