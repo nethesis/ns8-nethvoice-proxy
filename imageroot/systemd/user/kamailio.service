@@ -1,7 +1,7 @@
 [Unit]
 Description=Kamalio SIP Server
-Wants=postgres.service redis.service
-After=postgres.service redis.service
+Wants=postgres.service redis.service rtpengine.service
+After=postgres.service redis.service rtpengine.service
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
