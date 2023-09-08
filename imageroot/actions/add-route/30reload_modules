@@ -1,0 +1,14 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2023 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+# If the control reaches this step, reload kamailio modules.
+
+cat << EOF | podman exec -i kamailio kamcmd > /dev/null
+domain.reload
+dialplan.reload
+dispatcher.reload
+EOF

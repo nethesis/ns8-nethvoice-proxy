@@ -8,22 +8,38 @@
 import json
 import sys
 import os
-import agent
+import subprocess
 # Try to parse the stdin as JSON.
 # If parsing fails, output everything to stderr
 data = json.load(sys.stdin)
 
-agent_id = os.getenv("AGENT_ID", "")
-if not agent_id:
-    raise Exception("AGENT_ID not found inside the environemnt")
+# Chek if a domain is registred
+with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
+        print(f'SELECT COALESCE(json_agg(nethvoice_proxy_routes.*), \'[]\'::json) FROM nethvoice_proxy_routes;\n', file=psql.stdin)
+        proxy_route , _ = psql.communicate()
+        proxy_route = json.loads(proxy_route)
 
-# Connect to redis
-rdb = agent.redis_connect(privileged=True)
+if proxy_route:
+    # Remove all the selected address from the route
+    if "address" in data:
+        address_list = ','.join(['\'{}\''.format(addres["uri"]) for addres in data["address"]])
+        with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-qU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, text=True) as psql:
+            print(f'DELETE FROM dispatcher WHERE destination IN ({address_list}) AND setid = {proxy_route[0]["setid"]};\n', file=psql.stdin)
 
-#FIXME this is only a mockup
-if "address"  in data:
-    for addres in data["address"]:
-        rdb.hdel(f'{agent_id}/routers/{data["domain"]}', addres["uri"])
+    # Get the length of the address list
+    with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
+        print(f'WITH address AS (SELECT COUNT(*) FROM dispatcher WHERE setid={proxy_route[0]["setid"]}) SELECT JSON_AGG(address.*) FROM address;\n', file=psql.stdin)
+        address, _ = psql.communicate()
+        address = json.loads(address)
 
-if rdb.hlen(f'{agent_id}/routers/{data["domain"]}') == 0 or "address" not in data:
-    rdb.delete(f'{agent_id}/routers/{data["domain"]}')
+    # If the list is empty or the address list is not given, delete the route
+    if address[0]["count"] == 0 or "address" not in data:
+        query = (
+                f'DELETE FROM nethvoice_proxy_routes WHERE domain=\'{data["domain"]}\' AND setid={proxy_route[0]["setid"]};\n'
+                f'DELETE FROM domain WHERE domain=\'{data["domain"]}\' AND did=\'{data["domain"]}\';\n'
+                f'DELETE FROM dialplan WHERE match_exp=\'{data["domain"]}\' AND repl_exp=\'{proxy_route[0]["setid"]}\' AND attrs=\'{proxy_route[0]["setid"]}\';\n'
+                f'DELETE FROM dispatcher WHERE setid={proxy_route[0]["setid"]};\n'
+                )
+        # Remove the route
+        with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-qU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, text=True) as psql:
+            print(query,file=psql.stdin)
