@@ -12,7 +12,6 @@ ExecStartPre=/bin/rm -f %t/kmalio.pid %t/kmalio.ctr-id
 ExecStartPre=-runagent install-certificates
 ExecStart=/usr/bin/podman run \
     --env=ENV \
-    --env=SIP_PORT \
     --env=PUBLIC_IP \
     --env='POSTGRES_*' \
     --env='REDIS_*' \
