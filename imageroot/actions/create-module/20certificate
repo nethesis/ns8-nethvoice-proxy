@@ -1,0 +1,32 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2023 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+#
+# Generate a self-signed certificate that includes the current machine FQDN
+# and all machine IPs
+#
+
+set -e
+
+# Redirect any output to the journal (stderr)
+exec 1>&2
+
+NAME="selfsigned"
+FQDN="host-$(printf %05d ${RANDOM}).ns8.test"
+addresses=''
+
+# Do not override existing certs
+if [ -e $NAME.pem ]; then
+    exit 0
+fi
+
+for ip in $(ip -json addr show | jq -r '.[].addr_info | .[].local')
+do
+    addresses="$addresses,IP:$ip"
+done
+
+openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes -keyout - -out - -subj "/CN=$FQDN"  -addext "subjectAltName=DNS:localhost,DNS:$FQDN$addresses" > selfsigned.pem
