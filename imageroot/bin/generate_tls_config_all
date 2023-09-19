@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -e
+
+for DOMAIN in $(find kamailio-certificates/ -name "server.key" -exec dirname {} \; | xargs -I{} basename {}); do
+    generate_tls_config ${DOMAIN}
+done

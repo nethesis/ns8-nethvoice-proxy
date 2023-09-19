@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2023 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import sys
+import agent
+import os
+import subprocess
+
+# Try to parse the stdin as JSON.
+# If parsing fails, output everything to stderr
+data = json.load(sys.stdin)
+
+# create an emty directory for the certificate
+path = "kamailio-certificates/" + data["domain"]
+if not os.path.exists(path):
+    os.mkdir(path)
+
+#Try to import the certificate if is not present
+if os.path.exists(os.path.join('./kamailio-certificates', data["domain"], 'server.key')) is False:
+    subprocess.call(['runagent', 'install-certificates'])
+
+#Write the tls configuration if certificare is present
+if os.path.exists(os.path.join('./kamailio-certificates', data["domain"], 'server.key')):
+    subprocess.call(['runagent', 'generate_tls_config', f'{data["domain"]}'])
+
+response = agent.tasks.run(
+    agent_id=agent.resolve_agent_id('traefik@node'),
+    action='set-certificate',
+    data={'fqdn': data["domain"]},
+)
+# Check if traefik configuration has been successfull
+agent.assert_exp(response['exit_code'] == 0)

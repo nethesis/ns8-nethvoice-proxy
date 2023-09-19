@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2023 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import sys
+import agent
+import os
+# Try to parse the stdin as JSON.
+# If parsing fails, output everything to stderr
+data = json.load(sys.stdin)
+
+#Cleanup certificate configuration
+if os.path.exists(os.path.join('./kamailio-certificates', f'{data["domain"]}.cfg')):
+    os.remove(os.path.join('./kamailio-certificates', f'{data["domain"]}.cfg'))
+
+#Remove certificate and key files
+if os.path.exists(os.path.join('./kamailio-certificates', data["domain"], 'server.key')):
+    os.remove(os.path.join('./kamailio-certificates', data["domain"], 'server.key'))
+
+if os.path.exists(os.path.join('./kamailio-certificates', data["domain"], 'server.pem')):
+    os.remove(os.path.join('./kamailio-certificates', data["domain"], 'server.pem'))
+
+if os.path.exists(os.path.join('./kamailio-certificates', data["domain"])):
+    os.rmdir(os.path.join('./kamailio-certificates', data["domain"]))
+
+response = agent.tasks.run(
+    agent_id=agent.resolve_agent_id('traefik@node'),
+    action='delete-certificate',
+    data={'fqdn': data["domain"]},
+)
+# Check if traefik configuration has been successfull
+agent.assert_exp(response['exit_code'] == 0)

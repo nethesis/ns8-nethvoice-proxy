@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -e
+
+# Override redis-exec "privileged=True"
+export REDIS_USER=default
+
+mtraefik=$(redis-exec GET "node/${NODE_ID}/default_instance/traefik")
+
+for DOMAIN in $(find kamailio-certificates -type d -maxdepth 1 -mindepth 1 -exec basename {} \;); do
+    redis-exec HGET "module/${mtraefik}/certificate/${DOMAIN}" key | base64 -d > kamailio-certificates/${DOMAIN}/server.key
+    redis-exec HGET "module/${mtraefik}/certificate/${DOMAIN}" cert | base64 -d > kamailio-certificates/${DOMAIN}/server.pem
+done

@@ -5,11 +5,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
-# If the control reaches this step, reload kamailio modules.
-
+# If the control reaches this step, reload kamailio tls module.
 cat << EOF | podman exec -i kamailio kamcmd > /dev/null
 tls.reload
-domain.reload
-dialplan.reload
-dispatcher.reload
 EOF
