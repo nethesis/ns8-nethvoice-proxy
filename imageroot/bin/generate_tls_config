@@ -6,27 +6,23 @@
 #
 
 import sys
+import configparser
 
 if len(sys.argv) != 2:
     print("Usage: generate_tls_config <domain>")
     sys.exit(1)
 
 domain = sys.argv[1]
+config = configparser.ConfigParser()
 
-config_data = {
-    'server:any': {
+config['server:any'] = {
         'method': 'TLSv1+',
         'verify_certificate': 'yes',
         'require_certificate': 'yes',
         'server_name': f"{domain}",
         'private_key': f"/etc/kamailio/tls/{domain}/server.key",
         'certificate': f"/etc/kamailio/tls/{domain}/server.pem",
-    },
-}
+        }
 
 with open(f"./kamailio-certificates/{domain}.cfg", 'w') as config_file:
-    for section, options in config_data.items():
-        config_file.write(f"[{section}]\n")
-        for key, value in options.items():
-            config_file.write(f"{key} = {value}\n")
-        config_file.write("\n")
+    config.write(config_file)
