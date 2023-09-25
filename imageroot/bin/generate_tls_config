@@ -18,7 +18,6 @@ config = configparser.ConfigParser()
 config['server:any'] = {
         'method': 'TLSv1+',
         'verify_certificate': 'yes',
-        'require_certificate': 'yes',
         'server_name': f"{domain}",
         'private_key': f"/etc/kamailio/tls/{domain}/server.key",
         'certificate': f"/etc/kamailio/tls/{domain}/server.pem",
