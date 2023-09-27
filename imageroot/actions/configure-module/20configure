@@ -7,5 +7,15 @@
 
 import json
 import sys
+import agent
 
-request = json.load(sys.stdin)
+data = json.load(sys.stdin)
+
+if "addresses" in data:
+    addresses_kml = []
+    addresses_rtp = []
+    for address in data["addresses"]:
+        addresses_kml.append(address["address"])
+        addresses_rtp.append(address["address"] if "pubblic_address" not in address else f'{address["address"]}!{address["pubblic_address"]}')
+    agent.set_env("KML_INTERNAL_NETWORK", "|".join(addresses_kml if addresses_kml != [] else ["127.0.0.1"]))
+    agent.set_env("PUBLIC_IP", ";".join(addresses_rtp if addresses_rtp != [] else ["127.0.0.1"]))
