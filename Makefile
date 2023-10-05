@@ -47,6 +47,17 @@ run-all:
 	sleep 10
 	podman run -d --name kamailio --env-file=.env --network=host ghcr.io/nethesis/nethvoice-proxy-kamailio:latest
 
+run-kamailio-dev:
+	podman stop kamailio || exit 0
+	podman rm kamailio || exit 0
+	podman run -d --name kamailio --env-file=.env --network=host \
+		-v ~/.config/state/selfsigned.pem:/etc/kamailio/cert.pem:z \
+		-v ~/.config/state/kamailio-certificates:/etc/kamailio/tls:Z \
+		-v ./modules/kamailio/config/kamailio.cfg:/etc/kamailio/kamailio.cfg:z \
+		-v ./modules/kamailio/config/template.kamailio-local.cfg:/etc/kamailio/template.kamailio-local.cfg:z \
+		-v ~/.config/state/kamailio-certificates/:/etc/kamailio/tls/:z \
+		ghcr.io/nethesis/nethvoice-proxy-kamailio:latest
+
 log:
 	podman logs -f --tail=20 kamailio redis rtpengine postgres
 
