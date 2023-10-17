@@ -55,7 +55,6 @@ run-kamailio-dev:
 		-v ~/.config/state/kamailio-certificates:/etc/kamailio/tls:Z \
 		-v ./modules/kamailio/config/kamailio.cfg:/etc/kamailio/kamailio.cfg:z \
 		-v ./modules/kamailio/config/template.kamailio-local.cfg:/etc/kamailio/template.kamailio-local.cfg:z \
-		-v ~/.config/state/kamailio-certificates/:/etc/kamailio/tls/:z \
 		ghcr.io/nethesis/nethvoice-proxy-kamailio:latest
 
 log:
