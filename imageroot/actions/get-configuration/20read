@@ -7,7 +7,18 @@
 
 import json
 import sys
+import agent
+import os
 
 config = {}
+addresses = []
+
+if "!" in os.environ["PUBLIC_IP"]:
+    address_tmp = os.environ["PUBLIC_IP"].split("!")
+    addresses = {'address': address_tmp[0], 'pubblic_address': address_tmp[1]}
+else:
+    addresses =  {'address': os.environ["PUBLIC_IP"]}
+
+config["addresses"] = addresses
 
 json.dump(config, fp=sys.stdout)
