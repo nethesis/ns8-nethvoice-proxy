@@ -7,5 +7,12 @@
 
 import json
 import sys
+import agent
 
-request = json.load(sys.stdin)
+data = json.load(sys.stdin)
+
+if "addresses" in data:
+    address = data["addresses"]
+    agent.set_env("KML_INTERNAL_NETWORK",address["address"])
+    agent.set_env("PUBLIC_IP", address["address"] if "pubblic_address" not in address else f'{address["address"]}!{address["pubblic_address"]}')
+    agent.set_env("DEFAULT_CONTACT", address["address"] + ":5060" if "pubblic_address" not in address else address["pubblic_address"] + ":5060")
