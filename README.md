@@ -27,6 +27,7 @@ end
 sip>SIP Connections]-- Standard SIP ports --> Kamailio
 rtp>RTP Flows]-- 10000-20000 --> RTPengine
 ```
+
 ## Install
 
 Instantiate the module with:
@@ -38,6 +39,21 @@ Output example:
 
     {"module_id": "nethvoice-proxy1", "image_name": "nethvoice-proxy", "image_url": "ghcr.io/nethesis/nethvoice-proxy:latest"}
 
+## Configure
+
+Let's assume that the nethvoice-proxy instance is named `nethvoice-proxy1`.
+
+Launch `configure-module`, by setting the following parameters:
+
+- `addresses`: configure the IP where the proxy will receive SIP and RTP connections/streams.
+  - `address`: IPv4/IPv6 address that is aspected to receive VoIP traffic, **mandatory**.
+  - `pubblic_address`: public IPV4/IPV6 address that is aspected to receive
+    VoIP traffic, in case of NAT.
+
+Example:
+
+    api-cli run module/nethvoice-proxy1/configure-module --data '{{"addresses": { "address": "192.168.1.1", "pubblic_address": "1.2.3.4" }}}'
+
 ## Uninstall
 
 To uninstall the instance:
@@ -47,7 +63,6 @@ To uninstall the instance:
 ## Testing
 
 Test the module using the `test-module.sh` script:
-
 
     ./test-module.sh <NODE_ADDR> ghcr.io/nethesis/nethvoice-proxy:latest
 
