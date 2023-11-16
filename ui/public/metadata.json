@@ -12,7 +12,8 @@
   ],
   "docs": {
     "documentation_url": "https://github.com/nethesis/ns8-nethvoice-proxy",
-    "code_url": "https://github.com/nethesis/ns8-nethvoice-proxy"
+    "code_url": "https://github.com/nethesis/ns8-nethvoice-proxy",
+    "bug_url": "https://github.com/nethesis/dev"
  },
   "source": "ghcr.io/nethesis/nethvoice-proxy"
 }
