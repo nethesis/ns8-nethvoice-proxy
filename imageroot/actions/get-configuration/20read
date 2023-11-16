@@ -15,7 +15,7 @@ addresses = []
 
 if "!" in os.environ["PUBLIC_IP"]:
     address_tmp = os.environ["PUBLIC_IP"].split("!")
-    addresses = {'address': address_tmp[0], 'pubblic_address': address_tmp[1]}
+    addresses = {'address': address_tmp[0], 'public_address': address_tmp[1]}
 else:
     addresses =  {'address': os.environ["PUBLIC_IP"]}
 
