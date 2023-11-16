@@ -32,15 +32,6 @@
               :helperText="$t('settings.address_helper')"
               ref="address"
             ></cv-text-input>
-            <cv-text-input
-              :label="$t('settings.public_address') + ' (' + $t('common.optional') + ')'"
-              v-model="public_address"
-              :placeholder="$t('settings.public_address')"
-              :disabled="loading.getConfiguration || loading.configureModule"
-              :invalid-message="error.public_address"
-              :helperText="$t('settings.public_address_helper')"
-              ref="public_address"
-            ></cv-text-input>
             <cv-row v-if="error.configureModule">
               <cv-column>
                 <NsInlineNotification
