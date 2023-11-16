@@ -23,14 +23,23 @@
       <cv-column>
         <cv-tile light>
           <cv-form @submit.prevent="configureModule">
-            <!-- TODO remove test field and code configuration fields -->
             <cv-text-input
-              :label="$t('settings.test_field')"
-              v-model="testField"
-              :placeholder="$t('settings.test_field')"
+              :label="$t('settings.address')"
+              v-model="address"
+              :placeholder="$t('settings.address')"
               :disabled="loading.getConfiguration || loading.configureModule"
-              :invalid-message="error.testField"
-              ref="testField"
+              :invalid-message="error.address"
+              :helperText="$t('settings.address_helper')"
+              ref="address"
+            ></cv-text-input>
+            <cv-text-input
+              :label="$t('settings.public_address') + ' (' + $t('common.optional') + ')'"
+              v-model="public_address"
+              :placeholder="$t('settings.public_address')"
+              :disabled="loading.getConfiguration || loading.configureModule"
+              :invalid-message="error.public_address"
+              :helperText="$t('settings.public_address_helper')"
+              ref="public_address"
             ></cv-text-input>
             <cv-row v-if="error.configureModule">
               <cv-column>
@@ -85,7 +94,8 @@ export default {
         page: "settings",
       },
       urlCheckInterval: null,
-      testField: "", // TODO remove
+      address: "",
+      public_address: "",
       loading: {
         getConfiguration: false,
         configureModule: false,
@@ -93,7 +103,8 @@ export default {
       error: {
         getConfiguration: "",
         configureModule: "",
-        testField: "", // TODO remove
+        address: "",
+        public_address: "",
       },
     };
   },
@@ -160,39 +171,44 @@ export default {
       this.loading.getConfiguration = false;
       const config = taskResult.output;
 
-      // TODO set configuration fields
-      // ...
+      // set configuration fields
+      this.address = config.addresses.address;
+      this.public_address = config.addresses.public_address;
 
-      // TODO remove
-      console.log("config", config);
-
-      // TODO focus first configuration field
-      this.focusElement("testField");
+      // focus first configuration field
+      this.focusElement("address");
     },
     validateConfigureModule() {
       this.clearErrors(this);
       let isValidationOk = true;
 
-      // TODO remove testField and validate configuration fields
-      if (!this.testField) {
-        // test field cannot be empty
-        this.error.testField = this.$t("common.required");
+      // validate configuration fields
+      if (!this.address) {
+        // field cannot be empty
+        this.error.address = this.$t("common.required");
 
         if (isValidationOk) {
-          this.focusElement("testField");
+          this.focusElement("address");
           isValidationOk = false;
         }
       }
       return isValidationOk;
     },
+    getValidationErrorField(validationError) {
+      // error field could be "parameters.fieldName", let's take "fieldName" only
+      const fieldTokens = validationError.field.split(".");
+      return fieldTokens[fieldTokens.length - 1];
+    },
     configureModuleValidationFailed(validationErrors) {
       this.loading.configureModule = false;
 
       for (const validationError of validationErrors) {
-        const param = validationError.parameter;
+        let field = this.getValidationErrorField(validationError);
 
-        // set i18n error message
-        this.error[param] = this.$t("settings." + validationError.error);
+        if (field !== "(root)") {
+          // set i18n error message
+          this.error[field] = this.$t("settings." + validationError.error);
+        }
       }
     },
     async configureModule() {
@@ -223,12 +239,22 @@ export default {
         this.configureModuleCompleted
       );
 
+      // build data payload
+      let dataPayload = {
+        addresses: {
+          address: this.address,
+        },
+      };
+
+      // check if public_address exists
+      if (this.public_address && this.public_address.length > 0) {
+        dataPayload.addresses.public_address = this.public_address;
+      }
+
       const res = await to(
         this.createModuleTaskForApp(this.instanceName, {
           action: taskAction,
-          data: {
-            // TODO configuration fields
-          },
+          data: dataPayload,
           extra: {
             title: this.$t("settings.configure_instance", {
               instance: this.instanceName,

@@ -52,7 +52,7 @@ Launch `configure-module`, by setting the following parameters:
 
 Example:
 
-    api-cli run module/nethvoice-proxy1/configure-module --data '{{"addresses": { "address": "192.168.1.1", "public_address": "1.2.3.4" }}}'
+    api-cli run module/nethvoice-proxy1/configure-module --data '{"addresses": { "address": "192.168.1.1", "public_address": "1.2.3.4" }}'
 
 ## Uninstall
 

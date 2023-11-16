@@ -2,7 +2,8 @@
   "common": {
     "required": "Required",
     "work_in_progress": "Work in progress",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "optional": "Optional"
   },
   "status": {
     "title": "Status",
@@ -24,7 +25,11 @@
     "title": "Settings",
     "configure_instance": "Configure {instance}",
     "save": "Save",
-    "test_field": "Test field"
+    "address": "IP Address",
+    "address_helper": "IPv4/IPv6 address expected to receive VoIP traffic",
+    "public_address": "Public IP address",
+    "public_address_helper": "Public IPV4/IPV6 address expected to receive VoIP traffic, in case of NAT",
+    "addresses_format": "Must be in IPv4 or IPv6 format"
   },
   "about": {
     "title": "About"

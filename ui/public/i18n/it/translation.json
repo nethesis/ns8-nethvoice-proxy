@@ -2,7 +2,8 @@
     "common": {
         "required": "Obbligatorio",
         "processing": "Elaborazione in corso...",
-        "work_in_progress": "In lavorazione"
+        "work_in_progress": "In lavorazione",
+        "optional": "Opzionale"
     },
     "status": {
         "node": "Nodo",
@@ -24,7 +25,11 @@
         "save": "Salva",
         "title": "Impostazioni",
         "configure_instance": "Configura {instance}",
-        "test_field": "Campo di test"
+        "address": "Indirizzo IP",
+        "address_helper": "Indirizzo IPv4/IPv6 che riceverà il traffico VoIP",
+        "public_address": "Indirizzo IP pubblico",
+        "public_address_helper": "Indirizzo IPV4/IPV6 pubblico che riceverà il traffico VoIP, in caso di NAT",
+        "addresses_format": "Deve essere nel formato IPv4 o IPv6"
     },
     "error": {
         "error": "Errore",
