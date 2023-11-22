@@ -45,7 +45,11 @@ run-all:
 	podman run -d --name rtpengine --env-file=.env --network=host ghcr.io/nethesis/nethvoice-proxy-rtpengine:latest
 	echo ":: sleeping 10 seconds for postgres to start before starting kamailio"
 	sleep 10
-	podman run -d --name kamailio --env-file=.env --network=host ghcr.io/nethesis/nethvoice-proxy-kamailio:latest
+	podman run -d --name kamailio --env-file=.env --network=host \
+		-v ~/.config/state/selfsigned.pem:/etc/kamailio/cert.pem:z \
+		-v ~/.config/state/kamailio-certificates:/etc/kamailio/tls:Z \
+		ghcr.io/nethesis/nethvoice-proxy-kamailio:latest
+
 
 run-kamailio-dev:
 	podman stop kamailio || exit 0
