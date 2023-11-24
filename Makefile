@@ -10,6 +10,7 @@ init:
 	@runagent -c python3 ./scripts/ns8_setenv.py KML_INTERNAL_NETWORK
 
 run-all:
+	systemctl --user stop postgres kamailio rtpengine redis
 	runagent bash -c 'podman run -d --name postgres -p 127.0.0.1:$$POSTGRES_PORT:5432 --env-file ~/.config/state/environment --volume=pgdata:/var/lib/postgresql/data ghcr.io/nethesis/nethvoice-proxy-postgres:latest'
 	runagent bash -c 'podman run -d --name redis --publish=127.0.0.1:$$REDIS_PORT:6379 --env-file ~/.config/state/environment ghcr.io/nethesis/nethvoice-proxy-redis:latest'
 	podman run -d --name rtpengine --env-file ~/.config/state/environment --network=host ghcr.io/nethesis/nethvoice-proxy-rtpengine:latest
