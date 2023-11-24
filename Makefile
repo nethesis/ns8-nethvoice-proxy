@@ -2,9 +2,6 @@ default:
 	cat Makefile
 
 init:
-	mkdir -p ~/pgdata
-	chmod 777 ~/pgdata
-
 	@read -p "Insert value for per ENV (DEV|PROD): " ENV; \
 	read -p "Insert value for PUBLIC_IP: " PUBLIC_IP; \
 	read -p "Insert value for SIP_PORT: " SIP_PORT; \
@@ -40,7 +37,7 @@ init:
 	echo "Configuration file write successfully."
 
 run-all:
-	runagent bash -c 'podman run -d --name postgres -p 127.0.0.1:$$POSTGRES_PORT:5432 --env-file ~/.config/state/environment -v ~/pgdata:/var/lib/postgresql/data:z ghcr.io/nethesis/nethvoice-proxy-postgres:latest'
+	runagent bash -c 'podman run -d --name postgres -p 127.0.0.1:$$POSTGRES_PORT:5432 --env-file ~/.config/state/environment --volume=pgdata:/var/lib/postgresql/data ghcr.io/nethesis/nethvoice-proxy-postgres:latest'
 	runagent bash -c 'podman run -d --name redis --publish=127.0.0.1:$$REDIS_PORT:6379 --env-file ~/.config/state/environment ghcr.io/nethesis/nethvoice-proxy-redis:latest'
 	podman run -d --name rtpengine --env-file ~/.config/state/environment --network=host ghcr.io/nethesis/nethvoice-proxy-rtpengine:latest
 	echo ":: sleeping 10 seconds for postgres to start before starting kamailio"
