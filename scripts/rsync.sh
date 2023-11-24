@@ -5,7 +5,7 @@ then
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
         cd ..
-        watch -n1 "rsync --exclude '.git' --exclude '.vscode' --exclude '.env' -raz --delete $(pwd)/ $1://home/$2/ns8-nethvoice-proxy/"
+        watch -n1 "rsync --exclude '.git' --exclude '.vscode' --exclude '.env' -raz --chown $2:$2 --delete $(pwd)/ $1://home/$2/ns8-nethvoice-proxy/"
     fi
 else
     echo "Usage: ./rsync.sh <ssh-login-to-server-to-sync> <moduleid> (e.g. ./rsync.sh root@192.168.1.1 nethvoice-proxy2)"
