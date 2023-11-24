@@ -40,12 +40,12 @@ init:
 	echo "Configuration file write successfully."
 
 run-all:
-	podman run -d --name postgres -p 127.0.0.1:5432:5432 --env-file=.env -v ~/pgdata:/var/lib/postgresql/data:z ghcr.io/nethesis/nethvoice-proxy-postgres:latest
-	podman run -d --name redis --env-file=.env --network host ghcr.io/nethesis/nethvoice-proxy-redis:latest --port 6380
-	podman run -d --name rtpengine --env-file=.env --network=host ghcr.io/nethesis/nethvoice-proxy-rtpengine:latest
+	runagent bash -c 'podman run -d --name postgres -p 127.0.0.1:$$POSTGRES_PORT:5432 --env-file ~/.config/state/environment -v ~/pgdata:/var/lib/postgresql/data:z ghcr.io/nethesis/nethvoice-proxy-postgres:latest'
+	runagent bash -c 'podman run -d --name redis --publish=127.0.0.1:$$REDIS_PORT:6379 --env-file ~/.config/state/environment ghcr.io/nethesis/nethvoice-proxy-redis:latest'
+	podman run -d --name rtpengine --env-file ~/.config/state/environment --network=host ghcr.io/nethesis/nethvoice-proxy-rtpengine:latest
 	echo ":: sleeping 10 seconds for postgres to start before starting kamailio"
 	sleep 10
-	podman run -d --name kamailio --env-file=.env --network=host \
+	podman run -d --name kamailio --env-file ~/.config/state/environment --network=host \
 		-v ~/.config/state/selfsigned.pem:/etc/kamailio/cert.pem:z \
 		-v ~/.config/state/kamailio-certificates:/etc/kamailio/tls:Z \
 		ghcr.io/nethesis/nethvoice-proxy-kamailio:latest
@@ -54,7 +54,7 @@ run-all:
 run-kamailio-dev:
 	podman stop kamailio || exit 0
 	podman rm kamailio || exit 0
-	podman run -d --name kamailio --env-file=.env --network=host \
+	podman run -d --name kamailio --env-file ~/.config/state/environment --network=host \
 		-v ~/.config/state/selfsigned.pem:/etc/kamailio/cert.pem:z \
 		-v ~/.config/state/kamailio-certificates:/etc/kamailio/tls:Z \
 		-v ./modules/kamailio/config/kamailio.cfg:/etc/kamailio/kamailio.cfg:z \
