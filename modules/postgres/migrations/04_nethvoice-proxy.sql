@@ -1,6 +1,9 @@
+CREATE TYPE route_type_e AS ENUM ('domain', 'trunk');
+
 CREATE TABLE public.nethvoice_proxy_routes (
     id integer NOT NULL,
-    domain character varying(64) NOT NULL,
+    target character varying(64) NOT NULL,
+    route_type route_type_e NOT NULL,
     setid integer NOT NULL
 );
 
