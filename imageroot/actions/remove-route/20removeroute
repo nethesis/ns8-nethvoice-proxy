@@ -15,7 +15,7 @@ data = json.load(sys.stdin)
 
 # Chek if a domain is registred
 with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
-        print(f'SELECT COALESCE(json_agg(nethvoice_proxy_routes.*), \'[]\'::json) FROM nethvoice_proxy_routes WHERE domain=\'{data["domain"]}\';\n', file=psql.stdin)
+        print(f'SELECT COALESCE(json_agg(nethvoice_proxy_routes.*), \'[]\'::json) FROM nethvoice_proxy_routes WHERE target=\'{data["domain"]}\' AND route_type=\'domain\';\n', file=psql.stdin)
         proxy_route , _ = psql.communicate()
         proxy_route = json.loads(proxy_route)
 
@@ -35,7 +35,7 @@ if proxy_route:
     # If the list is empty or the address list is not given, delete the route
     if address[0]["count"] == 0 or "address" not in data:
         query = (
-                f'DELETE FROM nethvoice_proxy_routes WHERE domain=\'{data["domain"]}\' AND setid={proxy_route[0]["setid"]};\n'
+                f'DELETE FROM nethvoice_proxy_routes WHERE target=\'{data["domain"]}\' AND setid={proxy_route[0]["setid"]} AND route_type=\'domain\';\n'
                 f'DELETE FROM domain WHERE domain=\'{data["domain"]}\' AND did=\'{data["domain"]}\';\n'
                 f'DELETE FROM dialplan WHERE match_exp=\'{data["domain"]}\' AND repl_exp=\'{proxy_route[0]["setid"]}\' AND attrs=\'{proxy_route[0]["setid"]}\';\n'
                 f'DELETE FROM dispatcher WHERE setid={proxy_route[0]["setid"]};\n'
