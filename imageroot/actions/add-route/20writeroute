@@ -18,14 +18,14 @@ query = ""
 
 # Chek if a domain is registred
 with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
-        print(f'SELECT COALESCE(json_agg(nethvoice_proxy_routes.*), \'[]\'::json) FROM nethvoice_proxy_routes WHERE domain=\'{data["domain"]}\';\n', file=psql.stdin)
+        print(f'SELECT COALESCE(json_agg(nethvoice_proxy_routes.*), \'[]\'::json) FROM nethvoice_proxy_routes WHERE target=\'{data["domain"]}\' AND route_type=\'domain\';\n', file=psql.stdin)
         proxy_route , _ = psql.communicate()
         proxy_route = json.loads(proxy_route)
 
 if not proxy_route:
     # Add domain into nethvoice_proxy_routes table if not already exists
     with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
-        print(f'WITH proxy_route AS (INSERT INTO nethvoice_proxy_routes (domain) VALUES (\'{data["domain"]}\') RETURNING *) SELECT JSON_AGG(proxy_route.*) from proxy_route;\n', file=psql.stdin)
+        print(f'WITH proxy_route AS (INSERT INTO nethvoice_proxy_routes (target, route_type) VALUES (\'{data["domain"]}\', \'domain\') RETURNING *) SELECT JSON_AGG(proxy_route.*) from proxy_route;\n', file=psql.stdin)
         proxy_route, _ = psql.communicate()
         proxy_route = json.loads(proxy_route)
 
