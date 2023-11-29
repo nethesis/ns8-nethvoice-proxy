@@ -57,6 +57,14 @@ Get list of routes
     ${list_len} =  Get Length    ${response}
     Should Be Equal As Numbers    2    ${list_len}
 
+Get info about a route
+    ${response} =  Run task    module/${module_id}/get-route
+    ...    {"domain":"ns8.test"}
+    Should Be Equal    ${response}    ${{ {"address":[{"uri":"sip:127.0.0.1:5080","description":"module1"}]} }}
+    ${response} =  Run task    module/${module_id}/get-route
+    ...    {"domain":"ns8.test1"}
+    Should Be Equal    ${response}    ${{ {"address":[{"uri":"sip:127.0.0.1:5081","description":"module2"}]} }}
+
 List of routes should be empty
     Run task    module/${module_id}/remove-route
     ...    {"domain":"ns8.test"}
