@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "get-trunk input",
+  "$id": "http://schema.nethserver.org/nethvoice-proxy/get-trunk-input.json",
+  "description": "Retrieve a trunk",
+  "examples": [
+    {
+      "rule": "05551594XX"
+    }
+  ],
+  "type": "object",
+  "required": ["rule"],
+  "properties": {
+    "rule": {
+      "type": "string",
+      "title": "pattern matching rule",
+      "minLength": 1,
+      "examples": ["05551594XX"]
+    }
+  }
+}
