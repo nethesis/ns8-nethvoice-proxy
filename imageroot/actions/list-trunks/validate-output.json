@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "list-trunks output",
+  "$id": "http://schema.nethserver.org/nethvoice-proxy/list-trunks-output.json",
+  "description": "Retrieve a list of trunk",
+  "examples": [
+    [
+      {
+        "rule": "05551594XX",
+        "destination": {
+          "uri": "sip:127.0.0.1:5080",
+          "description": " module1"
+        }
+      },
+      {
+        "rule": "05551595XX",
+        "destination": {
+          "uri": "sip:127.0.0.1:5081",
+          "description": " module2"
+        }
+      }
+    ],
+    []
+  ],
+  "type": "array",
+  "anyOf": [
+    {
+      "additionalItems": false,
+      "items": {
+        "type": "object",
+        "required": ["rule", "destination"],
+        "additionalProperties": false,
+        "properties": {
+          "rule": {
+            "type": "string",
+            "minLength": 1
+          },
+          "destination": {
+            "type": "object",
+            "required": ["uri", "description"],
+            "title": "Backend Asterisk",
+            "additionalProperties": false,
+            "properties": {
+              "uri": {
+                "type": "string",
+                "minLength": 1
+              },
+              "description": {
+                "type": "string",
+                "title": "Description of the destination, can be used for store the NethVoice module ID/UUID",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "maxItems": 0
+    }
+  ]
+}
