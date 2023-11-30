@@ -6,7 +6,7 @@ ENV REFRESHED_AT 2023-03-25
 ENV TZ="Europe/Rome"
 
 ENV DEBIAN_FRONTEND="noninteractive"
-ENV KAMAILIO_VERSION="5.6.4"
+ENV KAMAILIO_VERSION="5.6.5"
 
 RUN rm -rf /var/lib/apt/lists/* && apt-get update && apt-get install --assume-yes gnupg wget
 RUN echo "deb http://deb.kamailio.org/kamailio56 focal main" > /etc/apt/sources.list.d/kamailio.list
