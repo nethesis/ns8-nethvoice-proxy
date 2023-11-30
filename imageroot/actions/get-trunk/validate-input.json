@@ -9,7 +9,7 @@
     }
   ],
   "type": "object",
-  "required": ["rule", "destination"],
+  "required": ["rule"],
   "properties": {
     "rule": {
       "type": "string",
