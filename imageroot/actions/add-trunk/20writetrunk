@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2022 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import sys
+import os
+import subprocess
+# Try to parse the stdin as JSON.
+# If parsing fails, output everything to stderr
+data = json.load(sys.stdin)
+
+# Prepare the query with the new route configuration
+query = ""
+
+# Chek if a trunk is registred
+with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
+        print(f'SELECT COALESCE(json_agg(nethvoice_proxy_routes.*), \'[]\'::json) FROM nethvoice_proxy_routes WHERE target=\'{data["rule"]}\' AND route_type=\'trunk\';\n', file=psql.stdin)
+        proxy_route , _ = psql.communicate()
+        proxy_route = json.loads(proxy_route)
+
+if not proxy_route:
+    # Add trunk route into nethvoice_proxy_routes table if not already exists
+    with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
+        print(f'WITH proxy_route AS (INSERT INTO nethvoice_proxy_routes (target, route_type) VALUES (\'{data["rule"]}\', \'trunk\') RETURNING *) SELECT JSON_AGG(proxy_route.*) from proxy_route;\n', file=psql.stdin)
+        proxy_route, _ = psql.communicate()
+        proxy_route = json.loads(proxy_route)
+
+        # Create dialplan for the rule
+        query += (
+                f'INSERT INTO dialplan (dpid, pr, match_op, match_exp, match_len, subst_exp, repl_exp, attrs) VALUES (2,1,1,\'sip:{data["rule"]}.*@.*\',0,\'(.*)\',{proxy_route[0]["setid"]},{proxy_route[0]["setid"]});\n'
+                  )
+
+# Add trunk route into dispatcher table
+query += (
+        f'DELETE FROM dispatcher WHERE setid={proxy_route[0]["setid"]};\n'
+        f'INSERT INTO dispatcher (setid,  destination, description) VALUES ({proxy_route[0]["setid"]},\'{data["destination"]["uri"]}\',\'{data["destination"]["description"]}\');\n'
+        )
+
+# Write the route
+with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-qU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, text=True) as psql:
+        print(query,file=psql.stdin)
