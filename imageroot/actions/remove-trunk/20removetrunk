@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2022 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import sys
+import os
+import subprocess
+# Try to parse the stdin as JSON.
+# If parsing fails, output everything to stderr
+data = json.load(sys.stdin)
+
+# Chek if a trunk is registred
+with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
+    print(f'SELECT COALESCE(json_agg(nethvoice_proxy_routes.*), \'[]\'::json) FROM nethvoice_proxy_routes WHERE target=\'{data["rule"]}\' AND route_type=\'trunk\';\n', file=psql.stdin)
+    proxy_route , _ = psql.communicate()
+    proxy_route = json.loads(proxy_route)
+
+if proxy_route:
+    query = (
+            f'DELETE FROM nethvoice_proxy_routes WHERE target=\'{data["rule"]}\' AND setid={proxy_route[0]["setid"]} AND route_type=\'trunk\';\n'
+            f'DELETE FROM dialplan WHERE match_exp=\'{data["rule"]}\' AND repl_exp=\'{proxy_route[0]["setid"]}\' AND attrs=\'{proxy_route[0]["setid"]}\';\n'
+            f'DELETE FROM dispatcher WHERE setid={proxy_route[0]["setid"]};\n'
+            )
+    # Remove the route
+    with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-qU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, text=True) as psql:
+            print(query,file=psql.stdin)
