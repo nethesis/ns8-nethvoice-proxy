@@ -10,7 +10,6 @@ WorkingDirectory=%S/state
 Restart=always
 ExecStartPre=/bin/rm -f %t/kmalio.pid %t/kmalio.ctr-id
 ExecStartPre=-runagent install-certificates
-ExecStartPre=runagent generate_tls_config_all
 ExecStart=/usr/bin/podman run \
     --env=ENV \
     --env=PUBLIC_IP \
