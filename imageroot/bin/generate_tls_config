@@ -15,13 +15,12 @@ if len(sys.argv) != 2:
 domain = sys.argv[1]
 config = configparser.ConfigParser()
 
-config['server:any'] = {
+config['server:default'] = {
         'method': 'TLSv1+',
-        'verify_certificate': 'yes',
         'server_name': f"{domain}",
-        'private_key': f"/etc/kamailio/tls/{domain}/server.key",
-        'certificate': f"/etc/kamailio/tls/{domain}/server.pem",
+        'private_key': f"/etc/kamailio/tls/cert_files/{domain}.key",
+        'certificate': f"/etc/kamailio/tls/cert_files/{domain}.crt",
         }
 
-with open(f"./kamailio-certificates/{domain}.cfg", 'w') as config_file:
+with open(f"./kamailio-certificate/{domain}.cfg", 'w') as config_file:
     config.write(config_file)

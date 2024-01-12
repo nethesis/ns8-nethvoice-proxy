@@ -23,8 +23,7 @@ ExecStart=/usr/bin/podman run \
     --cgroups=no-conmon \
     --network=host \
     --replace --name=%N \
-    --volume=./kamailio-certificates:/etc/kamailio/tls:Z \
-    --volume=./selfsigned.pem:/etc/kamailio/cert.pem:z \
+    --volume=./kamailio-certificate:/etc/kamailio/tls:Z \
     ${NETHVOICE_PROXY_KAMAILIO_IMAGE}
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/kmalio.ctr-id -t 10
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/kmalio.ctr-id

@@ -7,6 +7,7 @@
 import os
 import agent
 import uuid
+import random
 
 module_id = os.environ["MODULE_ID"]
 tcp_ports = os.environ["TCP_PORTS"].split(',')
@@ -27,3 +28,4 @@ agent.set_env('RTP_PORT_MIN', '10000')
 agent.set_env('RTP_PORT_MAX', '20000')
 agent.set_env('PUBLIC_IP', '127.0.0.1')
 agent.set_env('DEFAULT_CONTACT', '127.0.0.1:5060')
+agent.set_env('KML_DEFAULT_FQDN', str(random.randint(0, 32767)).zfill(5) + '.ns8.test')
