@@ -18,6 +18,12 @@
   ],
   "type": "object",
   "properties": {
+    "fqdn": {
+      "title": "FQDN of the proxy",
+      "type": "string",
+      "format": "hostname",
+      "minLength": 1
+    },
     "addresses": {
       "title": "Address that are aspected to receive VoIP traffic",
         "type": "object",
