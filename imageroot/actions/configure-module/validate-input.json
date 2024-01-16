@@ -4,12 +4,14 @@
   "$id": "http://schema.nethserver.org/nethvoice-proxy/configure-module-input.json",
   "description": "Configure nethvoice-proxy",
   "examples": [
-    { "addresses": {} },
-    { "addresses": { "address": "1.2.3.4" } },
+    { "fqdn": "porxy.example.com", "addresses": {} },
+    { "fqdn": "porxy.example.com", "addresses": { "address": "1.2.3.4" } },
     {
+      "fqdn": "porxy.example.com",
       "addresses": { "address": "192.168.1.1", "public_address": "1.2.3.4" }
     },
     {
+      "fqdn": "porxy.example.com",
       "addresses": {
         "address": "2001:db8:3333:4444:5555:6666:7777:8888",
         "public_address": "2001:db8:3333:4444:CCCC:DDDD:EEEE:FFFF"
@@ -18,6 +20,12 @@
   ],
   "type": "object",
   "properties": {
+    "fqdn": {
+      "title": "FQDN of the proxy",
+      "type": "string",
+      "format": "hostname",
+      "minLength": 1
+    },
     "addresses": {
       "title": "Addresses that are expected to receive VoIP traffic",
       "type": "object",

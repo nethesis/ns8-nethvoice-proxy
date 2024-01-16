@@ -8,6 +8,8 @@
 import json
 import sys
 import agent
+import subprocess
+import os
 
 data = json.load(sys.stdin)
 
@@ -16,3 +18,23 @@ if "addresses" in data:
     agent.set_env("KML_INTERNAL_NETWORK",address["address"])
     agent.set_env("PUBLIC_IP", address["address"] if "public_address" not in address else f'{address["address"]}!{address["public_address"]}')
     agent.set_env("DEFAULT_CONTACT", address["address"] + ":5060" if "public_address" not in address else address["public_address"] + ":5060")
+
+if "fqdn" in data:
+    # Check if previous fqdn is different from new one
+    if os.environ["KML_DEFAULT_FQDN"] != data["fqdn"]:
+        # Delete previous certificate
+        response = agent.tasks.run(
+            agent_id=agent.resolve_agent_id('traefik@node'),
+            action='delete-certificate',
+            data={'fqdn': os.environ["KML_DEFAULT_FQDN"]},
+        )
+
+    # Set new fqdn
+    agent.set_env("KML_DEFAULT_FQDN", data["fqdn"])
+
+    # Request new certificate
+    response = agent.tasks.run(
+        agent_id=agent.resolve_agent_id('traefik@node'),
+        action='set-certificate',
+        data={'fqdn': data["fqdn"]},
+    )
