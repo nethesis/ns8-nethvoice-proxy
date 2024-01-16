@@ -56,3 +56,10 @@ Add an IPv6 address behind NAT
     ${response} =  Run task    module/${module_id}/list-service-providers
     ...    {"service": "sip", "transport": "udp", "filter": {"module_id": "${module_id}"} }
     Should Be Equal    ${response[0]['host']}    2001:db8:3333:4444:5555:6666:7777:8888
+
+Set FQDN to a valid value
+    Run task    module/${module_id}/configure-module
+    ...    {"fqdn": "example.com"}
+    ${response} =  Run task    module/${module_id}/get-configuration
+    ...    {}
+    Should Be Equal   ${response["fqdn"]}    example.com
