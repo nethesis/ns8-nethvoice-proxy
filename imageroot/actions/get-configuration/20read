@@ -21,4 +21,6 @@ else:
 
 config["addresses"] = addresses
 
+config["fqdn"] = os.environ["KML_DEFAULT_FQDN"]
+
 json.dump(config, fp=sys.stdout)
