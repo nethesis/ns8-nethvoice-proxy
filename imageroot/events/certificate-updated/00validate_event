@@ -12,10 +12,10 @@ import os
 
 event = json.load(sys.stdin)
 
-kamailio_certs_path = "kamailio-certificates"
+if str(event['node']) != os.environ['NODE_ID']:
+    print(agent.SD_DEBUG + "Event ignored: source is another node")
+    sys.exit(2)
 
-domains_list = [f.name for f in os.scandir(kamailio_certs_path) if f.is_dir()]
-
-if event['domain']['main'] not in domains_list:
+if event['domain']['main'] != os.environ["KML_DEFAULT_FQDN"]:
     print(agent.SD_DEBUG + "Event ignored: domain not used")
     sys.exit(3)
