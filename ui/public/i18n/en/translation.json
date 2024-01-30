@@ -25,6 +25,8 @@
     "title": "Settings",
     "configure_instance": "Configure {instance}",
     "save": "Save",
+    "fqdn": "Proxy domain",
+    "fqdn_helper": "FQDN of the instance. Must be a valid domain name",
     "address": "IP Address",
     "address_helper": "IPv4/IPv6 address expected to receive VoIP traffic",
     "public_address": "Public IP address",

@@ -24,6 +24,15 @@
         <cv-tile light>
           <cv-form @submit.prevent="configureModule">
             <cv-text-input
+              :label="$t('settings.fqdn')"
+              v-model="fqdn"
+              :placeholder="$t('settings.fqdn')"
+              :disabled="loading.getConfiguration || loading.configureModule"
+              :invalid-message="error.address"
+              :helperText="$t('settings.fqdn_helper')"
+              ref="fqdn"
+            ></cv-text-input>
+            <cv-text-input
               :label="$t('settings.address')"
               v-model="address"
               :placeholder="$t('settings.address')"
@@ -85,6 +94,7 @@ export default {
         page: "settings",
       },
       urlCheckInterval: null,
+      fqdn: "",
       address: "",
       public_address: "",
       loading: {
@@ -94,6 +104,7 @@ export default {
       error: {
         getConfiguration: "",
         configureModule: "",
+	fqdn: "",
         address: "",
         public_address: "",
       },
@@ -163,6 +174,7 @@ export default {
       const config = taskResult.output;
 
       // set configuration fields
+      this.fqdn = config.fqdn;
       this.address = config.addresses.address;
       this.public_address = config.addresses.public_address;
 
@@ -232,6 +244,7 @@ export default {
 
       // build data payload
       let dataPayload = {
+	fqdn: this.fqdn,
         addresses: {
           address: this.address,
         },
