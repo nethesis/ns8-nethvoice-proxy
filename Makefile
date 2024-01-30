@@ -17,8 +17,7 @@ run-all:
 	echo ":: sleeping 10 seconds for postgres to start before starting kamailio"
 	sleep 10
 	podman run -d --name kamailio --env-file ~/.config/state/environment --network=host \
-		-v ~/.config/state/selfsigned.pem:/etc/kamailio/cert.pem:z \
-		-v ~/.config/state/kamailio-certificates:/etc/kamailio/tls:Z \
+		-v ~/.config/state/kamailio-certificate:/etc/kamailio/tls:Z \
 		ghcr.io/nethesis/nethvoice-proxy-kamailio:latest
 
 
@@ -26,8 +25,7 @@ run-kamailio-dev:
 	podman stop kamailio || exit 0
 	podman rm kamailio || exit 0
 	podman run -d --name kamailio --env-file ~/.config/state/environment --network=host \
-		-v ~/.config/state/selfsigned.pem:/etc/kamailio/cert.pem:z \
-		-v ~/.config/state/kamailio-certificates:/etc/kamailio/tls:Z \
+		-v ~/.config/state/kamailio-certificate:/etc/kamailio/tls:Z \
 		-v ./modules/kamailio/config/kamailio.cfg:/etc/kamailio/kamailio.cfg:z \
 		-v ./modules/kamailio/config/template.kamailio-local.cfg:/etc/kamailio/template.kamailio-local.cfg:z \
 		ghcr.io/nethesis/nethvoice-proxy-kamailio:latest
