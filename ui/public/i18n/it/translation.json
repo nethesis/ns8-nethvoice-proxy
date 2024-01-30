@@ -25,6 +25,7 @@
         "save": "Salva",
         "title": "Impostazioni",
         "configure_instance": "Configura {instance}",
+	"fqdn": "FQDN del'istanza. Deve essere un nome di dominio valido",
         "address": "Indirizzo IP",
         "address_helper": "Indirizzo IPv4/IPv6 che riceverà il traffico VoIP",
         "public_address": "Indirizzo IP pubblico",
