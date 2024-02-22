@@ -14,19 +14,29 @@ Add a new route
 
 Add a new addres to an existing route
     Run task    module/${module_id}/add-route
-    ...    {"domain":"ns8.test", "address":[{"uri":"sip:127.0.0.1:5081","description":"module2"}]}
+    ...    {"domain":"ns8.test", "address":[{"uri":"sip:127.0.0.1:5080","description":"module1"},{"uri":"sip:127.0.0.1:5081","description":"module2"}]}
     ${response} =  Run task    module/${module_id}/get-route
     ...    {"domain":"ns8.test"}
+    Length Should Be    ${response["address"]}    2
     Should Contain    ${response["address"]}    ${{ {"uri":"sip:127.0.0.1:5080","description":"module1"} }}
     Should Contain    ${response["address"]}    ${{ {"uri":"sip:127.0.0.1:5081","description":"module2"} }}
 
 Remove an addres from an existing route
-    Run task    module/${module_id}/remove-route
-    ...    {"domain":"ns8.test", "address":[{"uri":"sip:127.0.0.1:5081","description":"module2"}]}
+    Run task    module/${module_id}/add-route
+    ...    {"domain":"ns8.test", "address":[{"uri":"sip:127.0.0.1:5080","description":"module1"}]}
     ${response} =  Run task    module/${module_id}/get-route
     ...    {"domain":"ns8.test"}
+    Length Should Be    ${response["address"]}    1
     Should Contain    ${response["address"]}    ${{ {"uri":"sip:127.0.0.1:5080","description":"module1"} }}
     Should Not Contain    ${response["address"]}    ${{ {"uri":"sip:127.0.0.1:5081","description":"module2"} }}
+
+Ovveride an existing route
+     Run task    module/${module_id}/add-route
+    ...    {"domain":"ns8.test", "address":[{"uri":"sip:127.0.0.1:5082","description":"module3"}]}
+    ${response} =  Run task    module/${module_id}/get-route
+    ...    {"domain":"ns8.test"}
+    Length Should Be    ${response["address"]}    1
+    Should Contain    ${response["address"]}    ${{ {"uri":"sip:127.0.0.1:5082","description":"module3"} }}
 
 Remove a route
     Run task    module/${module_id}/remove-route
@@ -35,27 +45,13 @@ Remove a route
     ...    {"domain":"ns8.test"}
     Should Be Empty    ${response}
 
-Remove all address from a route
-    Run task    module/${module_id}/add-route
-    ...    {"domain":"ns8.test2", "address":[{"uri":"sip:127.0.0.1:5080","description":"module1"}]}
-    Run task    module/${module_id}/add-route
-    ...    {"domain":"ns8.test2", "address":[{"uri":"sip:127.0.0.1:5081","description":"module2"}]}
-    Run task    module/${module_id}/remove-route
-    ...    {"domain":"ns8.test2", "address":[{"uri":"sip:127.0.0.1:5080","description":"module1"}]}
-    Run task    module/${module_id}/remove-route
-    ...    {"domain":"ns8.test2", "address":[{"uri":"sip:127.0.0.1:5081","description":"module2"}]}
-    ${response} =  Run task    module/${module_id}/get-route
-    ...    {"domain":"ns8.test2"}
-    Should Be Empty    ${response}
-
 Get list of routes
     Run task    module/${module_id}/add-route
     ...    {"domain":"ns8.test", "address":[{"uri":"sip:127.0.0.1:5080","description":"module1"}]}
     Run task    module/${module_id}/add-route
     ...    {"domain":"ns8.test1", "address":[{"uri":"sip:127.0.0.1:5081","description":"module2"}]}
     ${response} =  Run task    module/${module_id}/list-routes    {}
-    ${list_len} =  Get Length    ${response}
-    Should Be Equal As Numbers    2    ${list_len}
+    Length Should Be     ${response}    2
 
 Get info about a route
     ${response} =  Run task    module/${module_id}/get-route
