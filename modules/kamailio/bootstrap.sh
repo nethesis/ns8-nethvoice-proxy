@@ -37,11 +37,11 @@ if [ "${BEHIND_NAT}" == "true" ]; then
     echo "listen=tls:${PRIVATE_IP}:${TLS_PORT} advertise ${PUBLIC_IP}:${TLS_PORT}" >> /tmp/kamailio-local-additional.cfg
 else
     # now I have to add the listen with the public IP in the kamailio-local-additional.cfg
-    echo "listen=udp:${PUBLIC_IP}:${SIP_PORT}" > /etc/kamailio/kamailio-local-additional.cfg
+    echo "listen=udp:${PUBLIC_IP}:${SIP_PORT}" > /tmp/kamailio-local-additional.cfg
     # doind the same for TCP
-    echo "listen=tcp:${PUBLIC_IP}:${SIP_PORT}" >> /etc/kamailio/kamailio-local-additional.cfg
+    echo "listen=tcp:${PUBLIC_IP}:${SIP_PORT}" >> /tmp/kamailio-local-additional.cfg
     # doing the same for TLS
-    echo "listen=tls:${PUBLIC_IP}:${TLS_PORT}" >> /etc/kamailio/kamailio-local-additional.cfg
+    echo "listen=tls:${PUBLIC_IP}:${TLS_PORT}" >> /tmp/kamailio-local-additional.cfg
 fi
 
 # if SERVICE_IP not set exit with error
