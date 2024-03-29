@@ -42,6 +42,21 @@
           "title": "Public address that is expected to receive VoIP traffic, in case of NAT",
           "type": "string",
           "anyOf": [{ "format": "ipv4" }, { "format": "ipv6" }]
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "required": true,
+            "address": {
+              "title": "Address of the service interface",
+              "type": "string",
+              "format": "ipv4"
+            },
+            "netmask": {
+              "title": "Netmask of the service network",
+              "type": "string"
+            }
+          }
         }
       }
     }
