@@ -48,8 +48,8 @@ Launch `configure-module`, by setting the following parameters:
 - `fqdn`: name of Let's Encrypt certificate to use for Secure SIP connections, the phones must be
    configured to use this domain name as server SIP.
 - `addresses`: configure the IP where the proxy will receive SIP and RTP connections/streams.
-  - `address`: IPv4/IPv6 address that is expected to receive VoIP traffic, **mandatory**.
-  - `public_address`: public IPV4/IPV6 address that is expected to receive
+  - `address`: IPv4 address that is expected to receive VoIP traffic, **mandatory**.
+  - `public_address`: public IPV4 address that is expected to receive
     VoIP traffic, in case of NAT.
 
 Example:

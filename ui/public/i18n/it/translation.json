@@ -28,10 +28,10 @@
 	"fqdn": "Dominio proxy",
 	"fqdn_helper": "FQDN dell'istanza. Deve essere un nome di dominio valido",
         "address": "Indirizzo IP",
-        "address_helper": "Indirizzo IPv4/IPv6 che riceverà il traffico VoIP",
+        "address_helper": "Indirizzo IPv4che riceverà il traffico VoIP",
         "public_address": "Indirizzo IP pubblico",
-        "public_address_helper": "Indirizzo IPV4/IPV6 pubblico che riceverà il traffico VoIP, in caso di NAT",
-        "addresses_format": "Deve essere nel formato IPv4 o IPv6"
+        "public_address_helper": "Indirizzo IPV4 pubblico che riceverà il traffico VoIP, in caso di NAT",
+        "addresses_format": "Deve essere nel formato IPv4"
     },
     "error": {
         "error": "Errore",
