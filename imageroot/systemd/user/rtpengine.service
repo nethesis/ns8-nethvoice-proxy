@@ -11,6 +11,9 @@ ExecStart=/usr/bin/podman run \
     --detach \
     --env 'RTP_*' \
     --env=PUBLIC_IP \
+    --env=PRIVATE_IP \
+    --env=SERVICE_IP \
+    --env=BEHIND_NAT \
     --conmon-pidfile=%t/rtpengine.pid \
     --cidfile=%t/rtpengine.ctr-id \
     --cgroups=no-conmon \

@@ -13,10 +13,14 @@ ExecStartPre=-runagent install-certificates
 ExecStart=/usr/bin/podman run \
     --env=ENV \
     --env=PUBLIC_IP \
+    --env=PRIVATE_IP \
     --env=DEFAULT_CONTACT \
     --env='POSTGRES_*' \
     --env='REDIS_*' \
     --env='KML_*' \
+    --env=SERVICE_IP \
+    --env=SERVICE_NET \
+    --env=BEHIND_NAT \
     --detach \
     --conmon-pidfile=%t/kmalio.pid \
     --cidfile=%t/kmalio.ctr-id \
