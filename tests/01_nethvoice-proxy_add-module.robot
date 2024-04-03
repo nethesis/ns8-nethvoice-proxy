@@ -11,7 +11,7 @@ Check if nethvoice-proxy is installed correctly
     Set Global Variable    ${module_id}    ${output.module_id}
     ${response} =  Run task    module/${module_id}/list-service-providers
     ...    {"service": "sip", "transport": "tcp", "filter": {"module_id": "${module_id}"}}
-    Should Be Equal    ${response[0]['host']}    127.0.0.1
+    Should Be Equal    ${response[0]['host']}    ${service_ip}
     ${response} =  Run task    module/${module_id}/list-service-providers
     ...    {"service": "sip", "transport": "udp", "filter": {"module_id": "${module_id}"} }
-    Should Be Equal    ${response[0]['host']}    127.0.0.1
+    Should Be Equal    ${response[0]['host']}    ${service_ip}
