@@ -9,9 +9,10 @@ Check if nethvoice-proxy is installed correctly
     Should Be Equal As Integers    ${rc}  0
     &{output} =    Evaluate    ${output}
     Set Global Variable    ${module_id}    ${output.module_id}
+    ${service_ip} =    Execute Command    ip -j addr show dev wg0 | jq -r .[].addr_info[].local
     ${response} =  Run task    module/${module_id}/list-service-providers
     ...    {"service": "sip", "transport": "tcp", "filter": {"module_id": "${module_id}"}}
-    Should Be Equal    ${response[0]['host']}    127.0.0.1
+    Should Be Equal    ${response[0]['host']}    ${service_ip}
     ${response} =  Run task    module/${module_id}/list-service-providers
     ...    {"service": "sip", "transport": "udp", "filter": {"module_id": "${module_id}"} }
-    Should Be Equal    ${response[0]['host']}    127.0.0.1
+    Should Be Equal    ${response[0]['host']}    ${service_ip}
