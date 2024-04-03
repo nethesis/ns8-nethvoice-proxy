@@ -35,13 +35,12 @@
         "address": {
           "title": "Address that is expected to receive VoIP traffic",
           "type": "string",
-          "format": "ip-address",
-          "anyOf": [{ "format": "ipv4" }, { "format": "ipv6" }]
+          "format": "ipv4"
         },
         "public_address": {
           "title": "Public address that is expected to receive VoIP traffic, in case of NAT",
           "type": "string",
-          "anyOf": [{ "format": "ipv4" }, { "format": "ipv6" }]
+          "format": "ipv4"
         }
       }
     }
