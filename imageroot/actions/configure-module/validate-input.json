@@ -43,6 +43,22 @@
           "format": "ipv4"
         }
       }
+    },
+    "service_network": {
+      "type": "object",
+      "required": ["address", "netmask"],
+      "properties": {
+        "required": true,
+        "address": {
+          "title": "Address of the service interface",
+          "type": "string",
+          "format": "ipv4"
+        },
+        "netmask": {
+          "title": "Netmask of the service network",
+          "type": "string"
+        }
+      }
     }
   }
 }
