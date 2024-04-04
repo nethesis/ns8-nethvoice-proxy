@@ -11,16 +11,26 @@ import agent
 import os
 
 config = {}
-addresses = []
+addresses = {}
 
-if "!" in os.environ["PUBLIC_IP"]:
-    address_tmp = os.environ["PUBLIC_IP"].split("!")
-    addresses = {'address': address_tmp[0], 'public_address': address_tmp[1]}
+if os.environ["BEHIND_NAT"] ==  "true":
+    addresses = {
+            'address':os.environ['PRIVATE_IP'],
+            'public_address': os.environ['PUBLIC_IP'],
+            }
 else:
-    addresses =  {'address': os.environ["PUBLIC_IP"]}
+        addresses = { 'address': os.environ['PUBLIC_IP'], }
+
+
+service_network = {
+        'address': os.environ["SERVICE_IP"],
+        'netmask': os.environ["SERVICE_NET"],
+        }
 
 config["addresses"] = addresses
 
 config["fqdn"] = os.environ["KML_DEFAULT_FQDN"]
+
+config["service_network"] = service_network
 
 json.dump(config, fp=sys.stdout)
