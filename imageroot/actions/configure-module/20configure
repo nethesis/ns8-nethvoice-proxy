@@ -14,10 +14,27 @@ import os
 data = json.load(sys.stdin)
 
 if "addresses" in data:
+
     address = data["addresses"]
-    agent.set_env("KML_INTERNAL_NETWORK",address["address"])
-    agent.set_env("PUBLIC_IP", address["address"] if "public_address" not in address else f'{address["address"]}!{address["public_address"]}')
+
+    # Set public and private IP
+    if "public_address" not in address:
+        # if there's no public address, the proxy is not behind NAT
+        agent.set_env("PUBLIC_IP", address["address"])
+        agent.set_env("PRIVATE_IP", "")
+        agent.set_env("BEHIND_NAT", "false")
+    else:
+        # if there's a public address, the proxy is behind NAT
+        agent.set_env("PUBLIC_IP", address["public_address"])
+        agent.set_env("PRIVATE_IP", address["address"])
+        agent.set_env("BEHIND_NAT", "true")
+
     agent.set_env("DEFAULT_CONTACT", address["address"] + ":5060" if "public_address" not in address else address["public_address"] + ":5060")
+
+if "service_net" in data:
+    service = data["service_net"]
+    agent.set_env("SERVICE_IP", service["address"])
+    agent.set_env("SERVICE_NET", service["netmask"])
 
 if "fqdn" in data:
     # Check if previous fqdn is different from new one

@@ -11,8 +11,13 @@ import json
 node_id = os.environ['NODE_ID']
 agent_id = os.environ['AGENT_ID']
 module_uuid = os.environ['MODULE_UUID']
-proxy_addr = os.environ["KML_INTERNAL_NETWORK"]
+proxy_addr = os.environ["SERVICE_IP"]
+private_addr = os.environ["PRIVATE_IP"]
+public_addr = os.environ["PUBLIC_IP"]
 proxy_fqdn = os.environ["KML_DEFAULT_FQDN"]
+beind_nat = os.environ["BEHIND_NAT"]
+
+address = private_addr if beind_nat == "true" else public_addr
 
 # Create srv records in Redis for service discovery
 with agent.redis_connect(privileged=True) as prdb:
@@ -22,6 +27,8 @@ with agent.redis_connect(privileged=True) as prdb:
     trx.delete(ksip_tcp).hset(ksip_tcp, mapping={
         "port": "5060",
         "host": proxy_addr,
+        "address": address,
+        "public_address": public_addr,
         "fqdn": proxy_fqdn,
         "node": node_id,
         "module_uuid": module_uuid,
@@ -31,6 +38,8 @@ with agent.redis_connect(privileged=True) as prdb:
     trx.delete(ksip_udp).hset(ksip_udp, mapping={
         "port": "5060",
         "host": proxy_addr,
+        "address": address,
+        "public_address": public_addr,
         "fqdn": proxy_fqdn,
         "node": node_id,
         "module_uuid": module_uuid,
