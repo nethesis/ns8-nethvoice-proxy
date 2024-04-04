@@ -26,21 +26,37 @@
     },
     "addresses": {
       "title": "Address that are aspected to receive VoIP traffic",
-        "type": "object",
-        "required": ["address"],
-        "additionalProperties": false,
-        "properties": {
-          "address": {
-            "title": "Address that is aspected to receive VoIP traffic",
-            "type": "string",
-            "format": "ipv4"
-          },
-          "public_address": {
-            "title": "Pubblic address that is aspected to receive VoIP traffic, in case of NAT",
-            "type": "string",
-            "format": "ipv4"
-          }
+      "type": "object",
+      "required": ["address"],
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "title": "Address that is aspected to receive VoIP traffic",
+          "type": "string",
+          "format": "ipv4"
+        },
+        "public_address": {
+          "title": "Pubblic address that is aspected to receive VoIP traffic, in case of NAT",
+          "type": "string",
+          "format": "ipv4"
         }
+      }
+    },
+    "service_network": {
+      "type": "object",
+      "required": ["address", "netmask"],
+      "properties": {
+        "required": true,
+        "address": {
+          "title": "Address of the service interface",
+          "type": "string",
+          "format": "ipv4"
+        },
+        "netmask": {
+          "title": "Netmask of the service network",
+          "type": "string"
+        }
+      }
     }
   }
 }
