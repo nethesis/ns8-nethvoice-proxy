@@ -44,6 +44,7 @@
     },
     "service_network": {
       "type": "object",
+      "required": ["address", "netmask"],
       "properties": {
         "required": true,
         "address": {
