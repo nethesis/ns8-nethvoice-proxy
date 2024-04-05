@@ -23,7 +23,7 @@ else:
 
 
 service_network = {
-        'adress': os.environ["SERVICE_IP"],
+        'address': os.environ["SERVICE_IP"],
         'netmask': os.environ["SERVICE_NET"],
         }
 
