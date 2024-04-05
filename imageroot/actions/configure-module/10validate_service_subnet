@@ -26,7 +26,7 @@ data = json.load(sys.stdin)
 
 if "service_network" in data:
     try:
-        ipaddress.IPv4Network(data["service_network"]["subnet"])
+        ipaddress.IPv4Network(data["service_network"]["nethmask"])
     except ValueError:
         agent.set_status('validation-failed')
         json.dump([{'field':'service_network.address','parameter':'service_netmask','value': data["service_network"]["netmask"],'error':'service_network_netmask_is_not_valid'}], fp=sys.stdout)
