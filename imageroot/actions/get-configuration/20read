@@ -24,7 +24,7 @@ else:
 
 service_network = {
         'adress': os.environ["SERVICE_IP"],
-        'nethmask': os.environ["SERVICE_NET"],
+        'netmask': os.environ["SERVICE_NET"],
         }
 
 config["addresses"] = addresses
