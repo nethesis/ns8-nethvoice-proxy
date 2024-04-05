@@ -8,6 +8,7 @@
 import json
 import sys
 import ipaddress
+import os
 import agent
 
 agent.set_weight(os.path.basename(__file__), 0) # Validation step, no task progress at all
