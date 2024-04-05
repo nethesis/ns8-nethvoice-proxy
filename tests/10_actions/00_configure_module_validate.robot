@@ -34,4 +34,4 @@ Service network's address and nethmask must be valid
     ${response} =  Run task    module/${module_id}/configure-module
     ...    {"addresses": {"address": "127.0.0.1"}, "service_network": {"address": "A", "nethmask": "10.5.4.0/24"}}    rc_expected=10    decode_json=False
     ${response} =  Run task    module/${module_id}/configure-module
-    ...    {"addresses": {"address": "127.0.0.1"}, "service_network": {"address": "10.5.4.1", "nethmask": "A"}}    rc_expected=2    decode_json=False
+    ...    {"addresses": {"address": "127.0.0.1"}, "service_network": {"address": "10.5.4.1", "netmask": "A"}}    rc_expected=2    decode_json=False
