@@ -31,6 +31,13 @@ run-kamailio-dev:
 		-v ./modules/kamailio/config/template.kamailio-local.cfg:/etc/kamailio/template.kamailio-local.cfg:z \
 		ghcr.io/nethesis/nethvoice-proxy-kamailio:$(TAG)
 
+run-rtpengine-dev:
+	podman stop rtpengine || exit 0
+	podman rm rtpengine || exit 0
+	podman run -d --name rtpengine --env-file ~/.config/state/environment --network=host \
+		-v ./modules/rtpengine/files/rtpengine.conf.template:/src/rtpengine.conf.template:z \
+		ghcr.io/nethesis/nethvoice-proxy-rtpengine:$(TAG)
+
 log:
 	podman logs -f --tail=20 kamailio redis rtpengine postgres
 
