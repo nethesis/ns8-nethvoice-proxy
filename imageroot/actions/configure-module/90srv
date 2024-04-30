@@ -8,7 +8,7 @@ import os
 import agent
 import json
 
-node_id = int(os.environ['NODE_ID'])
+node_id = os.environ['NODE_ID']
 agent_id = os.environ['AGENT_ID']
 module_uuid = os.environ['MODULE_UUID']
 proxy_addr = os.environ["KML_INTERNAL_NETWORK"]
@@ -23,7 +23,7 @@ with agent.redis_connect(privileged=True) as prdb:
         "port": "5060",
         "host": proxy_addr,
         "fqdn": proxy_fqdn,
-        "node": str(node_id),
+        "node": node_id,
         "module_uuid": module_uuid,
     })
 
@@ -32,7 +32,7 @@ with agent.redis_connect(privileged=True) as prdb:
         "port": "5060",
         "host": proxy_addr,
         "fqdn": proxy_fqdn,
-        "node": str(node_id),
+        "node": node_id,
         "module_uuid": module_uuid,
     })
 
