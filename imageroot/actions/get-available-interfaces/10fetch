@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2024 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+# this actction return a list of interfaces with their available addresses
+# Example of input:
+# {
+#     "excluded_interfaces": ["lo", "wg0"],
+#     "excluded_family": ["inet6"]
+# }
+
+import json
+import sys
+
+import network
+
+data = json.load(sys.stdin)
+
+excluded_interfaces_list = data.get("excluded_interfaces", [])
+excluded_families_list = data.get("excluded_families", [])
+
+interfaces = network.list_interfaces(excluded_interfaces=excluded_interfaces_list, excluded_families=excluded_families_list)
+
+json.dump({
+    "data": interfaces
+}, sys.stdout)
