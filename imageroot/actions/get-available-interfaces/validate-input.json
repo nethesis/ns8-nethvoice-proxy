@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "http://schema.nethserver.org/dnsmasq/get-available-interfaces.json",
+  "title": "Interfaces",
+  "description": "List available interfaces on the node.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "excluded_interfaces": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "excluded_families": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["inet", "inet6"]
+      }
+    }
+  }
+}
