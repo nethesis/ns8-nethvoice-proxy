@@ -11,27 +11,39 @@ repobase="ghcr.io/nethesis"
 # Configure the image name
 reponame="nethvoice-proxy-postgres"
 # Build and commit the image
-buildah bud -t "${repobase}/${reponame}" modules/postgres
+buildah bud \
+	-t "${repobase}/${reponame}" \
+	-t "${repobase}/${reponame}:${IMAGETAG:-latest}" \
+	modules/postgres
 # Append the image URL to the images array
 images+=("${repobase}/${reponame}")
 
 # Configure the image name
 reponame="nethvoice-proxy-kamailio"
 # Build and commit the image
-buildah bud -t "${repobase}/${reponame}" modules/kamailio
+buildah bud \
+	-t "${repobase}/${reponame}" \
+	-t "${repobase}/${reponame}:${IMAGETAG:-latest}" \
+	modules/kamailio
 # Append the image URL to the images array
 images+=("${repobase}/${reponame}")
 
 # Configure the image name
 reponame="nethvoice-proxy-redis"
 # Build and commit the image
-buildah bud -t "${repobase}/${reponame}" modules/redis
+buildah bud \
+	-t "${repobase}/${reponame}" \
+	-t "${repobase}/${reponame}:${IMAGETAG:-latest}" \
+	modules/redis
 # Append the image URL to the images array
 images+=("${repobase}/${reponame}")
 
 # Configure the image name
 reponame="nethvoice-proxy-rtpengine"
-buildah bud -t "${repobase}/${reponame}" modules/rtpengine
+buildah bud \
+	-t "${repobase}/${reponame}" \
+	-t "${repobase}/${reponame}:${IMAGETAG:-latest}" \
+	modules/rtpengine
 # Append the image URL to the images array
 images+=("${repobase}/${reponame}")
 
@@ -69,6 +81,7 @@ buildah config --entrypoint=/ \
     "${container}"
 # Commit the image
 buildah commit "${container}" "${repobase}/${reponame}"
+buildah commit "${container}" "${repobase}/${reponame}:${IMAGETAG:-latest}"
 
 # Append the image URL to the images array
 images+=("${repobase}/${reponame}")
