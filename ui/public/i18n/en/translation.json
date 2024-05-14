@@ -32,7 +32,7 @@
     "public_address": "Public IP address",
     "public_address_helper": "Public IPV4 address expected to receive VoIP traffic, in case of NAT",
     "addresses_format": "Must be in IPv4 format",
-    "interfaces": "Network interface",
+    "interfaces": "Network interfaces",
     "interfaces_placeholder": "Select interface"
   },
   "about": {
