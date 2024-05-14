@@ -1,5 +1,5 @@
 <!--
-  Copyright (C) 2023 Nethesis S.r.l.
+  Copyright (C) 2024 Nethesis S.r.l.
   SPDX-License-Identifier: GPL-3.0-or-later
 -->
 <template>
@@ -28,19 +28,46 @@
               v-model="fqdn"
               :placeholder="$t('settings.fqdn')"
               :disabled="loading.getConfiguration || loading.configureModule"
-              :invalid-message="error.address"
+              :invalid-message="error.fqdn"
               :helperText="$t('settings.fqdn_helper')"
               ref="fqdn"
+              @input="onFqdnChange"
             ></cv-text-input>
-            <cv-text-input
-              :label="$t('settings.address')"
-              v-model="address"
-              :placeholder="$t('settings.address')"
+            <NsComboBox
+              :title="$t('settings.interfaces')"
+              :options="interfacesList"
+              :auto-highlight="true"
+              :label="$t('settings.interfaces_placeholder')"
               :disabled="loading.getConfiguration || loading.configureModule"
-              :invalid-message="error.address"
-              :helperText="$t('settings.address_helper')"
-              ref="address"
-            ></cv-text-input>
+              :invalid-message="error.interfaces"
+              :acceptUserInput="false"
+              v-model="interfaces"
+              ref="interfaces"
+            />
+            <template>
+              <div class="input-container">
+                <div class="label-and-loading">
+                  <label class="input-label">{{
+                    $t("settings.address")
+                  }}</label>
+                  <cv-loading
+                    v-if="loading.pathLoading"
+                    small
+                    class="loading-icon"
+                  />
+                </div>
+                <cv-text-input
+                  v-model="address"
+                  :placeholder="ipAddressPersonal || $t('settings.address')"
+                  :disabled="
+                    loading.getConfiguration || loading.configureModule
+                  "
+                  :invalid-message="error.address"
+                  :helperText="$t('settings.address_helper')"
+                  ref="address"
+                />
+              </div>
+            </template>
             <cv-row v-if="error.configureModule">
               <cv-column>
                 <NsInlineNotification
@@ -96,17 +123,24 @@ export default {
       urlCheckInterval: null,
       fqdn: "",
       address: "",
+      ipAddressPersonal: "",
       public_address: "",
+      interfaces: "",
       loading: {
         getConfiguration: false,
         configureModule: false,
+        interfaces: false,
+        pathLoading: false,
       },
+      interfacesList: [],
       error: {
         getConfiguration: "",
         configureModule: "",
-	fqdn: "",
+        fqdn: "",
         address: "",
+        ipAddressPersonal: "",
         public_address: "",
+        interfaces: "",
       },
     };
   },
@@ -125,6 +159,7 @@ export default {
   },
   created() {
     this.getConfiguration();
+    this.getUserInterfaces();
   },
   methods: {
     async getConfiguration() {
@@ -172,11 +207,30 @@ export default {
     getConfigurationCompleted(taskContext, taskResult) {
       this.loading.getConfiguration = false;
       const config = taskResult.output;
-
       // set configuration fields
       this.fqdn = config.fqdn;
-      this.address = config.addresses.address;
-      this.public_address = config.addresses.public_address;
+      this.interfaces = config.addresses.address;
+      this.loading.pathLoading = true;
+
+      fetch(`https://dns.google/resolve?name=${this.fqdn}`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.Answer && data.Answer.length > 0) {
+            const publicIP = data.Answer[0].data;
+            this.ipAddressPersonal = publicIP;
+
+            this.address =
+              config.addresses.public_address || this.ipAddressPersonal;
+          } else {
+            this.ipAddressPersonal = null;
+          }
+        })
+        .catch((error) => {
+          console.error("Error", error);
+        })
+        .finally(() => {
+          this.loading.pathLoading = false;
+        });
 
       // focus first configuration field
       this.focusElement("address");
@@ -185,13 +239,17 @@ export default {
       this.clearErrors(this);
       let isValidationOk = true;
 
+      if (!this.interfaces) {
+        this.error.interfaces = this.$t("common.required");
+        isValidationOk = false;
+      }
       // validate configuration fields
-      if (!this.address) {
+      if (!this.fqdn) {
         // field cannot be empty
-        this.error.address = this.$t("common.required");
+        this.error.fqdn = this.$t("common.required");
 
         if (isValidationOk) {
-          this.focusElement("address");
+          this.focusElement("fqdn");
           isValidationOk = false;
         }
       }
@@ -201,6 +259,107 @@ export default {
       // error field could be "parameters.fieldName", let's take "fieldName" only
       const fieldTokens = validationError.field.split(".");
       return fieldTokens[fieldTokens.length - 1];
+    },
+    onFqdnChange() {
+      if (this.fqdnTimeout) {
+        clearTimeout(this.fqdnTimeout);
+      }
+
+      if (this.fqdn.trim() !== "") {
+        this.loading.pathLoading = true;
+        this.fqdnTimeout = setTimeout(() => {
+          fetch(`https://dns.google/resolve?name=${this.fqdn}`)
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.Answer && data.Answer.length > 0) {
+                const publicIP = data.Answer[0].data;
+                this.ipAddressPersonal = publicIP;
+                if (
+                  this.ipAddressPersonal !== null &&
+                  (this.address === undefined ||
+                    this.address === "" ||
+                    this.address === null)
+                ) {
+                  this.address = this.ipAddressPersonal;
+                }
+              } else {
+                this.ipAddressPersonal = null;
+              }
+            })
+            .catch((error) => {
+              console.error("Error", error);
+            })
+            .finally(() => {
+              this.loading.pathLoading = false;
+            });
+        }, 1000);
+      } else {
+        this.loading.pathLoading = false;
+      }
+    },
+    async getUserInterfaces() {
+      this.loading.userInterfaces = true;
+
+      const taskAction = "get-available-interfaces";
+      const eventId = this.getUuid();
+
+      // register to task error
+      this.core.$root.$once(
+        `${taskAction}-aborted-${eventId}`,
+        this.getUserInterfacesAborted
+      );
+
+      // register to task completion
+      this.core.$root.$once(
+        `${taskAction}-completed-${eventId}`,
+        this.getUserInterfacesCompleted
+      );
+
+      const res = await to(
+        this.createModuleTaskForApp(this.instanceName, {
+          action: taskAction,
+          data: {
+            excluded_interfaces: ["lo", "wg0"],
+            excluded_families: ["inet6"],
+          },
+          extra: {
+            title: this.$t("settings.configure_instance", {
+              instance: this.instanceName,
+            }),
+            description: this.$t("common.processing"),
+            eventId,
+          },
+        })
+      );
+      const err = res[0];
+
+      if (err) {
+        console.error(`error creating task ${taskAction}`, err);
+        this.error.getConfiguration = this.getErrorMessage(err);
+        this.loading.userInterfaces = false;
+        return;
+      }
+    },
+    getUserInterfacesCompleted(taskContext, taskResult) {
+      this.interfacesList = [];
+      for (const test of taskResult.output.data) {
+        const interfacesAddress = test.addresses[0].address;
+        const label = `${test.name} - ${interfacesAddress}`;
+
+        this.interfacesList.push({
+          name: test.name,
+          label: label,
+          value: interfacesAddress,
+        });
+      }
+      this.loading.userInterfaces = false;
+      this.getConfiguration();
+    },
+    getUserInterfacesAborted(taskResult, taskContext) {
+      console.error(`${taskContext.action} aborted`, taskResult);
+      this.error.getConfiguration = this.$t("error.generic_error");
+      this.loading.userInterfaces = false;
+      this.getConfiguration();
     },
     configureModuleValidationFailed(validationErrors) {
       this.loading.configureModule = false;
@@ -244,15 +403,15 @@ export default {
 
       // build data payload
       let dataPayload = {
-	fqdn: this.fqdn,
+        fqdn: this.fqdn,
         addresses: {
-          address: this.address,
+          address: this.interfaces,
         },
       };
 
-      // check if public_address exists
-      if (this.public_address && this.public_address.length > 0) {
-        dataPayload.addresses.public_address = this.public_address;
+      // check if public_address exists and is different from local ip address
+      if (this.address && this.address !== this.interfaces) {
+        dataPayload.addresses.public_address = this.address;
       }
 
       const res = await to(
@@ -294,4 +453,17 @@ export default {
 
 <style scoped lang="scss">
 @import "../styles/carbon-utils";
+
+.input-label {
+  font-size: 12px;
+  color: #525252;
+}
+.label-and-loading {
+  display: flex;
+  align-items: center;
+}
+
+.loading-icon {
+  margin-left: 10px;
+}
 </style>
