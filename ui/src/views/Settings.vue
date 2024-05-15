@@ -323,10 +323,8 @@ export default {
             excluded_families: ["inet6"],
           },
           extra: {
-            title: this.$t("settings.configure_instance", {
-              instance: this.instanceName,
-            }),
-            description: this.$t("common.processing"),
+            title: this.$t("action." + taskAction),
+            isNotificationHidden: true,
             eventId,
           },
         })
