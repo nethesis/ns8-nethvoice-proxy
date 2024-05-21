@@ -223,6 +223,8 @@ export default {
               config.addresses.public_address || this.ipAddressPersonal;
           } else {
             this.ipAddressPersonal = null;
+            this.address =
+              config.addresses.public_address || this.ipAddressPersonal;
           }
         })
         .catch((error) => {
