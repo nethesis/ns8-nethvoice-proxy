@@ -216,9 +216,13 @@ export default {
         .then((response) => response.json())
         .then((data) => {
           if (data.Answer && data.Answer.length > 0) {
-            const publicIP = data.Answer[0].data;
-            this.ipAddressPersonal = publicIP;
-
+            for (let record of data.Answer) {
+              if (record.type === 1) {
+                const publicIP = record.data;
+                this.ipAddressPersonal = publicIP;
+                break;
+              }
+            }
             this.address =
               config.addresses.public_address || this.ipAddressPersonal;
           } else {
@@ -274,8 +278,13 @@ export default {
             .then((response) => response.json())
             .then((data) => {
               if (data.Answer && data.Answer.length > 0) {
-                const publicIP = data.Answer[0].data;
-                this.ipAddressPersonal = publicIP;
+                for (let record of data.Answer) {
+                  if (record.type === 1) {
+                    const publicIP = record.data;
+                    this.ipAddressPersonal = publicIP;
+                    break;
+                  }
+                }
                 if (
                   this.ipAddressPersonal !== null &&
                   (this.address === undefined ||
