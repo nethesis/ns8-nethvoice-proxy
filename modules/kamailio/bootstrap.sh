@@ -67,7 +67,14 @@ echo -n '$PKG_MEM is: ' ; echo "${PKG_MEM}"
 echo -n '$ENVIRONMENT is: ' ; echo "${ENVIRONMENT}"
 
 # Run kamailio
-$kamailio -f $PATH_KAMAILIO_CFG -m "${SHM_MEM}" -M "${PKG_MEM}" -DD -E -e
+if [ -f "/tmp/dev" ] || [ "${ENV}" == "dev" ]; then
+    echo "Dev mode!"
+    $kamailio -f $PATH_KAMAILIO_CFG -m "${SHM_MEM}" -M "${PKG_MEM}" -DD -E -e
+else
+    #Allow kamailio to handle SIGTERM from podman stop
+    exec $kamailio -f $PATH_KAMAILIO_CFG -m "${SHM_MEM}" -M "${PKG_MEM}" -DD -E -e
+fi
+
 while [ -f "/tmp/dev" ] || [ "${ENV}" == "dev" ]
   do
     echo "Dev mode!"
