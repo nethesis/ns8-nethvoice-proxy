@@ -2,6 +2,14 @@
 SHM_MEM=512
 PKG_MEM=64
 FILE=/bootstrap.sh
+
+# Check for subscription variables and set MAX_CALLS accordingly
+if [ -n "${SUBSCRIPTION_SYSTEMID}" ] && [ -n "${SUBSCRIPTION_SECRET}" ]; then
+    export MAX_CALLS=1000
+else
+    export MAX_CALLS=8
+fi
+
 if test -f "$FILE"; then
     echo "Link already present"
 else
@@ -24,14 +32,14 @@ touch /tmp/kamailio-local-additional.cfg
 if [ "${BEHIND_NAT}" == "true" ]; then
     # now I have to add the listen with the advertise address in the kamailio-local-additional.cfg
     echo "listen=udp:${PRIVATE_IP}:5060 advertise ${PUBLIC_IP}:5060" > /tmp/kamailio-local-additional.cfg
-    # doind the same for TCP
+    # doing the same for TCP
     echo "listen=tcp:${PRIVATE_IP}:5060 advertise ${PUBLIC_IP}:5060" >> /tmp/kamailio-local-additional.cfg
     # doing the same for TLS
     echo "listen=tls:${PRIVATE_IP}:5061 advertise ${PUBLIC_IP}:5061" >> /tmp/kamailio-local-additional.cfg
 else
     # now I have to add the listen with the public IP in the kamailio-local-additional.cfg
     echo "listen=udp:${PUBLIC_IP}:5060" > /tmp/kamailio-local-additional.cfg
-    # doind the same for TCP
+    # doing the same for TCP
     echo "listen=tcp:${PUBLIC_IP}:5060" >> /tmp/kamailio-local-additional.cfg
     # doing the same for TLS
     echo "listen=tls:${PUBLIC_IP}:5061" >> /tmp/kamailio-local-additional.cfg
@@ -47,7 +55,6 @@ fi
 echo "listen=udp:${SERVICE_IP}:5060" >> /tmp/kamailio-local-additional.cfg
 echo "listen=tcp:${SERVICE_IP}:5060" >> /tmp/kamailio-local-additional.cfg
 echo "listen=tls:${SERVICE_IP}:5061" >> /tmp/kamailio-local-additional.cfg
-
 
 # rendering the template of kamailio-local.cfg and kamailio.cfg
 envsubst < /etc/kamailio/template.kamailio-local.cfg > /tmp/kamailio-local.cfg
@@ -65,6 +72,7 @@ echo -n '$DUMP_CORE is: ' ; echo "${DUMP_CORE}"
 echo -n '$SHM_MEM is: ' ; echo "${SHM_MEM}"
 echo -n '$PKG_MEM is: ' ; echo "${PKG_MEM}"
 echo -n '$ENVIRONMENT is: ' ; echo "${ENVIRONMENT}"
+echo -n '$MAX_CALLS is: ' ; echo "${MAX_CALLS}"
 
 # Run kamailio
 if [ -f "/tmp/dev" ] || [ "${ENV}" == "dev" ]; then
