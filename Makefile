@@ -29,6 +29,7 @@ run-kamailio-dev:
 		-v ~/.config/state/kamailio-certificate:/etc/kamailio/tls:Z \
 		-v ./modules/kamailio/config/kamailio.cfg:/etc/kamailio/kamailio.cfg:z \
 		-v ./modules/kamailio/config/template.kamailio-local.cfg:/etc/kamailio/template.kamailio-local.cfg:z \
+		-v ./modules/kamailio/bootstrap.sh:/etc/kamailio/bootstrap.sh:z \
 		ghcr.io/nethesis/nethvoice-proxy-kamailio:$(TAG)
 
 run-rtpengine-dev:
