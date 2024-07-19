@@ -2,7 +2,7 @@
 
 # generating ${INTERFACE_SECTION} depending on the value of ${BEHIND_NAT}
 if [ "${BEHIND_NAT}" == "true" ]; then
-    export INTERFACE_SECTION="interface=internal/${SERVICE_IP};external/${PRIVATE_IP}!${PUBLIC_IP}"
+    export INTERFACE_SECTION="interface=local/${PRIVATE_IP};internal/${SERVICE_IP};external/${PRIVATE_IP}!${PUBLIC_IP}"
 else
     export INTERFACE_SECTION="interface=internal/${SERVICE_IP};external/${PUBLIC_IP}"
 fi
