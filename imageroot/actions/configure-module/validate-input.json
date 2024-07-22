@@ -59,6 +59,14 @@
           "type": "string"
         }
       }
+    },
+    "local_networks": {
+      "title": "Local networks",
+      "type": "array",
+      "items": {
+        "title": "Netmask of the local network",
+        "type": "string"
+      }
     }
   }
 }
