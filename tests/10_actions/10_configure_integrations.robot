@@ -11,6 +11,7 @@ Set an address
     ${response} =  Run task    module/${module_id}/get-configuration
     ...    {}
     Should Be Equal   ${response["addresses"]}    ${{ {"address": "${local_ip}"} }}
+    Should Be Empty   ${response['local_networks']}
    ${response} =  Run task    module/${module_id}/list-service-providers
     ...    {"service": "sip", "transport": "tcp", "filter": {"module_id": "${module_id}"} }
     Should Be Equal    ${response[0]['address']}    ${local_ip}
@@ -20,10 +21,12 @@ Set an address
 
 Set an address behind NAT
     Run task    module/${module_id}/configure-module
-    ...    {"addresses": {"address": "${local_ip}", "public_address": "1.2.3.4"}}
+    ...    {"addresses": {"address": "${local_ip}", "public_address": "1.2.3.4"}, "local_networks": ["10.20.30.0/24"]}
     ${response} =  Run task    module/${module_id}/get-configuration
     ...    {}
     Should Be Equal   ${response["addresses"]}    ${{ {"address": "${local_ip}", "public_address": "1.2.3.4"} }}
+    Should Contain Match   ${response['local_networks']}   ${local_network}
+    Should Contain Match   ${response['local_networks']}   10.20.30.0/24
    ${response} =  Run task    module/${module_id}/list-service-providers
     ...    {"service": "sip", "transport": "tcp", "filter": {"module_id": "${module_id}"} }
     Should Be Equal    ${response[0]['address']}    ${local_ip}
