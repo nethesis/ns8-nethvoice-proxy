@@ -43,6 +43,7 @@
               :acceptUserInput="false"
               v-model="interfaces"
               ref="interfaces"
+              @change="onInterfaceChange"
             />
             <template>
               <div class="input-container">
@@ -65,6 +66,7 @@
                   :invalid-message="error.address"
                   :helperText="$t('settings.address_helper')"
                   ref="address"
+                  @input="onInterfaceChange"
                 />
               </div>
             </template>
@@ -78,6 +80,13 @@
                 />
               </cv-column>
             </cv-row>
+            <NsInlineNotification
+              v-if="warningVisible"
+              kind="warning"
+              :title="$t('warning.warning_title_message')"
+              :description="$t('warning.different_ip_message')"
+              :showCloseButton="false"
+            />
             <NsButton
               kind="primary"
               :icon="Save20"
@@ -126,6 +135,7 @@ export default {
       ipAddressPersonal: "",
       public_address: "",
       interfaces: "",
+      warningVisible: false,
       loading: {
         getConfiguration: false,
         configureModule: false,
@@ -238,6 +248,9 @@ export default {
           this.loading.pathLoading = false;
         });
 
+      if (this.interfaces !== this.address) {
+        this.warningVisible = true;
+      }
       // focus first configuration field
       this.focusElement("address");
     },
@@ -455,6 +468,13 @@ export default {
 
       // reload configuration
       this.getConfiguration();
+    },
+    onInterfaceChange() {
+      if (this.interfaces !== this.address) {
+        this.warningVisible = true;
+      } else {
+        this.warningVisible = false;
+      }
     },
   },
 };
