@@ -3,7 +3,7 @@
   "description": {
     "en": "NethVoice proxy module"
   },
-  "categories": [],
+  "categories": ["communication", "system_administration"],
   "authors": [
     {
       "name": "Nethesis",
