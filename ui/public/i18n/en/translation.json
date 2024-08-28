@@ -62,5 +62,9 @@
     "404": "Resource not found",
     "cannot_retrieve_module_info": "Cannot retrieve module info",
     "cannot_retrieve_installed_modules": "Cannot retrieve installed modules"
+  },
+  "warning": {
+    "warning_title_message": "Warning: IP addresses don't match",
+    "different_ip_message": "In order for the devices in the PBX local network to work correctly, the 'hairpin NAT' function, also known as NAT reflection / NAT hairpining / NAT on a stick / loopback NAT, must be enabled on the firewall (more precisely on the device that manages the NAT of the public IP)."
   }
 }
