@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2024 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import sys
+import ipaddress
+import os
+import agent
+
+agent.set_weight(os.path.basename(__file__), 0) # Validation step, no task progress at all
+
+def is_cidr_format(ip_str):
+    try:
+        ipaddress.IPv4Network(ip_str)
+        return True
+    except ValueError:
+        return False
+
+# Try to parse the stdin as JSON.
+# If parsing fails, output everything to stderr
+data = json.load(sys.stdin)
+
+if "local_networks" in data:
+    local_network = ""
+    try:
+        for local_network in data["local_networks"]:
+            ipaddress.IPv4Network(local_network)
+    except ValueError:
+        agent.set_status('validation-failed')
+        json.dump([{'field':'service_networks','value': local_network,'error':'local_network_netmask_is_not_valid'}], fp=sys.stdout)
+        sys.exit(3)

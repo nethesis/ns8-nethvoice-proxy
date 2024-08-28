@@ -35,3 +35,7 @@ Service network's address and netmask must be valid
     ...    {"addresses": {"address": "127.0.0.1"}, "service_network": {"address": "A", "netmask": "10.5.4.0/24"}}    rc_expected=10    decode_json=False
     ${response} =  Run task    module/${module_id}/configure-module
     ...    {"addresses": {"address": "127.0.0.1"}, "service_network": {"address": "10.5.4.1", "netmask": "A"}}    rc_expected=2    decode_json=False
+
+Networks in local networks list must be valid
+    ${response} =  Run task    module/${module_id}/configure-module
+    ...    {"local_networks": ["A"]}    rc_expected=3    decode_json=False

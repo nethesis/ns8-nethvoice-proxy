@@ -20,9 +20,11 @@ Gather system information
 
     FOR    ${interface}    IN    @{response['data']}
         ${address}=    Set Variable    ${interface['addresses'][0]['address']}
+        ${network}=    Set Variable    ${interface['addresses'][0]['network']}
         EXIT FOR LOOP IF    "${interface['name']}" == "eth0"
     END
     Set Global Variable    ${local_ip}    ${address}
+    Set Global Variable    ${local_network}   ${network}
 
 Check if nethvoice-proxy is configured wih the correctly default values
     ${response} =  Run task    module/${module_id}/list-service-providers

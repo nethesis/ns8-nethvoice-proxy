@@ -36,6 +36,7 @@ run-rtpengine-dev:
 	podman rm rtpengine || exit 0
 	podman run -d --name rtpengine --env-file ~/.config/state/environment --network=host \
 		-v ./modules/rtpengine/files/rtpengine.conf.template:/src/rtpengine.conf.template:z \
+		-v ./modules/rtpengine/bootstrap.sh:/bootstrap.sh:z \
 		ghcr.io/nethesis/nethvoice-proxy-rtpengine:$(TAG)
 
 log:

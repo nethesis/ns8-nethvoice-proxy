@@ -33,4 +33,6 @@ config["fqdn"] = os.environ["KML_DEFAULT_FQDN"]
 
 config["service_network"] = service_network
 
+config["local_networks"] = os.environ["LOCALNETWORKS"].split(",") if os.getenv("LOCALNETWORKS") else []
+
 json.dump(config, fp=sys.stdout)
