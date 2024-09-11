@@ -1,8 +1,70 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "get-configuration output",
-    "$id": "http://schema.nethserver.org/kickstart/get-configuration-output.json",
-    "description": "Get kickstart configuration",
-    "examples": [],
-    "type": "object"
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "get-configuration output",
+  "$id": "http://schema.nethserver.org/nethvoice-proxy/get-configuration-output.json",
+  "description": "Get configuration of nethvoice-proxy",
+  "examples": [
+    { "addresses": {} },
+    { "addresses": { "address": "1.2.3.4" } },
+    {
+      "addresses": { "address": "192.168.1.1", "public_address": "1.2.3.4" }
+    },
+    {
+      "addresses": {
+        "address": "2001:db8:3333:4444:5555:6666:7777:8888",
+        "public_address": "2001:db8:3333:4444:CCCC:DDDD:EEEE:FFFF"
+      }
+    }
+  ],
+  "type": "object",
+  "properties": {
+    "fqdn": {
+      "title": "FQDN of the proxy",
+      "type": "string",
+      "format": "hostname",
+      "minLength": 1
+    },
+    "addresses": {
+      "title": "Address that are aspected to receive VoIP traffic",
+      "type": "object",
+      "required": ["address"],
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "title": "Address that is aspected to receive VoIP traffic",
+          "type": "string",
+          "format": "ipv4"
+        },
+        "public_address": {
+          "title": "Pubblic address that is aspected to receive VoIP traffic, in case of NAT",
+          "type": "string",
+          "format": "ipv4"
+        }
+      }
+    },
+    "service_network": {
+      "type": "object",
+      "required": ["address", "netmask"],
+      "properties": {
+        "required": true,
+        "address": {
+          "title": "Address of the service interface",
+          "type": "string",
+          "format": "ipv4"
+        },
+        "netmask": {
+          "title": "Netmask of the service network",
+          "type": "string"
+        }
+      }
+    },
+    "local_networks": {
+      "title": "Local networks",
+      "type": "array",
+      "items": {
+        "title": "Netmask of the local network",
+        "type": "string"
+      }
+    }
+  }
 }

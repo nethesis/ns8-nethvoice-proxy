@@ -1,7 +1,7 @@
 [rtpengine]
 table = 0
 
-interface = external/${PUBLIC_IP}
+${INTERFACE_SECTION}
 listen-ng = 127.0.0.1:19999
 listen-cli = 127.0.0.1:2224
 

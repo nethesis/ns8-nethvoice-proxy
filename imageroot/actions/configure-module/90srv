@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2023 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+import os
+import agent
+import json
+
+node_id = os.environ['NODE_ID']
+agent_id = os.environ['AGENT_ID']
+module_uuid = os.environ['MODULE_UUID']
+proxy_addr = os.environ["SERVICE_IP"]
+private_addr = os.environ["PRIVATE_IP"]
+public_addr = os.environ["PUBLIC_IP"]
+proxy_fqdn = os.environ["KML_DEFAULT_FQDN"]
+beind_nat = os.environ["BEHIND_NAT"]
+
+address = private_addr if beind_nat == "true" else public_addr
+
+# Create srv records in Redis for service discovery
+with agent.redis_connect(privileged=True) as prdb:
+    trx = prdb.pipeline()
+
+    ksip_tcp = agent_id + "/srv/tcp/sip"
+    trx.delete(ksip_tcp).hset(ksip_tcp, mapping={
+        "port": "5060",
+        "host": proxy_addr,
+        "address": address,
+        "public_address": public_addr,
+        "fqdn": proxy_fqdn,
+        "node": node_id,
+        "module_uuid": module_uuid,
+    })
+
+    ksip_udp = agent_id + "/srv/udp/sip"
+    trx.delete(ksip_udp).hset(ksip_udp, mapping={
+        "port": "5060",
+        "host": proxy_addr,
+        "address": address,
+        "public_address": public_addr,
+        "fqdn": proxy_fqdn,
+        "node": node_id,
+        "module_uuid": module_uuid,
+    })
+
+
+    # Publish change event
+    trx.publish(agent_id + "/event/nethvoice-proxy-settings-changed", json.dumps({
+        "reason": os.getenv("AGENT_TASK_ACTION", "unknown"),
+        "module_id": os.environ['MODULE_ID'],
+        "node_id": node_id,
+        "module_uuid": module_uuid,
+    }))
+
+    trx.execute()

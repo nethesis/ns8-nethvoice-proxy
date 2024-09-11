@@ -18,14 +18,14 @@ query = ""
 
 # Chek if a domain is registred
 with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
-        print(f'SELECT COALESCE(json_agg(nethvoice_proxy_routes.*), \'[]\'::json) FROM nethvoice_proxy_routes WHERE domain=\'{data["domain"]}\';\n', file=psql.stdin)
+        print(f'SELECT COALESCE(json_agg(nethvoice_proxy_routes.*), \'[]\'::json) FROM nethvoice_proxy_routes WHERE target=\'{data["domain"]}\' AND route_type=\'domain\';\n', file=psql.stdin)
         proxy_route , _ = psql.communicate()
         proxy_route = json.loads(proxy_route)
 
 if not proxy_route:
     # Add domain into nethvoice_proxy_routes table if not already exists
     with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
-        print(f'WITH proxy_route AS (INSERT INTO nethvoice_proxy_routes (domain) VALUES (\'{data["domain"]}\') RETURNING *) SELECT JSON_AGG(proxy_route.*) from proxy_route;\n', file=psql.stdin)
+        print(f'WITH proxy_route AS (INSERT INTO nethvoice_proxy_routes (target, route_type) VALUES (\'{data["domain"]}\', \'domain\') RETURNING *) SELECT JSON_AGG(proxy_route.*) from proxy_route;\n', file=psql.stdin)
         proxy_route, _ = psql.communicate()
         proxy_route = json.loads(proxy_route)
 
@@ -35,17 +35,12 @@ if not proxy_route:
                   f'INSERT INTO domain (domain, did) VALUES ( \'{data["domain"]}\', \'{data["domain"]}\');\n'
                   )
 
-# Check if we have to add or modify an addres
-for addres in data["address"]:
-    with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
-        print(f'SELECT COALESCE(json_agg(dispatcher.*), \'[]\'::json) FROM dispatcher WHERE destination=\'{addres["uri"]}\' AND setid={proxy_route[0]["setid"]};\n', file=psql.stdin)
-        destination, _ = psql.communicate()
-        destination = json.loads(destination)
+# Cleanup existing route configuration
+query += f'DELETE FROM dispatcher WHERE setid={proxy_route[0]["setid"]};\n'
 
-    if not destination:
+# Create new route configuration
+for addres in data["address"]:
         query += f'INSERT INTO dispatcher (setid,  destination, description) VALUES ({proxy_route[0]["setid"]},\'{addres["uri"]}\',\'{addres["description"]}\');\n'
-    else:
-        query +=  f'UPDATE dispatcher SET description = \'{addres["description"]}\' WHERE id={destination[0]["id"]};\n'
 
 # Write the route
 with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-qU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, text=True) as psql:

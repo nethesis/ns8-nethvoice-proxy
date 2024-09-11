@@ -10,23 +10,30 @@ WorkingDirectory=%S/state
 Restart=always
 ExecStartPre=/bin/rm -f %t/kmalio.pid %t/kmalio.ctr-id
 ExecStartPre=-runagent install-certificates
-ExecStartPre=runagent generate_tls_config_all
 ExecStart=/usr/bin/podman run \
     --env=ENV \
     --env=PUBLIC_IP \
+    --env=PRIVATE_IP \
+    --env=DEFAULT_CONTACT \
     --env='POSTGRES_*' \
     --env='REDIS_*' \
     --env='KML_*' \
+    --env=SERVICE_IP \
+    --env=SERVICE_NET \
+    --env=BEHIND_NAT \
+    --env=LOCALNETWORKS \
     --detach \
     --conmon-pidfile=%t/kmalio.pid \
     --cidfile=%t/kmalio.ctr-id \
     --cgroups=no-conmon \
     --network=host \
     --replace --name=%N \
-    --volume=./kamailio-certificates:/etc/kamailio/tls:Z \
-    --volume=./selfsigned.pem:/etc/kamailio/cert.pem:z \
+    --volume=./kamailio-certificate:/etc/kamailio/tls:Z \
     ${NETHVOICE_PROXY_KAMAILIO_IMAGE}
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/kmalio.ctr-id -t 10
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/kmalio.ctr-id
 PIDFile=%t/kmalio.pid
 Type=forking
+
+[Install]
+WantedBy=default.target

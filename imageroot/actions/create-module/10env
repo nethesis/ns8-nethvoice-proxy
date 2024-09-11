@@ -7,6 +7,7 @@
 import os
 import agent
 import uuid
+import random
 
 module_id = os.environ["MODULE_ID"]
 tcp_ports = os.environ["TCP_PORTS"].split(',')
@@ -22,7 +23,16 @@ agent.set_env('REDIS_PORT', tcp_ports[1])
 agent.set_env('KML_SERVER_HEADER', f"NethServer 8 {module_id}")
 agent.set_env('KML_UA_HEADER', f"NethServer 8 {module_id}")
 agent.set_env('KML_SIP_URL', '127.0.0.1')
-agent.set_env('KML_INTERNAL_NETWORK', '127.0.0.1')
 agent.set_env('RTP_PORT_MIN', '10000')
 agent.set_env('RTP_PORT_MAX', '20000')
 agent.set_env('PUBLIC_IP', '127.0.0.1')
+agent.set_env('PRIVATE_IP', '')
+agent.set_env('DEFAULT_CONTACT', '127.0.0.1:5060')
+agent.set_env('KML_DEFAULT_FQDN', str(random.randint(0, 32767)).zfill(5) + '.ns8.test')
+agent.set_env('BEHIND_NAT', "false")
+
+rdb = agent.redis_connect(privileged=False)
+# Get the VPN IP address from the node
+agent.set_env('SERVICE_IP', rdb.hget(f'node/{os.environ["NODE_ID"]}/vpn', 'ip_address'))
+# Get the cluster network
+agent.set_env('SERVICE_NET', rdb.get('cluster/network'))

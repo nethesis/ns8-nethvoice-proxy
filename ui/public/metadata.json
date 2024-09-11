@@ -1,18 +1,19 @@
 {
-  "name": "nethvoice-proxy",
+  "name": "NethVoice Proxy",
   "description": {
     "en": "NethVoice proxy module"
   },
-  "categories": [],
+  "categories": ["communication", "system_administration"],
   "authors": [
     {
-      "name": "Matteo Valentini",
-      "email": "matteo.valentini@nethesis.it"
+      "name": "Nethesis",
+      "email": "sviluppo@nethesis.it"
     }
   ],
   "docs": {
-    "bug_url": "https://github.com/Nethesis/dev",
-    "code_url": "https://github.com/Nethesis/ns8-nethvoice-proxy"
-  },
-  "source": "ghcr.io/nethesis/"
+    "documentation_url": "https://github.com/nethesis/ns8-nethvoice-proxy",
+    "code_url": "https://github.com/nethesis/ns8-nethvoice-proxy",
+    "bug_url": "https://github.com/NethServer/dev"
+ },
+  "source": "ghcr.io/nethesis/nethvoice-proxy"
 }

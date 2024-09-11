@@ -7,20 +7,7 @@
 
 set -e
 
-# Override redis-exec "privileged=True"
-export REDIS_USER=default
+# Redirect any output to the journal (stderr)
+exec 1>&2
 
-# JSON input from standard input
-json_input=$(cat)
-
-# Use jq to extract module name
-rkey=$(echo "$json_input" | jq -r '.rkey')
-
-# Use jq to extract ['domain']['main']
-DOMAIN=$(echo "$json_input" | jq -r '.domain.main')
-
-# Create certificate files if directory exists
-if [[ -d kamailio-certificates/${DOMAIN} ]]; then
-    redis-exec HGET "${rkey}" key | base64 -d > kamailio-certificates/${DOMAIN}/server.key
-    redis-exec HGET "${rkey}" cert | base64 -d > kamailio-certificates/${DOMAIN}/server.pem
-fi
+install-certificates

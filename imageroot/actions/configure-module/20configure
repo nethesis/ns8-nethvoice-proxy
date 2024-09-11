@@ -7,5 +7,64 @@
 
 import json
 import sys
+import agent
+import subprocess
+import os
 
-request = json.load(sys.stdin)
+data = json.load(sys.stdin)
+
+local_networks = set()
+
+if "addresses" in data:
+
+    address = data["addresses"]
+
+    # Set public and private IP
+    if "public_address" not in address:
+        # if there's no public address, the proxy is not behind NAT
+        agent.set_env("PUBLIC_IP", address["address"])
+        agent.set_env("PRIVATE_IP", "")
+        agent.set_env("BEHIND_NAT", "false")
+        agent.unset_env("LOCALNETWORKS")
+    else:
+        # if there's a public address, the proxy is behind NAT
+        agent.set_env("PUBLIC_IP", address["public_address"])
+        agent.set_env("PRIVATE_IP", address["address"])
+        agent.set_env("BEHIND_NAT", "true")
+
+        # Get local network from routing table (excluding default route)
+        local_networks.add(os.popen("ip route | grep -v default | grep 'src " + address["address"] + "' | awk '{print $1}'").read().strip())
+        agent.set_env("LOCALNETWORKS", list(local_networks)[0])
+
+    agent.set_env("DEFAULT_CONTACT", address["address"] + ":5060" if "public_address" not in address else address["public_address"] + ":5060")
+
+if "service_net" in data:
+    service = data["service_net"]
+    agent.set_env("SERVICE_IP", service["address"])
+    agent.set_env("SERVICE_NET", service["netmask"])
+
+#check if local_networks is not empty and local_networks filed is present in data
+if local_networks and "local_networks" in data:
+    # Add extra local networks
+    local_networks.update(set(data["local_networks"]))
+    agent.set_env("LOCALNETWORKS", ",".join(local_networks))
+
+if "fqdn" in data:
+    # Check if previous fqdn is different from new one
+    if os.environ["KML_DEFAULT_FQDN"] != data["fqdn"]:
+        # Delete previous certificate
+        response = agent.tasks.run(
+            agent_id=agent.resolve_agent_id('traefik@node'),
+            action='delete-certificate',
+            data={'fqdn': os.environ["KML_DEFAULT_FQDN"]},
+        )
+
+    # Set new fqdn
+    agent.set_env("KML_DEFAULT_FQDN", data["fqdn"])
+
+    # Request new certificate
+    response = agent.tasks.run(
+        agent_id=agent.resolve_agent_id('traefik@node'),
+        action='set-certificate',
+        data={'fqdn': data["fqdn"]},
+    )

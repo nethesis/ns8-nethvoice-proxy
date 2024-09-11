@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2023 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import sys
+import os
+import subprocess
+# Try to parse the stdin as JSON.
+# If parsing fails, output everything to stderr
+data = json.load(sys.stdin)
+
+route = {}
+
+# Chek if a trunk is registred
+with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
+        print(f'SELECT COALESCE(json_agg(nethvoice_proxy_routes.*), \'[]\'::json) FROM nethvoice_proxy_routes WHERE target=\'{data["rule"]}\' AND route_type=\'trunk\';\n', file=psql.stdin)
+        proxy_route , _ = psql.communicate()
+        proxy_route = json.loads(proxy_route)
+
+if proxy_route:
+    with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
+        print(f'SELECT json_agg(dispatcher.*) FROM dispatcher WHERE setid=\'{proxy_route[0]["setid"]}\';\n', file=psql.stdin)
+        destination, _ = psql.communicate()
+        destination = json.loads(destination)
+
+    route["destination"] = { "uri": destination[0]["destination"], "description": destination[0]["description"] }
+
+json.dump(route, fp=sys.stdout)

@@ -7,7 +7,32 @@
 
 import json
 import sys
+import agent
+import os
 
 config = {}
+addresses = {}
+
+if os.environ["BEHIND_NAT"] ==  "true":
+    addresses = {
+            'address':os.environ['PRIVATE_IP'],
+            'public_address': os.environ['PUBLIC_IP'],
+            }
+else:
+        addresses = { 'address': os.environ['PUBLIC_IP'], }
+
+
+service_network = {
+        'address': os.environ["SERVICE_IP"],
+        'netmask': os.environ["SERVICE_NET"],
+        }
+
+config["addresses"] = addresses
+
+config["fqdn"] = os.environ["KML_DEFAULT_FQDN"]
+
+config["service_network"] = service_network
+
+config["local_networks"] = os.environ["LOCALNETWORKS"].split(",") if os.getenv("LOCALNETWORKS") else []
 
 json.dump(config, fp=sys.stdout)
