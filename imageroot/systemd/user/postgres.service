@@ -8,6 +8,7 @@ WorkingDirectory=%S/state
 Restart=always
 ExecStartPre=/bin/rm -f %t/postgres.pid %t/postgres.ctr-id
 ExecStart=/usr/bin/podman run \
+    --env-file=%S/state/passwords.env \
     --env='POSTGRES_*' \
     --detach \
     --conmon-pidfile=%t/postgres.pid \
