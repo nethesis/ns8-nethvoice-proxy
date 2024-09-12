@@ -11,6 +11,7 @@ Restart=always
 ExecStartPre=/bin/rm -f %t/kmalio.pid %t/kmalio.ctr-id
 ExecStartPre=-runagent install-certificates
 ExecStart=/usr/bin/podman run \
+    --env-file=%S/state/passwords.env \
     --env=ENV \
     --env=PUBLIC_IP \
     --env=PRIVATE_IP \
