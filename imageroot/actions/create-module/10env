@@ -14,7 +14,13 @@ tcp_ports = os.environ["TCP_PORTS"].split(',')
 
 agent.set_env('ENV', 'prod')
 agent.set_env('POSTGRES_USER', 'postgres')
-agent.set_env('POSTGRES_PASSWORD', uuid.uuid4())
+
+#POSTGRES_PASSWORD written to passwords.env
+password = {
+    "POSTGRES_PASSWORD": uuid.uuid4()
+}
+agent.write_envfile("passwords.env", password)
+
 agent.set_env('POSTGRES_HOST', '127.0.0.1')
 agent.set_env('POSTGRES_PORT', tcp_ports[0])
 agent.set_env('POSTGRES_DB', 'kamailio')
