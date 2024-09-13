@@ -24,3 +24,12 @@ if os.getenv("SERVICE_IP", None) is None:
     # Clean up obsolete env variable
     agent.unset_env('KML_INTERNAL_NETWORK')
 
+# test if the passwords.env is present and if 'POSTGRES_PASSWORD' is present
+if not os.path.exists("passwords.env") and os.getenv('POSTGRES_PASSWORD') is not None:
+        # create the passwords.env file
+        agent.write_envfile("passwords.env", {
+                "POSTGRES_PASSWORD": os.environ['POSTGRES_PASSWORD']
+        })
+
+        # unset the POSTGRES_PASSWORD
+        agent.unset_env('POSTGRES_PASSWORD')
