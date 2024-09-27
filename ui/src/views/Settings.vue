@@ -248,9 +248,16 @@ export default {
           this.loading.pathLoading = false;
         });
 
-      if (this.interfaces !== this.address) {
-        this.warningVisible = true;
-      }
+      setInterval(() => {
+        if (
+          this.address !== "" &&
+          this.address !== null &&
+          this.interfaces !== this.address
+        ) {
+          this.warningVisible = true;
+        }
+      }, 1000);
+
       // focus first configuration field
       this.focusElement("address");
     },
