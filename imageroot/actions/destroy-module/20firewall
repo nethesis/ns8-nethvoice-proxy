@@ -8,5 +8,4 @@
 import os
 import agent
 
-agent.assert_exp(agent.remove_public_service(os.environ['MODULE_ID']))
-
+agent.remove_public_service(os.environ['MODULE_ID'])
