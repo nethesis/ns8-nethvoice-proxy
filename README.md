@@ -7,7 +7,6 @@ The proxy uses Kamailio and rtpengine as core components.
 ## Module overview
 
 ```mermaid
-
 flowchart LR
 subgraph Host Network
     subgraph Proxy[NethVoice Proxy Module]
@@ -16,13 +15,13 @@ subgraph Host Network
     end
     subgraph NethVoice1[NethVoice Module 1]
         Kamailio -- Custom sip ports --> Asterisk1[Asterisk]
-        RTPengine -- Custom port range -->Asterisk1[Asterisk]
+        RTPengine -- Custom port range --> Asterisk1[Asterisk]
     end
     subgraph NethVoiceN[NethVoice Module N]
         Kamailio -- Custom sip ports --> AsteriskN[Asterisk]
-        RTPengine -- Custom port range -->AsteriskN[Asterisk]
+        RTPengine -- Custom port range --> AsteriskN[Asterisk]
     end
-    NethVoice1 -.. N instance of NethVoice Module ..- NethVoiceN
+    NethVoice1 -.-> NethVoiceN
 end
 sip>SIP Connections]-- Standard SIP ports --> Kamailio
 rtp>RTP Flows]-- 10000-20000 --> RTPengine
