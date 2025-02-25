@@ -29,3 +29,12 @@ CREATE SEQUENCE public.nethvoice_proxy_routes_setid_seq
 
 ALTER TABLE ONLY public.nethvoice_proxy_routes ALTER COLUMN id SET DEFAULT nextval('public.nethvoice_proxy_routes_id_seq'::regclass);
 ALTER TABLE ONLY public.nethvoice_proxy_routes ALTER COLUMN setid SET DEFAULT nextval('public.nethvoice_proxy_routes_setid_seq'::regclass);
+
+CREATE TABLE tlsregister (
+    id SERIAL PRIMARY KEY NOT NULL,
+    key_name VARCHAR(256) DEFAULT '' NOT NULL,
+    key_type INTEGER DEFAULT 0 NOT NULL,
+    value_type INTEGER DEFAULT 0 NOT NULL,
+    key_value VARCHAR(512) DEFAULT '' NOT NULL,
+    expires INTEGER DEFAULT 0 NOT NULL
+);
