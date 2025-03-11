@@ -1,7 +1,7 @@
 [Unit]
 Description=Kamalio SIP Server
-Wants=postgres.service redis.service rtpengine.service
-After=postgres.service redis.service rtpengine.service
+Wants=postgres.service redis.service rtpengine.service get-certificate.service
+After=postgres.service redis.service rtpengine.service get-certificate.service
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
@@ -9,7 +9,6 @@ EnvironmentFile=%S/state/environment
 WorkingDirectory=%S/state
 Restart=always
 ExecStartPre=/bin/rm -f %t/kmalio.pid %t/kmalio.ctr-id
-ExecStartPre=-runagent install-certificates
 ExecStart=/usr/bin/podman run \
     --env-file=%S/state/passwords.env \
     --env=ENV \
