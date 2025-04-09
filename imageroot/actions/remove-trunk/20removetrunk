@@ -22,7 +22,7 @@ with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.en
 if proxy_route:
     query = (
             f'DELETE FROM nethvoice_proxy_routes WHERE target=\'{data["rule"]}\' AND setid={proxy_route[0]["setid"]} AND route_type=\'trunk\';\n'
-            f'DELETE FROM dialplan WHERE match_exp=\'{data["rule"]}\' AND repl_exp=\'{proxy_route[0]["setid"]}\' AND attrs=\'{proxy_route[0]["setid"]}\';\n'
+            f'DELETE FROM dialplan WHERE match_exp=\'sip:{data["rule"]}.*@.*\' AND repl_exp=\'{proxy_route[0]["setid"]}\' AND attrs=\'{proxy_route[0]["setid"]}\';\n'
             f'DELETE FROM dispatcher WHERE setid={proxy_route[0]["setid"]};\n'
             )
     # Remove the route
