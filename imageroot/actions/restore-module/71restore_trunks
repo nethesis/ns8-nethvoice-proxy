@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+
+#
+# Copyright (C) 2025 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import os
+
+import agent
+
+# read the file trunks_dump.json with an array of trunks
+with open('trunks_dump.json', 'r') as f:
+    trunks = json.load(f)
+    #invoke the agent to restore trunks
+    for trunk in trunks:
+        # call restore_trunk
+        response = agent.tasks.run(
+                agent_id=os.environ['AGENT_ID'],
+                action='add-trunk',
+                data=trunk
+                )
+        agent.assert_exp(response['exit_code'] == 0)
