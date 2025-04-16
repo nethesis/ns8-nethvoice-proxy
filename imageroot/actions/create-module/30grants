@@ -18,3 +18,6 @@ routeadm_actions=(
     list-routes
 )
 redis-exec SADD "${AGENT_ID}/roles/routeadm" "${routeadm_actions[@]}"
+
+# Allow the module to call its own actions
+redis-exec SADD "${AGENT_ID}/roles/selfadm" "*"
