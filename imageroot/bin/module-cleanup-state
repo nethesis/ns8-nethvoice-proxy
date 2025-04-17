@@ -9,3 +9,4 @@ set -e
 
 rm -rf routes_dump.json
 rm -rf trunks_dump.json
+rm -rf config_dump.json
