@@ -9,3 +9,4 @@ set -e
 
 api-cli run ${AGENT_ID}/list-routes > routes_dump.json
 api-cli run ${AGENT_ID}/list-trunks > trunks_dump.json
+api-cli run ${AGENT_ID}/get-configuration > config_dump.json
