@@ -7,6 +7,7 @@
 
 import json
 import os
+import time
 
 import agent
 
@@ -22,3 +23,9 @@ with open('trunks_dump.json', 'r') as f:
                 data=trunk
                 )
         agent.assert_exp(response['exit_code'] == 0)
+        # By default there is a rate limiting of maximum one reload in five
+        # seconds to be waited before executing a new RPC reload. Executing two
+        # RPC reloads of the same table at the same time can cause Kamailio to
+        # crash.
+        # See: https://www.kamailio.org/docs/modules/stable/modules/permissions.html#permissions.p.reload_delta
+        time.sleep(5)
