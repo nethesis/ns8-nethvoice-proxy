@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+#
+# Copyright (C) 2025 Nethesis S..
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+module-cleanup-state
