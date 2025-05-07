@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+
+#
+# Copyright (C) 2025 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import os
+import time
+
+import agent
+
+response = agent.tasks.run(
+        agent_id=os.environ['AGENT_ID'],
+        action='get-available-interfaces',
+        data= {
+        'excluded_interfaces' :["wg0","lo"],
+        'excluded_families':["inet6"],
+        }
+    )
+agent.assert_exp(response['exit_code'] == 0)
+
+list_ifaces = response['output']['data']
+
+with open('config_dump.json', 'r') as f:
+    config = json.load(f)
+
+    if any(
+            addr['address'] == config['addresses']['address']
+            for iface in list_ifaces
+            for addr in iface['addresses']
+    ):
+        configure_response = agent.tasks.run(
+            agent_id=os.environ['AGENT_ID'],
+            action='configure-module',
+            data=config
+        )
+        agent.assert_exp(configure_response['exit_code'] == 0)
+        # By default there is a rate limiting of maximum one reload in five
+        # seconds to be waited before executing a new RPC reload. Executing two
+        # RPC reloads of the same table at the same time can cause Kamailio to
+        # crash.
+        # See: https://www.kamailio.org/docs/modules/stable/modules/permissions.html#permissions.p.reload_delta
+        time.sleep(5)
