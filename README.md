@@ -55,6 +55,17 @@ Example:
 
     api-cli run module/nethvoice-proxy1/configure-module --data '{"fqdn": "example.com", "addresses": { "address": "192.168.1.1", "public_address": "1.2.3.4" }}'
 
+
+## Debug
+
+To enable Kamailio debug at runtime, launch
+
+    kamcmd pv.shvSet debug int 1
+
+TLS tracing is enabled when NethServer 8 support session is started, to enable it manually, launch
+
+    kamcmd siptrace.status on 
+
 ## Uninstall
 
 To uninstall the instance:
