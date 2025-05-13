@@ -89,7 +89,6 @@ ENV DEBIAN_FRONTEND="noninteractive"
 # Install all required dependencies
 RUN apt-get update -qq && apt-get install -qq --no-install-recommends -y \
     ca-certificates \
-    dkms \
     gettext-base \
     iptables \
     libavcodec58 \
@@ -117,7 +116,6 @@ RUN apt-get update -qq && apt-get install -qq --no-install-recommends -y \
     libswresample3 \
     libwebsockets16 \
     libxmlrpc-core-c3 \
-    lsb-release \
     netcat-openbsd \
     nfs-common \
     perl && \
@@ -127,11 +125,8 @@ COPY ./files /src
 
 # Copy all the debs from the builder stage
 COPY --from=builder /src/ngcp-rtpengine-daemon*.deb /src/
-COPY --from=builder /src/ngcp-rtpengine-iptables*.deb /src/
-COPY --from=builder /src/ngcp-rtpengine-kernel-dkms*.deb /src/
 COPY --from=builder /src/ngcp-rtpengine-recording-daemon*.deb /src/
 COPY --from=builder /src/ngcp-rtpengine-utils*.deb /src/
-COPY --from=builder /src/ngcp-rtpengine*.deb /src/
 
 RUN cd /src/ \
  && dpkg -i *.deb
