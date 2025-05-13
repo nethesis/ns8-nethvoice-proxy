@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:22.04 as builder
 
 LABEL maintainer="Giovanni Tommasini <giovanni.tommasini@evoseed.io>"
 
@@ -76,11 +76,62 @@ RUN cd /src \
     && rm libbcg729-0_1.0.4+git20180222-0.1_bpo9+1_amd64.deb \
     && rm libbcg729-dev_1.0.4+git20180222-0.1_bpo9+1_amd64.deb
 
-RUN rm -rf /var/lib/apt/lists/*
-
 RUN cd /src/rtpengine/ \
     && dpkg-checkbuilddeps \
     && DEB_BUILD_OPTIONS=nocheck dpkg-buildpackage --no-sign
+
+FROM ubuntu:22.04
+
+ENV TZ="Europe/Rome"
+
+ENV DEBIAN_FRONTEND="noninteractive"
+
+# Install all required dependencies
+RUN apt-get update -qq && apt-get install -qq --no-install-recommends -y \
+    ca-certificates \
+    dkms \
+    gettext-base \
+    iptables \
+    libavcodec58 \
+    libavfilter7 \
+    libavformat58 \
+    libavutil56 \
+    libbencode-perl \
+    libconfig-tiny-perl \
+    libcrypt-rijndael-perl \
+    libdigest-hmac-perl \
+    libevent-2.1-7 \
+    libevent-pthreads-2.1-7 \
+    libglib2.0-0 \
+    libhiredis0.14 \
+    libio-socket-inet6-perl \
+    libip4tc2 \
+    libip6tc2 \
+    libjson-glib-1.0-0 \
+    libmosquitto1 \
+    libmysqlclient21 \
+    libopus0 \
+    libpcap0.8 \
+    libsocket6-perl \
+    libspandsp2 \
+    libswresample3 \
+    libwebsockets16 \
+    libxmlrpc-core-c3 \
+    lsb-release \
+    netcat-openbsd \
+    nfs-common \
+    perl && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY ./files /src
+
+# Copy all the debs from the builder stage
+COPY --from=builder /src/ngcp-rtpengine-daemon*.deb /src/
+COPY --from=builder /src/ngcp-rtpengine-iptables*.deb /src/
+COPY --from=builder /src/ngcp-rtpengine-kernel-dkms*.deb /src/
+COPY --from=builder /src/ngcp-rtpengine-recording-daemon*.deb /src/
+COPY --from=builder /src/ngcp-rtpengine-utils*.deb /src/
+COPY --from=builder /src/ngcp-rtpengine*.deb /src/
 
 RUN cd /src/ \
  && dpkg -i *.deb
