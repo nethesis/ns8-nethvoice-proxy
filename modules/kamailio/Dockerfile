@@ -8,7 +8,7 @@ ENV TZ="Europe/Rome"
 ENV DEBIAN_FRONTEND="noninteractive"
 ENV KAMAILIO_VERSION="5.8.6"
 
-RUN rm -rf /var/lib/apt/lists/* && apt-get update && apt-get install --no-install-recommends --assume-yes gnupg wget
+RUN apt-get update && apt-get install --no-install-recommends --assume-yes gnupg wget && rm -rf /var/lib/apt/lists/*
 RUN echo "deb http://deb.kamailio.org/kamailio58 focal main" > /etc/apt/sources.list.d/kamailio.list
 RUN wget -O- http://deb.kamailio.org/kamailiodebkey.gpg | apt-key add -
 RUN apt-get update && apt-get install --no-install-recommends --assume-yes \
@@ -54,9 +54,8 @@ RUN apt-get update && apt-get install --no-install-recommends --assume-yes \
     net-tools \
     inetutils-ping \
     sngrep \
-    rsync
-
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+    rsync && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY ./config /etc/kamailio/
 COPY ./bootstrap.sh /etc/kamailio/bootstrap.sh
