@@ -15,6 +15,11 @@ if [ "$1" == "reload" ]; then
     /bootstrap.sh
 fi
 
+# If arguments are provided but first is not "reload", execute them
+if [ $# -gt 0 ]; then
+    exec "$@"
+fi
+
 # removing if present the file /tmp/kamailio-local-additional.cfg
 rm -f /tmp/kamailio-local-additional.cfg
 # creating empty file /tmp/kamailio-local-additional.cfg
