@@ -7,9 +7,9 @@ Resource  ../api.resource
 *** Test Cases ***
 Add a new trunk
     Run task    module/${module_id}/add-trunk
-    ...    {"rule":"05551594XX", "destination":{"uri":"sip:127.0.0.1:5080","description":"module1"}}
+    ...    {"rule":"05551594XX", "host":"host1", "destination":{"uri":"sip:127.0.0.1:5080","description":"module1"}}
     Run task    module/${module_id}/add-trunk
-    ...    {"rule":"05551595XX", "destination":{"uri":"sip:127.0.0.1:5081","description":"module2"}}
+    ...    {"rule":"05551595XX", "host":"host2", "destination":{"uri":"sip:127.0.0.1:5081","description":"module2"}}
 
 Get info about a non-existing trunk
     ${response} =  Run task    module/${module_id}/get-trunk
@@ -19,21 +19,25 @@ Get info about a non-existing trunk
 Get info about a trunk
     ${response} =  Run task    module/${module_id}/get-trunk
     ...    {"rule":"05551594XX"}
+    Should Be Equal    ${response["host"]}    host1
     Should Be Equal    ${response["destination"]}    ${{ {"uri":"sip:127.0.0.1:5080","description":"module1"} }}
     ${response} =  Run task    module/${module_id}/get-trunk
     ...    {"rule":"05551595XX"}
+    Should Be Equal    ${response["host"]}  host2
     Should be Equal    ${response["destination"]}    ${{ {"uri":"sip:127.0.0.1:5081","description":"module2"} }}
 
 Rewrite a trunk
     Run task    module/${module_id}/add-trunk
-    ...    {"rule":"05551594XX", "destination":{"uri":"sip:127.0.0.1:5060","description":"module3"}}
+    ...    {"rule":"05551594XX", "host":"host3" ,"destination":{"uri":"sip:127.0.0.1:5060", "description":"module3"}}
     ${response} =  Run task    module/${module_id}/get-trunk
     ...    {"rule":"05551594XX"}
+    Should Be Equal    ${response["host"]}    host3
     Should Be Equal    ${response["destination"]}    ${{ {"uri":"sip:127.0.0.1:5060","description":"module3"} }}
     Run task    module/${module_id}/add-trunk
     ...    {"rule":"05551595XX", "destination":{"uri":"sip:127.0.0.1:5084","description":"module4"}}
     ${response} =  Run task    module/${module_id}/get-trunk
     ...    {"rule":"05551595XX"}
+    Dictionary Should Not Contain Key    ${response}    host
     Should Be Equal    ${response["destination"]}    ${{ {"uri":"sip:127.0.0.1:5084","description":"module4"} }}
 
 Get list of trunks

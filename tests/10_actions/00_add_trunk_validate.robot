@@ -39,3 +39,8 @@ Description field can't be empty
     ${response} =  Run task    module/${module_id}/add-trunk
     ...    {"rule":"05551594XX", "destination":{"uri": "sip:127.0.0.1:5080", "description": ""}}    rc_expected=10    decode_json=False
 
+Host must be string
+    ${response} =  Run task    module/${module_id}/add-trunk
+    ...    {"rule":"05551594XX", "host":false, "destination":{"uri": "sip:127.0.0.1:5080", "description": "module1"}}    rc_expected=10    decode_json=False
+    ${response} =  Run task    module/${module_id}/add-trunk
+    ...    {"rule":"05551594XX", "host":1, "destination":{"uri": "sip:127.0.0.1:5080", "description": "module1"}}    rc_expected=10    decode_json=False
