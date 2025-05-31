@@ -25,8 +25,8 @@
         "save": "Salva",
         "title": "Impostazioni",
         "configure_instance": "Configura {instance}",
-	"fqdn": "Dominio proxy",
-	"fqdn_helper": "FQDN dell'istanza. Deve essere un nome di dominio valido",
+        "fqdn": "Dominio proxy",
+        "fqdn_helper": "FQDN dell'istanza. Deve essere un nome di dominio valido",
         "address": "Indirizzo IP",
         "address_helper": "Indirizzo IPv4che riceverà il traffico VoIP",
         "public_address": "Indirizzo IP pubblico",
@@ -62,5 +62,9 @@
     },
     "about": {
         "title": "Informazioni"
+    },
+    "warning": {
+        "warning_title_message": "Attenzione: gli indirizzi IP non corrispondono",
+        "different_ip_message": "Per il corretto funzionamento dei dispositivi della rete locale PBX è necessario che sul firewall (più precisamente sul dispositivo che gestisce il NAT dell'IP pubblico) sia abilitata la funzione 'hairpin NAT', nota anche come NAT reflection / NAT hairpining / NAT on a stick / loopback NAT."
     }
 }
