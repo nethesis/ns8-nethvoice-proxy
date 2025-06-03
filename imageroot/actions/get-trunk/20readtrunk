@@ -29,4 +29,12 @@ if proxy_route:
 
     route["destination"] = { "uri": destination[0]["destination"], "description": destination[0]["description"] }
 
+    #Check if host is set
+    with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
+        print(f'SELECT COALESCE(json_agg(domain.*), \'""\'::json) FROM domain WHERE did=\'{proxy_route[0]["setid"]}\';\n', file=psql.stdin)
+        host, _ = psql.communicate()
+        host = json.loads(host)
+        if host:
+            route["host"] = host[0]["domain"]
+
 json.dump(route, fp=sys.stdout)

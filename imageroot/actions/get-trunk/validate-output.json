@@ -17,6 +17,10 @@
       "required": ["destination"],
       "additionalProperties": false,
       "properties": {
+        "host": {
+          "type": "string",
+          "title": "SIP-URI Host part of the request"
+        },
         "destination": {
           "type": "object",
           "required": ["uri", "description"],
