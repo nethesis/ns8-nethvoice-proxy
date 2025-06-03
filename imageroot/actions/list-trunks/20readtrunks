@@ -31,6 +31,15 @@ for proxy_route in proxy_routes:
         destination = json.loads(destination)
 
     route["destination"] = { "uri": destination[0]["destination"], "description": destination[0]["description"] }
+
+    #Check if host is set
+    with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
+        print(f'SELECT COALESCE(json_agg(domain.*), \'""\'::json) FROM domain WHERE did=\'{proxy_route["setid"]}\';\n', file=psql.stdin)
+        host, _ = psql.communicate()
+        host = json.loads(host)
+        if host:
+            route["host"] = host[0]["domain"]
+
     routes.append(route)
 json.dump(routes, fp=sys.stdout)
 
