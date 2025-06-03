@@ -10,4 +10,5 @@
 cat << EOF | podman exec -i kamailio kamcmd > /dev/null
 dialplan.reload
 dispatcher.reload
+domain.reload
 EOF

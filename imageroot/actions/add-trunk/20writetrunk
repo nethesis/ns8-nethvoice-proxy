@@ -40,6 +40,18 @@ query += (
         f'INSERT INTO dispatcher (setid,  destination, description) VALUES ({proxy_route[0]["setid"]},\'{data["destination"]["uri"]}\',\'{data["destination"]["description"]}\');\n'
         )
 
+if "host" in data and data["host"] != "":
+    # Add host to domain table with did field same as setid
+    query += (
+        f'DELETE FROM domain WHERE did=\'{proxy_route[0]["setid"]}\';\n'
+        f'INSERT INTO domain (did, domain) VALUES ({proxy_route[0]["setid"]}, \'{data["host"]}\');\n'
+    )
+else:
+    # If no host is provided, delete the domain entry
+    query += (
+        f'DELETE FROM domain WHERE did=\'{proxy_route[0]["setid"]}\';\n'
+    )
+
 # Write the route
 with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-qU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, text=True) as psql:
         print(query,file=psql.stdin)

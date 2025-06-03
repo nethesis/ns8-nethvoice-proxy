@@ -21,6 +21,10 @@
       "minLength": 1,
       "examples": ["05551594XX"]
     },
+    "host": {
+      "type": "string",
+      "title": "SIP-URI Host part of the request"
+    },
     "destination": {
       "type": "object",
       "title": "Backend Asterisk",
