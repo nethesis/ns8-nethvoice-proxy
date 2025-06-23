@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 as builder
+FROM ubuntu:24.04 as builder
 
 LABEL maintainer="Giovanni Tommasini <giovanni.tommasini@evoseed.io>"
 
@@ -58,7 +58,7 @@ RUN apt-get -qq update \
     libcurl4-openssl-dev \
     jq \
     mtr-tiny \
-    netcat \
+    netcat-openbsd \
     net-tools \
     traceroute
 
@@ -80,7 +80,7 @@ RUN cd /src/rtpengine/ \
     && dpkg-checkbuilddeps \
     && DEB_BUILD_OPTIONS=nocheck dpkg-buildpackage --no-sign
 
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 ENV TZ="Europe/Rome"
 
@@ -91,10 +91,10 @@ RUN apt-get update -qq && apt-get install -qq --no-install-recommends -y \
     ca-certificates \
     gettext-base \
     iptables \
-    libavcodec58 \
-    libavfilter7 \
-    libavformat58 \
-    libavutil56 \
+    libavcodec60 \
+    libavfilter9 \
+    libavformat60 \
+    libavutil58 \
     libbencode-perl \
     libconfig-tiny-perl \
     libcrypt-rijndael-perl \
@@ -102,7 +102,7 @@ RUN apt-get update -qq && apt-get install -qq --no-install-recommends -y \
     libevent-2.1-7 \
     libevent-pthreads-2.1-7 \
     libglib2.0-0 \
-    libhiredis0.14 \
+    libhiredis1.1.0 \
     libio-socket-inet6-perl \
     libip4tc2 \
     libip6tc2 \
@@ -113,9 +113,10 @@ RUN apt-get update -qq && apt-get install -qq --no-install-recommends -y \
     libpcap0.8 \
     libsocket6-perl \
     libspandsp2 \
-    libswresample3 \
-    libwebsockets16 \
+    libswresample4 \
+    libwebsockets19t64 \
     libxmlrpc-core-c3 \
+    libpcre3 \
     netcat-openbsd \
     nfs-common \
     perl && \
