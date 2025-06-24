@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+
+#
+# Copyright (C) 2025 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import os
+import time
+
+import agent
+
+# read the file trunks_dump.json with an array of trunks
+with open('trunks_dump.json', 'r') as f:
+    trunks = json.load(f)
+    #invoke the agent to restore trunks
+    for trunk in trunks:
+        # call restore_trunk
+        response = agent.tasks.run(
+                agent_id=os.environ['AGENT_ID'],
+                action='add-trunk',
+                data=trunk
+                )
+        agent.assert_exp(response['exit_code'] == 0)
+        # By default there is a rate limiting of maximum one reload in five
+        # seconds to be waited before executing a new RPC reload. Executing two
+        # RPC reloads of the same table at the same time can cause Kamailio to
+        # crash.
+        # See: https://www.kamailio.org/docs/modules/stable/modules/permissions.html#permissions.p.reload_delta
+        time.sleep(5)

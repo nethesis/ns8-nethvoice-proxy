@@ -1,0 +1,17 @@
+[Unit]
+Description=Get TLS certificate from Traefik
+
+[Service]
+Type=oneshot
+EnvironmentFile=%S/state/environment
+WorkingDirectory=%S/state
+SyslogIdentifier=%N
+ExecStart=-mkdir -vp kamailio-certificate/cert_files/
+ExecStart=-runagent generate_tls_config ${KML_DEFAULT_FQDN}
+ExecStart=-runagent get-certificate \
+    --cert-file=kamailio-certificate/cert_files/${KML_DEFAULT_FQDN}.crt \
+    --key-file=kamailio-certificate/cert_files/${KML_DEFAULT_FQDN}.key \
+    ${KML_DEFAULT_FQDN}
+ExecStart=-find kamailio-certificate/ -type f -name *.key -not -name ${KML_DEFAULT_FQDN}.key -delete
+ExecStart=-find kamailio-certificate/ -type f -name *.crt -not -name ${KML_DEFAULT_FQDN}.crt -delete
+ExecStart=-find kamailio-certificate/ -type f -name *.cfg -not -name ${KML_DEFAULT_FQDN}.cfg -delete
