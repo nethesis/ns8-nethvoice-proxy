@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install --no-install-recommends --assume-yes \
     kamailio-postgres-modules=${KAMAILIO_VERSION}+ubuntu20.04 \
     kamailio-redis-modules=${KAMAILIO_VERSION}+ubuntu20.04 \
     kamailio-tls-modules=${KAMAILIO_VERSION}+ubuntu20.04 \
+    kamailio-websocket-modules=${KAMAILIO_VERSION}+ubuntu20.04 \
     kamailio-utils-modules=${KAMAILIO_VERSION}+ubuntu20.04 \
     gettext-base && \
     rm -rf /var/lib/apt/lists/*
