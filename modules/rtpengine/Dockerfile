@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 as builder
+FROM ubuntu:24.04 as builder
 
 LABEL maintainer="Giovanni Tommasini <giovanni.tommasini@evoseed.io>"
 
@@ -80,7 +80,7 @@ RUN cd /src/rtpengine/ \
     && dpkg-checkbuilddeps \
     && DEB_BUILD_OPTIONS=nocheck dpkg-buildpackage --no-sign
 
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 ENV TZ="Europe/Rome"
 
