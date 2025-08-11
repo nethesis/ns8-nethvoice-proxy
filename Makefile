@@ -12,12 +12,12 @@ init:
 
 run-all:
 	systemctl --user stop postgres kamailio rtpengine redis
-	runagent bash -c 'podman run -d --name postgres -p 127.0.0.1:$$POSTGRES_PORT:5432 --env-file ~/.config/state/environment --volume=pgdata:/var/lib/postgresql/data ghcr.io/nethesis/nethvoice-proxy-postgres:$(TAG)'
-	runagent bash -c 'podman run -d --name redis --publish=127.0.0.1:$$REDIS_PORT:6379 --env-file ~/.config/state/environment ghcr.io/nethesis/nethvoice-proxy-redis:$(TAG)'
-	podman run -d --name rtpengine --env-file ~/.config/state/environment --network=host ghcr.io/nethesis/nethvoice-proxy-rtpengine:$(TAG)
+	runagent bash -c 'podman run -d --name postgres -p 127.0.0.1:$$POSTGRES_PORT:5432 --env-file ~/.config/state/environment --env-file ~/.config/state/passwords.env --volume=pgdata:/var/lib/postgresql/data ghcr.io/nethesis/nethvoice-proxy-postgres:$(TAG)'
+	runagent bash -c 'podman run -d --name redis --publish=127.0.0.1:$$REDIS_PORT:6379 --env-file ~/.config/state/environment --env-file ~/.config/state/passwords.env ghcr.io/nethesis/nethvoice-proxy-redis:$(TAG)'
+	podman run -d --name rtpengine --env-file ~/.config/state/environment --env-file ~/.config/state/passwords.env --network=host ghcr.io/nethesis/nethvoice-proxy-rtpengine:$(TAG)
 	echo ":: sleeping 10 seconds for postgres to start before starting kamailio"
 	sleep 10
-	podman run -d --name kamailio --env-file ~/.config/state/environment --network=host \
+	podman run -d --name kamailio --env-file ~/.config/state/environment --env-file ~/.config/state/passwords.env --network=host \
 		-v ~/.config/state/kamailio-certificate:/etc/kamailio/tls:Z \
 		ghcr.io/nethesis/nethvoice-proxy-kamailio:$(TAG)
 
@@ -25,7 +25,7 @@ run-all:
 run-kamailio-dev:
 	podman stop kamailio || exit 0
 	podman rm kamailio || exit 0
-	podman run -d --name kamailio --env-file ~/.config/state/environment --network=host \
+	podman run -d --name kamailio --env-file ~/.config/state/environment --env-file ~/.config/state/passwords.env --network=host \
 		-v ~/.config/state/kamailio-certificate:/etc/kamailio/tls:Z \
 		-v ./modules/kamailio/config/kamailio.cfg:/etc/kamailio/kamailio.cfg:z \
 		-v ./modules/kamailio/config/template.kamailio-local.cfg:/etc/kamailio/template.kamailio-local.cfg:z \
@@ -34,7 +34,7 @@ run-kamailio-dev:
 run-rtpengine-dev:
 	podman stop rtpengine || exit 0
 	podman rm rtpengine || exit 0
-	podman run -d --name rtpengine --env-file ~/.config/state/environment --network=host \
+	podman run -d --name rtpengine --env-file ~/.config/state/environment --env-file ~/.config/state/passwords.env --network=host \
 		-v ./modules/rtpengine/files/rtpengine.conf.template:/src/rtpengine.conf.template:z \
 		-v ./modules/rtpengine/bootstrap.sh:/bootstrap.sh:z \
 		ghcr.io/nethesis/nethvoice-proxy-rtpengine:$(TAG)
