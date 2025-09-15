@@ -33,6 +33,8 @@ if [ "${BEHIND_NAT}" == "true" ]; then
     echo "listen=tcp:${PRIVATE_IP}:5060 advertise ${PUBLIC_IP}:5060" >> /tmp/kamailio-local-additional.cfg
     # doing the same for TLS
     echo "listen=tls:${PRIVATE_IP}:5061 advertise ${PUBLIC_IP}:5061" >> /tmp/kamailio-local-additional.cfg
+    # doing the same for WSS
+    echo "listen=tls:${PRIVATE_IP}:8089 advertise ${PUBLIC_IP}:8089" >> /tmp/kamailio-local-additional.cfg
 else
     # now I have to add the listen with the public IP in the kamailio-local-additional.cfg
     echo "listen=udp:${PUBLIC_IP}:5060" > /tmp/kamailio-local-additional.cfg
@@ -40,6 +42,8 @@ else
     echo "listen=tcp:${PUBLIC_IP}:5060" >> /tmp/kamailio-local-additional.cfg
     # doing the same for TLS
     echo "listen=tls:${PUBLIC_IP}:5061" >> /tmp/kamailio-local-additional.cfg
+    # doing the same for WSS
+    echo "listen=tls:${PUBLIC_IP}:8089" >> /tmp/kamailio-local-additional.cfg
 fi
 
 # if SERVICE_IP not set exit with error
@@ -52,6 +56,7 @@ fi
 echo "listen=udp:${SERVICE_IP}:5060" >> /tmp/kamailio-local-additional.cfg
 echo "listen=tcp:${SERVICE_IP}:5060" >> /tmp/kamailio-local-additional.cfg
 echo "listen=tls:${SERVICE_IP}:5061" >> /tmp/kamailio-local-additional.cfg
+echo "listen=tls:${SERVICE_IP}:8089" >> /tmp/kamailio-local-additional.cfg
 
 
 # rendering the template of kamailio-local.cfg and kamailio.cfg
