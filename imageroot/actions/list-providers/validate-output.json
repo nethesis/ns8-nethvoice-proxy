@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "list-providers output",
+  "$id": "http://schema.nethserver.org/nethvoice-proxy/list-providers-output.json",
+  "description": "Retrieve a list of sip providers with node address and port",
+  "examples": [
+    {
+      "sip_providers": [
+        {
+          "name": "nethvoice2",
+          "label": "nethvoice2 (10.5.4.1)",
+          "value": "sip:10.5.4.1:20064"
+        },
+        {
+          "name": "nethvoice1",
+          "label": "nethvoice1 (10.5.4.1)",
+          "value": "sip:10.5.4.1:20031"
+        }
+      ]
+    }
+  ],
+  "type": "object",
+  "properties": {
+    "sip_providers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "label", "value"]
+      }
+    }
+  },
+  "required": ["sip_providers"]
+}

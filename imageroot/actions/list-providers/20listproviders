@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2023 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import sys
+import agent
+
+rdb = agent.redis_connect()
+config = {}
+result = []
+
+for provider in agent.list_service_providers(rdb, 'sip', 'udp'):
+    if provider.get("module_id", "").startswith("nethvoice-proxy"):
+        continue
+    result.append({
+        "name": provider.get("module_id"),
+        "label": provider.get("module_id")+ " ("+provider.get("node_address")+")",
+        "value": provider.get("module_id")+",sip:"+provider.get("node_address")+":"+provider.get("port")
+    })
+
+config['sip_providers'] = result
+# Output the configuration as JSON to stdout
+json.dump(config, fp=sys.stdout)
