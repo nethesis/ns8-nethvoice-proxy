@@ -22,6 +22,13 @@
         <span>{{ $t("status.title") }}</span>
       </cv-side-nav-link>
       <cv-side-nav-link
+        @click="goToAppPage(instanceName, 'trunkrouting')"
+        :class="{ 'current-page': isLinkActive('trunkrouting') }"
+      >
+        <template v-slot:nav-icon><Vlan20 /></template>
+        <span>{{ $t("trunks.title") }}</span>
+      </cv-side-nav-link>
+      <cv-side-nav-link
         @click="goToAppPage(instanceName, 'settings')"
         :class="{ 'current-page': isLinkActive('settings') }"
       >
@@ -43,6 +50,7 @@
 import Settings20 from "@carbon/icons-vue/es/settings/20";
 import Information20 from "@carbon/icons-vue/es/information/20";
 import Activity20 from "@carbon/icons-vue/es/activity/20";
+import Vlan20 from "@carbon/icons-vue/es/vlan/20";
 import { mapState } from "vuex";
 import { QueryParamService, UtilService } from "@nethserver/ns8-ui-lib";
 
@@ -52,6 +60,7 @@ export default {
     Settings20,
     Information20,
     Activity20,
+    Vlan20,
   },
   mixins: [QueryParamService, UtilService],
   data() {
