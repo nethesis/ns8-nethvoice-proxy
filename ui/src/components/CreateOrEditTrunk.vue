@@ -44,6 +44,7 @@
           :helper-text="$t('trunks.root_helper')"
         />
         <NsComboBox
+          :key="comboBoxKey"
           class="max-dropdown-width mg-bottom mg-left"
           :options="sip_providers"
           v-model.trim="destination"
@@ -108,6 +109,7 @@ export default {
         rule: "",
         destination: "",
       },
+      comboBoxKey: 0, // Reset ComboBox component from ghost state
     };
   },
   computed: {
@@ -117,12 +119,17 @@ export default {
     isShown: function () {
       if (this.isShown) {
         this.clearErrors();
-        this.rule = this.trunk.rule;
-        this.destination = this.trunk.destination
-          ? this.trunk.destination.description +
-            "," +
-            this.trunk.destination.uri
-          : "";
+        if (this.isEdit && this.trunk) {
+          this.rule = this.trunk.rule;
+          this.destination = this.trunk.destination
+            ? this.trunk.destination.description +
+              "," +
+              this.trunk.destination.uri
+            : "";
+        } else {
+          this.comboBoxKey++; // Reset ComboBox component from ghost state
+          this.clearFields();
+        }
       } else {
         // hiding modal
         this.clearErrors();
