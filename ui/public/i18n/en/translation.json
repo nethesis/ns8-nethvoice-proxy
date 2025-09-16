@@ -3,7 +3,12 @@
     "required": "Required",
     "work_in_progress": "Work in progress",
     "processing": "Processing...",
-    "optional": "Optional"
+    "optional": "Optional",
+    "cancel": "Cancel",
+    "save": "Save",
+    "clear_search": "Clear search",
+    "no_search_results": "No results found",
+    "no_search_results_description": "We couldn't find any results for your search"
   },
   "status": {
     "title": "Status",
@@ -20,6 +25,28 @@
     "no_services": "No services",
     "no_images": "No images",
     "no_volumes": "No volumes"
+  },
+  "trunks": {
+    "title": "Trunk routing rules",
+    "title_tooltip": "Define the routing rules for outbound calls",
+    "create_trunk": "Create trunk",
+    "edit_trunk": "Edit trunk",
+    "delete_trunk": "Delete trunk",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm_delete_trunk_message": "Are you sure you want to delete the trunk routing rule",
+    "root": "Root",
+    "destination_instance": "Destination",
+    "choose_the_destination_instance": "Choose the nethvoice destination instance where you want to create the trunk",
+    "search_trunks": "Search trunks",
+    "col_instances": "Instances",
+    "col_rule": "Root",
+    "no_trunks": "No trunk routing rules configured",
+    "no_trunks_description": "Start by adding a rule to route calls based on number prefixes",
+    "configure_trunk_description": "Create a new rule to route calls based on a number prefix (Root)",
+    "root_helper": "Enter the number prefix that triggers this rule",
+    "root_invalid_alphanumeric_format": "The root must be alphanumeric (letters and numbers only)",
+    "root_already_exists": "A trunk with this root name already exists"
   },
   "settings": {
     "title": "Settings",
@@ -49,7 +76,13 @@
     "get-name": "Get name",
     "list-backup-repositories": "List backup repositories",
     "list-backups": "List backups",
-    "list-installed-modules": "List installed modules"
+    "list-installed-modules": "List installed modules",
+    "remove-trunk": "Remove trunk",
+    "add-trunk": "Create trunk",
+    "edit-trunk": "Edit trunk",
+    "Trunks_list_error": "Cannot retrieve trunk routing rules",
+    "list-providers": "List providers",
+    "list-trunks": "List trunks"
   },
   "error": {
     "error": "Error",
