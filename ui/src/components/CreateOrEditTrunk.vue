@@ -274,7 +274,7 @@ export default {
 <style scoped lang="scss">
 @import "../styles/carbon-utils";
 .mg-bottom {
-  margin-bottom: 3rem !important;
+  margin-bottom: 5rem !important;
 }
 .mg-left {
   margin-left: 1rem !important;
