@@ -164,7 +164,11 @@ export default {
         isValidationOk = false;
       }
       // validate rule is unique
-      if (!this.isEdit && this.rule && this.rule_names.includes(this.rule)) {
+      if (
+        !this.isEdit &&
+        this.rule &&
+        this.rule_names.includes(this.rule.toLowerCase())
+      ) {
         this.error.rule = "trunks.root_already_exists";
         if (isValidationOk) {
           this.focusElement("rule");
