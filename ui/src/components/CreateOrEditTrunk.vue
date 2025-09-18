@@ -140,7 +140,7 @@ export default {
       this.rule = "";
       this.destination = "";
     },
-    validateConfigureModule() {
+    validateCreateTrunk() {
       this.clearErrors(this);
 
       let isValidationOk = true;
@@ -198,7 +198,7 @@ export default {
       }
     },
     async createTrunk() {
-      const isValidationOk = this.validateConfigureModule();
+      const isValidationOk = this.validateCreateTrunk();
       if (!isValidationOk) {
         return;
       }
