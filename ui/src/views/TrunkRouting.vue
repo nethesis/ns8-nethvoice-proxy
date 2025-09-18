@@ -42,7 +42,7 @@
               :icon="Add20"
               @click="toggleCreateTrunk"
               :disabled="loading.listTrunks || loading.setDeleteTrunk"
-              >{{ $t("trunks.create_trunk") }}
+              >{{ $t("trunks.add_rule") }}
             </NsButton>
           </div>
         </cv-column>
@@ -95,7 +95,7 @@
                         :icon="Add20"
                         @click="toggleCreateTrunk"
                         :disabled="loading.listTrunks || loading.setDeleteTrunk"
-                        >{{ $t("trunks.create_trunk") }}
+                        >{{ $t("trunks.add_rule") }}
                       </NsButton>
                     </template>
                   </NsEmptyState>
@@ -107,11 +107,9 @@
                   :key="`${rowIndex}`"
                   :value="`${rowIndex}`"
                 >
-                  <cv-data-table-row>
-                    <div class="mg-top mg-left gray">
-                      {{ row.rule }}
-                    </div>
-                  </cv-data-table-row>
+                  <cv-data-table-cell>
+                    {{ row.rule }}
+                  </cv-data-table-cell>
                   <cv-data-table-cell>
                     {{ row.instances }}
                   </cv-data-table-cell>
@@ -123,14 +121,14 @@
                     >
                       <cv-overflow-menu-item
                         @click="toggleEditTrunk(row)"
-                        :data-test-id="row.rule + '-edit-trunk'"
+                        :data-test-id="row.rule + '-edit-rule'"
                       >
                         <NsMenuItem :icon="Edit20" :label="$t('trunks.edit')" />
                       </cv-overflow-menu-item>
                       <cv-overflow-menu-item
-                        v-if="row.remoteusername !== ''"
+                        danger
                         @click="toggleDeleteTrunk(row)"
-                        :data-test-id="row.rule + '-delete-trunk'"
+                        :data-test-id="row.rule + '-delete-rule'"
                       >
                         <NsMenuItem
                           :icon="TrashCan20"
@@ -178,7 +176,6 @@ import {
 import to from "await-to-js";
 import ConfirmDeleteTrunk from "@/components/ConfirmDeleteTrunk";
 import CreateOrEditTrunk from "@/components/CreateOrEditTrunk";
-import Add20 from "@carbon/icons-vue/es/task--add/20";
 
 export default {
   name: "TrunkRouting",
@@ -202,7 +199,6 @@ export default {
       q: {
         page: "trunkrouting",
       },
-      Add20,
       urlCheckInterval: null,
       tablePage: [],
       tableColumns: ["rule", "instances"],
@@ -221,15 +217,10 @@ export default {
       loading: {
         listTrunks: false,
         setDeleteTrunk: false,
-        toggleListInformations: false,
       },
       error: {
         listTrunks: "",
         setDeleteTrunk: "",
-        startAllTrunks: "",
-        stopAllTrunks: "",
-        toggleActionTrunk: "",
-        toggleListInformations: "",
       },
     };
   },
@@ -436,15 +427,6 @@ export default {
 
 <style scoped lang="scss">
 @import "../styles/carbon-utils";
-.mg-top {
-  margin-top: 1em;
-}
-.mg-left {
-  margin-left: 1em;
-}
-.gray {
-  color: #525252;
-}
 .empty-state-button {
   margin-top: $spacing-07;
   margin-bottom: $spacing-07;
