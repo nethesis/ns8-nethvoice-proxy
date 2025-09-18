@@ -340,8 +340,25 @@ export default {
       this.error.listTrunks = this.$t("error.generic_error");
       this.loading.listTrunks = false;
     },
+    formatSipProviders(providers) {
+      // remove nethvoice-proxy providers and format for nscombobox
+      return providers
+        .filter((provider) => !provider.module_id.startsWith("nethvoice-proxy"))
+        .map((provider) => ({
+          name: provider.module_id,
+          label: provider.module_id + " (" + provider.node_address + ")",
+          value:
+            provider.module_id +
+            ",sip:" +
+            provider.node_address +
+            ":" +
+            provider.port,
+        }));
+    },
     listProvidersCompleted(taskContext, taskResult) {
-      this.sip_providers = taskResult.output.sip_providers;
+      this.sip_providers = this.formatSipProviders(
+        taskResult.output.sip_providers
+      );
       this.loading.listTrunks = false;
     },
     toggleEditTrunk(trunk) {
