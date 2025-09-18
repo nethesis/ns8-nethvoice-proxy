@@ -34,7 +34,7 @@
     "delete_rule": "Delete rule",
     "edit": "Edit",
     "delete": "Delete",
-    "confirm_delete_trunk_message": "Deleting this rule will remove its routing configuration permanently",
+    "confirm_delete_rule_message": "Deleting this rule will remove its routing configuration permanently",
     "root": "Root",
     "destination_instance": "Destination",
     "search_trunks": "Search trunks",

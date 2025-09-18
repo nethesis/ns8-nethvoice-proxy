@@ -14,7 +14,7 @@
       >{{ $t("trunks.delete_rule") }}: {{ trunk.rule }}</template
     >
     <template slot="content">
-      <div>{{ $t("trunks.confirm_delete_trunk_message") }}</div>
+      <div>{{ $t("trunks.confirm_delete_rule_message") }}</div>
     </template>
     <template slot="secondary-button">{{ core.$t("common.cancel") }}</template>
     <template slot="primary-button">{{ $t("trunks.delete_rule") }}</template>
