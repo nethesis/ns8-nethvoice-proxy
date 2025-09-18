@@ -12,7 +12,7 @@
   >
     <template slot="title">{{
       !isEdit
-        ? $t("trunks.create_trunk") + " "
+        ? $t("trunks.add_rule") + " "
         : $t("trunks.edit_trunk") + " " + trunk.rule
     }}</template>
     <template slot="content">
@@ -21,7 +21,7 @@
           <cv-column>
             <NsInlineNotification
               kind="error"
-              :title="$t('trunks.create_trunk')"
+              :title="$t('trunks.add_rule')"
               :description="error.createTrunk"
               :showCloseButton="false"
             />
@@ -44,6 +44,7 @@
           :helper-text="$t('trunks.root_helper')"
         />
         <NsComboBox
+          :light="true"
           :key="comboBoxKey"
           class="max-dropdown-width mg-bottom mg-left"
           :options="sip_providers"
@@ -61,16 +62,13 @@
           :disabled="loading.createTrunk"
           ref="destination"
         >
-          <template slot="tooltip">
-            {{ $t("trunks.choose_the_destination_instance") }}
-          </template>
         </NsComboBox>
       </cv-form>
       <cv-row v-if="error.createTrunk">
         <cv-column>
           <NsInlineNotification
             kind="error"
-            :title="$t('trunks.create_trunk')"
+            :title="$t('trunks.add_rule')"
             :description="error.createTrunk"
             :showCloseButton="false"
           />
@@ -78,7 +76,7 @@
       </cv-row>
     </template>
     <template slot="secondary-button">{{ $t("common.cancel") }}</template>
-    <template slot="primary-button">{{ $t("common.save") }}</template>
+    <template slot="primary-button">{{ $t("trunks.add_rule") }}</template>
   </NsModal>
 </template>
 
@@ -237,8 +235,8 @@ export default {
           },
           extra: {
             title: this.isEdit
-              ? this.$t("action.edit-trunk")
-              : this.$t("action.add-trunk"),
+              ? this.$t("action.edit-rule")
+              : this.$t("action.add-rule"),
             isNotificationHidden: false,
             eventId,
           },
