@@ -7,14 +7,36 @@
     {
       "sip_providers": [
         {
-          "name": "nethvoice2",
-          "label": "nethvoice2 (10.5.4.1)",
-          "value": "sip:10.5.4.1:20064"
+          "node_address": "10.5.4.1",
+          "node_id": "1",
+          "port": "20064",
+          "module_uuid": "9ecae1df-0db3-48a3-93ce-e144687c0d66",
+          "node": "1",
+          "transport": "udp",
+          "module_id": "nethvoice2",
+          "ui_name": null
         },
         {
-          "name": "nethvoice1",
-          "label": "nethvoice1 (10.5.4.1)",
-          "value": "sip:10.5.4.1:20031"
+          "port": "5060",
+          "host": "10.5.4.1",
+          "address": "192.168.12.110",
+          "public_address": "192.168.12.110",
+          "fqdn": "31256.ns8.test",
+          "node": "1",
+          "module_uuid": "4f90c4ea-5970-4215-a986-e65e30d5ce75",
+          "transport": "udp",
+          "module_id": "nethvoice-proxy1",
+          "ui_name": null
+        },
+        {
+          "node_address": "10.5.4.1",
+          "node_id": "1",
+          "port": "20031",
+          "module_uuid": "d22a6722-5b1e-4397-a20b-2ec966ddeb80",
+          "node": "1",
+          "transport": "udp",
+          "module_id": "nethvoice1",
+          "ui_name": null
         }
       ]
     }
@@ -26,17 +48,43 @@
       "items": {
         "type": "object",
         "properties": {
-          "name": {
+          "port": {
             "type": "string"
           },
-          "label": {
+          "host": {
             "type": "string"
           },
-          "value": {
+          "address": {
+            "type": "string"
+          },
+          "public_address": {
+            "type": "string"
+          },
+          "fqdn": {
+            "type": "string"
+        },
+          "node": {
+            "type": "string"
+          },
+          "module_uuid": {
+            "type": "string"
+          },
+          "transport": {
+            "type": "string"
+          },
+          "module_id": {
+            "type": "string"
+          },
+          "ui_name": {
+            "type": ["string", "null"]
+          },
+          "node_address": {
+            "type": "string"
+          },
+          "node_id": {
             "type": "string"
           }
-        },
-        "required": ["name", "label", "value"]
+        }
       }
     }
   },
