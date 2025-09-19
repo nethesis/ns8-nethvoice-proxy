@@ -402,7 +402,7 @@ export default {
             rule: this.currentTrunk.rule,
           },
           extra: {
-            title: this.$t("action." + taskAction),
+            title: this.$t("action.delete-rule"),
             isNotificationHidden: false,
             eventId,
           },
