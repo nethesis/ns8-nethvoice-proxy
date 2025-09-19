@@ -13,7 +13,7 @@
     <template slot="title">{{
       !isEdit
         ? $t("trunks.add_rule") + " "
-        : $t("trunks.edit_trunk") + " " + trunk.rule
+        : $t("trunks.edit_rule") + " " + trunk.rule
     }}</template>
     <template slot="content">
       <cv-form>
