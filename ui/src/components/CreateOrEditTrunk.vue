@@ -52,7 +52,7 @@
           :autoFilter="true"
           :autoHighlight="true"
           :title="$t('trunks.destination_instance')"
-          :label="$t('trunks.destination_instance')"
+          :label="$t('trunks.destination_instance_placeholder')"
           :userInputLabel="$t('trunks.destination_instance')"
           :acceptUserInput="false"
           :showItemType="true"

@@ -44,7 +44,8 @@
     "configure_trunk_description": "Create a new rule to route calls based on a number prefix (Root)",
     "root_helper": "Enter the number prefix that triggers this rule",
     "root_invalid_alphanumeric_format": "The root must be alphanumeric (letters and numbers only)",
-    "root_already_exists": "A trunk with this root name already exists"
+    "root_already_exists": "A trunk with this root name already exists",
+    "destination_instance_placeholder": "Choose a destination"
   },
   "settings": {
     "title": "Settings",
