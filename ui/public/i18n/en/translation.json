@@ -78,7 +78,7 @@
     "list-installed-modules": "List installed modules",
     "delete-rule": "Rule successfully deleted",
     "add-rule": "Rule successfully created",
-    "edit-rule": "Rule successfully updated",
+    "edit-rule": "Rule successfully edited",
     "Trunks_list_error": "Cannot retrieve trunk routing rules",
     "list-providers": "List providers",
     "list-trunks": "List trunks"

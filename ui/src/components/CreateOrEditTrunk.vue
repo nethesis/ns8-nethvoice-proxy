@@ -76,7 +76,9 @@
       </cv-row>
     </template>
     <template slot="secondary-button">{{ $t("common.cancel") }}</template>
-    <template slot="primary-button">{{ $t("trunks.add_rule") }}</template>
+    <template slot="primary-button">{{
+      !isEdit ? $t("trunks.add_rule") : $t("trunks.edit_rule")
+    }}</template>
   </NsModal>
 </template>
 
