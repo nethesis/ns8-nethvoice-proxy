@@ -9,16 +9,6 @@
         <cv-column class="page-title">
           <h2>
             {{ $t("trunks.title") }}
-            <cv-interactive-tooltip
-              alignment="start"
-              direction="right"
-              class="tooltip info mg-left-sm"
-            >
-              <template slot="trigger"></template>
-              <template slot="content">
-                <div>{{ $t("trunks.title_tooltip") }}</div>
-              </template>
-            </cv-interactive-tooltip>
           </h2>
         </cv-column>
       </cv-row>

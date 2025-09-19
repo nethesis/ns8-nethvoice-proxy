@@ -28,7 +28,6 @@
   },
   "trunks": {
     "title": "Trunk routing rules",
-    "title_tooltip": "Define the routing rules for outbound calls",
     "add_rule": "Add rule",
     "edit_rule": "Edit rule",
     "delete_rule": "Delete rule",
