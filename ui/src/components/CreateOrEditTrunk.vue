@@ -157,7 +157,7 @@ export default {
       // validate rule is alphanumeric
       const ruleRegex = /^[0-9a-zA-Z]+$/;
       if (this.rule && !ruleRegex.test(this.rule)) {
-        this.error.rule = "trunks.root_invalid_alphanumeric_format";
+        this.error.rule = "error.root_invalid_alphanumeric_format";
         if (isValidationOk) {
           this.focusElement("rule");
         }
@@ -169,7 +169,7 @@ export default {
         this.rule &&
         this.rule_names.includes(this.rule.toLowerCase())
       ) {
-        this.error.rule = "trunks.root_already_exists";
+        this.error.rule = "error.root_already_exists";
         if (isValidationOk) {
           this.focusElement("rule");
         }

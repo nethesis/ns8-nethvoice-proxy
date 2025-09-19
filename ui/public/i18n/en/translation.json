@@ -43,8 +43,6 @@
     "no_trunks_description": "Start by adding a rule to route calls based on number prefixes",
     "configure_trunk_description": "Create a new rule to route calls based on a number prefix (Root)",
     "root_helper": "Enter the number prefix that triggers this rule",
-    "root_invalid_alphanumeric_format": "The root must be alphanumeric (letters and numbers only)",
-    "root_already_exists": "A trunk with this root name already exists",
     "destination_instance_placeholder": "Choose a destination"
   },
   "settings": {
@@ -92,6 +90,8 @@
     "401": "Invalid authentication",
     "403": "Operation not authorized",
     "404": "Resource not found",
+    "root_invalid_alphanumeric_format": "The root name must be alphanumeric (letters and numbers only)",
+    "root_already_exists": "A rule with this root name already exists",
     "cannot_retrieve_module_info": "Cannot retrieve module info",
     "cannot_retrieve_installed_modules": "Cannot retrieve installed modules"
   },
