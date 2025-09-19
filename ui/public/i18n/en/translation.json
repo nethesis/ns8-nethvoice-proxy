@@ -3,7 +3,12 @@
     "required": "Required",
     "work_in_progress": "Work in progress",
     "processing": "Processing...",
-    "optional": "Optional"
+    "optional": "Optional",
+    "cancel": "Cancel",
+    "save": "Save",
+    "clear_search": "Clear search",
+    "no_search_results": "No results found",
+    "no_search_results_description": "We couldn't find any results for your search"
   },
   "status": {
     "title": "Status",
@@ -20,6 +25,25 @@
     "no_services": "No services",
     "no_images": "No images",
     "no_volumes": "No volumes"
+  },
+  "trunks": {
+    "title": "Trunk routing rules",
+    "add_rule": "Add rule",
+    "edit_rule": "Edit rule",
+    "delete_rule": "Delete rule",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm_delete_rule_message": "Deleting this rule will remove its routing configuration permanently",
+    "root": "Root",
+    "destination_instance": "Destination",
+    "search_trunks": "Search trunks",
+    "col_instances": "Application",
+    "col_rule": "Root",
+    "no_trunks": "No trunk routing rules configured",
+    "no_trunks_description": "Start by adding a rule to route calls based on number prefixes",
+    "configure_trunk_description": "Create a new rule to route calls based on a number prefix (Root)",
+    "root_helper": "Enter the number prefix that triggers this rule",
+    "destination_instance_placeholder": "Choose a destination"
   },
   "settings": {
     "title": "Settings",
@@ -49,7 +73,13 @@
     "get-name": "Get name",
     "list-backup-repositories": "List backup repositories",
     "list-backups": "List backups",
-    "list-installed-modules": "List installed modules"
+    "list-installed-modules": "List installed modules",
+    "delete-rule": "Rule successfully deleted",
+    "add-rule": "Rule successfully created",
+    "edit-rule": "Rule successfully edited",
+    "Trunks_list_error": "Cannot retrieve trunk routing rules",
+    "list-providers": "List providers",
+    "list-trunks": "List trunks"
   },
   "error": {
     "error": "Error",
@@ -60,6 +90,8 @@
     "401": "Invalid authentication",
     "403": "Operation not authorized",
     "404": "Resource not found",
+    "root_invalid_alphanumeric_format": "The root name must be alphanumeric (letters and numbers only)",
+    "root_already_exists": "A rule with this root name already exists",
     "cannot_retrieve_module_info": "Cannot retrieve module info",
     "cannot_retrieve_installed_modules": "Cannot retrieve installed modules"
   },
