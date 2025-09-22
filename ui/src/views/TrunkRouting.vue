@@ -294,7 +294,7 @@ export default {
     },
     async listProviders() {
       this.sip_providers = [];
-      const taskAction = "list-providers";
+      const taskAction = "list-service-providers";
       const eventId = this.getUuid();
       this.loading.listTrunks = true;
       // register to trunk events
@@ -309,6 +309,10 @@ export default {
       const res = await to(
         this.createModuleTaskForApp(this.instanceName, {
           action: taskAction,
+          data: {  
+            service: "sip",
+            transport: "udp"
+          },
           extra: {
             title: this.$t("action." + taskAction),
             isNotificationHidden: true,
@@ -347,7 +351,7 @@ export default {
     },
     listProvidersCompleted(taskContext, taskResult) {
       this.sip_providers = this.formatSipProviders(
-        taskResult.output.sip_providers
+        taskResult.output
       );
       this.loading.listTrunks = false;
     },
