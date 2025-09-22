@@ -22,6 +22,16 @@
           />
         </cv-column>
       </cv-row>
+      <cv-row v-if="error.listProviders">
+        <cv-column>
+          <NsInlineNotification
+            kind="error"
+            :title="$t('error.error_loading_providers')"
+            :description="error.listProviders"
+            :showCloseButton="false"
+          />
+        </cv-column>
+      </cv-row>
       <cv-row class="toolbar">
         <cv-column>
           <div>
@@ -211,6 +221,7 @@ export default {
       error: {
         listTrunks: "",
         setDeleteTrunk: "",
+        listProviders: "",
       },
     };
   },
@@ -297,6 +308,7 @@ export default {
       const taskAction = "list-service-providers";
       const eventId = this.getUuid();
       this.loading.listTrunks = true;
+      this.error.listProviders = "";
       // register to trunk events
       this.core.$root.$once(
         `${taskAction}-aborted-${eventId}`,
@@ -309,9 +321,9 @@ export default {
       const res = await to(
         this.createModuleTaskForApp(this.instanceName, {
           action: taskAction,
-          data: {  
+          data: {
             service: "sip",
-            transport: "udp"
+            transport: "udp",
           },
           extra: {
             title: this.$t("action." + taskAction),
@@ -325,34 +337,42 @@ export default {
       if (err) {
         console.error(`error creating trunk ${taskAction}`, err);
         const errMessage = this.getErrorMessage(err);
-        this.error.listTrunks = errMessage;
+        this.error.listProviders = errMessage;
         this.loading.listTrunks = false;
       }
     },
     listProvidersAborted(taskResult, taskContext) {
       console.error(`${taskContext.action} aborted`, taskResult);
-      this.error.listTrunks = this.$t("error.generic_error");
+      this.error.listProviders = this.$t("error.generic_error");
       this.loading.listTrunks = false;
     },
     formatSipProviders(providers) {
-      // remove nethvoice-proxy providers and format for nscombobox
       return providers
         .filter((provider) => !provider.module_id.startsWith("nethvoice-proxy"))
-        .map((provider) => ({
-          name: provider.module_id,
-          label: provider.module_id + " (" + provider.node_address + ")",
-          value:
-            provider.module_id +
-            ",sip:" +
-            provider.node_address +
-            ":" +
-            provider.port,
-        }));
+        .map((provider) => {
+          // validation of providers with missing fields and display an error
+          // we stop if one provider is not valid, nscombobox will not display any entry
+          if (!provider.module_id || !provider.node_address || !provider.port) {
+            this.error.listProviders = this.$t("error.provider_missing_fields", {
+              module_id: provider.module_id || "unknown",
+            });
+            return null;
+          }
+          return {
+            name: provider.module_id,
+            label: provider.module_id + " (" + provider.node_address + ")",
+            value:
+              provider.module_id +
+              ",sip:" +
+              provider.node_address +
+              ":" +
+              provider.port,
+          };
+        })
+        .filter((item) => item !== null);
     },
     listProvidersCompleted(taskContext, taskResult) {
-      this.sip_providers = this.formatSipProviders(
-        taskResult.output
-      );
+      this.sip_providers = this.formatSipProviders(taskResult.output);
       this.loading.listTrunks = false;
     },
     toggleEditTrunk(trunk) {
