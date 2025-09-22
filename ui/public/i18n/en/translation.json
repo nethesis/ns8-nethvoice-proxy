@@ -78,7 +78,7 @@
     "add-rule": "Rule successfully created",
     "edit-rule": "Rule successfully edited",
     "Trunks_list_error": "Cannot retrieve trunk routing rules",
-    "list-providers": "List providers",
+    "list-service-providers": "List service providers",
     "list-trunks": "List trunks"
   },
   "error": {
@@ -93,7 +93,9 @@
     "root_invalid_alphanumeric_format": "The root name must be alphanumeric (letters and numbers only)",
     "root_already_exists": "A rule with this root name already exists",
     "cannot_retrieve_module_info": "Cannot retrieve module info",
-    "cannot_retrieve_installed_modules": "Cannot retrieve installed modules"
+    "cannot_retrieve_installed_modules": "Cannot retrieve installed modules",
+    "error_loading_providers": "Error loading list-service-providers",
+    "provider_missing_fields": "One instance have missing fields: {module_id}"
   },
   "warning": {
     "warning_title_message": "Warning: IP addresses don't match",
