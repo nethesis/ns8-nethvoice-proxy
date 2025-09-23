@@ -51,6 +51,18 @@
           </div>
         </cv-column>
       </cv-row>
+      <cv-row v-if="!sip_providers.length && trunks.length">
+        <cv-column>
+          <NsInlineNotification
+            kind="warning"
+            :title="$t('trunks.providers_are_missing')"
+            :description="$t('trunks.providers_are_missing_description')"
+            :showCloseButton="false"
+            @click="goToSoftwareCenter()"
+            :actionLabel="$t('trunks.go_to_software_center')"
+          />
+        </cv-column>
+      </cv-row>
       <cv-row>
         <cv-column>
           <cv-tile light>
@@ -104,7 +116,9 @@
                     </template>
                   </NsEmptyState>
                 </template>
-                <template v-else-if="!sip_providers.length">
+                <template
+                  v-else-if="!sip_providers.length && !error.listProviders"
+                >
                   <NsEmptyState :title="$t('trunks.providers_are_missing')">
                     <template #pictogram>
                       <ExclamationMarkPictogram />
