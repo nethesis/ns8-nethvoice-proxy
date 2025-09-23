@@ -41,7 +41,11 @@
               class="page-toolbar-item"
               :icon="Add20"
               @click="toggleCreateTrunk"
-              :disabled="loading.listTrunks || loading.setDeleteTrunk"
+              :disabled="
+                loading.listTrunks ||
+                loading.setDeleteTrunk ||
+                !sip_providers.length
+              "
               >{{ $t("trunks.add_rule") }}
             </NsButton>
           </div>
@@ -80,7 +84,7 @@
               @updatePage="tablePage = $event"
             >
               <template slot="empty-state">
-                <template v-if="!trunks.length">
+                <template v-if="!trunks.length && sip_providers.length">
                   <NsEmptyState :title="$t('trunks.no_trunks')">
                     <template #pictogram>
                       <ExclamationMarkPictogram />
@@ -96,6 +100,26 @@
                         @click="toggleCreateTrunk"
                         :disabled="loading.listTrunks || loading.setDeleteTrunk"
                         >{{ $t("trunks.add_rule") }}
+                      </NsButton>
+                    </template>
+                  </NsEmptyState>
+                </template>
+                <template v-else-if="!sip_providers.length">
+                  <NsEmptyState :title="$t('trunks.providers_are_missing')">
+                    <template #pictogram>
+                      <ExclamationMarkPictogram />
+                    </template>
+                    <template #description>
+                      <div>
+                        {{ $t("trunks.providers_are_missing_description") }}
+                      </div>
+                      <NsButton
+                        kind="primary"
+                        class="empty-state-button"
+                        :icon="ArrowRight20"
+                        @click="goToSoftwareCenter()"
+                        :disabled="loading.listTrunks || loading.setDeleteTrunk"
+                        >{{ $t("trunks.go_to_software_center") }}
                       </NsButton>
                     </template>
                   </NsEmptyState>
@@ -301,7 +325,6 @@ export default {
       this.rule_names = this.trunks.map((trunk) => trunk.rule);
       // display the search bar only if we have trunks
       this.check_trunks = this.trunks.length ? true : false;
-      console.debug("trunks", this.trunks);
       this.listProviders();
     },
     async listProviders() {
@@ -319,7 +342,6 @@ export default {
         `${taskAction}-completed-${eventId}`,
         this.listProvidersCompleted
       );
-      console.debug("this.instanceName", this.instanceName);
       const res = await to(
         this.createModuleTaskForApp(this.instanceName, {
           action: taskAction,
@@ -490,6 +512,9 @@ export default {
       this.loading.setDeleteTrunk = false;
       this.hideConfirmDeleteTrunk();
       this.listTrunks();
+    },
+    goToSoftwareCenter() {
+      this.core.$router.push("/software-center");
     },
   },
 };
