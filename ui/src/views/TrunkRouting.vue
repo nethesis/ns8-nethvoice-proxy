@@ -51,7 +51,7 @@
           </div>
         </cv-column>
       </cv-row>
-      <cv-row v-if="!sip_providers.length && trunks.length">
+      <cv-row v-if="!sip_providers.length && trunks.length && !(loading.listTrunks || loading.setDeleteTrunk)">
         <cv-column>
           <NsInlineNotification
             kind="warning"
@@ -160,6 +160,7 @@
                       <cv-overflow-menu-item
                         @click="toggleEditTrunk(row)"
                         :data-test-id="row.rule + '-edit-rule'"
+                        :disabled="!sip_providers.length"
                       >
                         <NsMenuItem :icon="Edit20" :label="$t('trunks.edit')" />
                       </cv-overflow-menu-item>
