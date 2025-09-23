@@ -353,20 +353,39 @@ export default {
           // validation of providers with missing fields and display an error
           // we stop if one provider is not valid, nscombobox will not display any entry
           if (!provider.module_id || !provider.node_address || !provider.port) {
-            this.error.listProviders = this.$t("error.provider_missing_fields", {
-              module_id: provider.module_id || "unknown",
-            });
+            this.error.listProviders = this.$t(
+              "error.provider_missing_fields",
+              {
+                module_id: provider.module_id || "unknown",
+              }
+            );
             return null;
           }
           return {
             name: provider.module_id,
-            label: provider.module_id + " (" + provider.node_address + ")",
-            value:
-              provider.module_id +
-              ",sip:" +
-              provider.node_address +
-              ":" +
-              provider.port,
+            label: provider.ui_name
+              ? provider.ui_name +
+                " (" +
+                provider.module_id +
+                " - " +
+                provider.node_address +
+                ")"
+              : provider.module_id + " (" + provider.node_address + ")",
+            value: provider.ui_name
+              ? provider.ui_name + " (" +
+                provider.module_id +
+                ")" +
+                "," +
+                provider.module_id +
+                ",sip:" +
+                provider.node_address +
+                ":" +
+                provider.port
+              : provider.module_id +
+                ",sip:" +
+                provider.node_address +
+                ":" +
+                provider.port,
           };
         })
         .filter((item) => item !== null);
