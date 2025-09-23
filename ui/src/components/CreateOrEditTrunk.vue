@@ -9,6 +9,7 @@
     @modal-hidden="onModalHidden"
     @primary-click="createTrunk"
     :primary-button-disabled="loading.createTrunk"
+    :isLoading="loading.createTrunk"
   >
     <template slot="title">{{
       !isEdit
