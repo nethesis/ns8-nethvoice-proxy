@@ -43,7 +43,10 @@
     "no_trunks_description": "Start by adding a rule to route calls based on number prefixes",
     "configure_trunk_description": "Create a new rule to route calls based on a number prefix (Root)",
     "root_helper": "Enter the number prefix that triggers this rule",
-    "destination_instance_placeholder": "Choose a destination application"
+    "destination_instance_placeholder": "Choose a destination application",
+    "providers_are_missing": "No nethvoice providers available",
+    "providers_are_missing_description": "You need to install at least one nethvoice instance on this node in order to create trunk routing rules",
+    "go_to_software_center": "Go to Software Center"
   },
   "settings": {
     "title": "Settings",
