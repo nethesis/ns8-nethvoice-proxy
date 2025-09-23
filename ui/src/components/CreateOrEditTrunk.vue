@@ -45,7 +45,6 @@
         />
         <NsComboBox
           :light="true"
-          :key="comboBoxKey"
           class="max-dropdown-width mg-bottom"
           :options="sip_providers"
           v-model.trim="destination"
@@ -107,7 +106,6 @@ export default {
         rule: "",
         destination: "",
       },
-      comboBoxKey: 0, // Reset ComboBox component from ghost state
     };
   },
   computed: {
@@ -125,8 +123,9 @@ export default {
               this.trunk.destination.uri
             : "";
         } else {
-          this.comboBoxKey++; // Reset ComboBox component from ghost state
+          // creating new task
           this.clearFields();
+          this.$refs.destination.clearValue(); // to reset NsComboBox
         }
       } else {
         // hiding modal
