@@ -74,9 +74,9 @@
     "list-backup-repositories": "List backup repositories",
     "list-backups": "List backups",
     "list-installed-modules": "List installed modules",
-    "delete-rule": "Rule successfully deleted",
-    "add-rule": "Rule successfully created",
-    "edit-rule": "Rule successfully edited",
+    "delete-rule": "Delete rule",
+    "add-rule": "Add rule",
+    "edit-rule": "Edit rule",
     "Trunks_list_error": "Cannot retrieve trunk routing rules",
     "list-service-providers": "List service providers",
     "list-trunks": "List trunks"
