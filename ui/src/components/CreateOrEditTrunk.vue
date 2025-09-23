@@ -35,7 +35,6 @@
           </cv-column>
         </cv-row>
         <NsTextInput
-          class="mg-left"
           v-model.trim="rule"
           :label="$t('trunks.root')"
           ref="rule"
@@ -46,7 +45,7 @@
         <NsComboBox
           :light="true"
           :key="comboBoxKey"
-          class="max-dropdown-width mg-bottom mg-left"
+          class="max-dropdown-width mg-bottom"
           :options="sip_providers"
           v-model.trim="destination"
           :autoFilter="true"
@@ -275,9 +274,6 @@ export default {
 @import "../styles/carbon-utils";
 .mg-bottom {
   margin-bottom: 5rem !important;
-}
-.mg-left {
-  margin-left: 1rem !important;
 }
 .max-dropdown-width {
   max-width: 38rem;
