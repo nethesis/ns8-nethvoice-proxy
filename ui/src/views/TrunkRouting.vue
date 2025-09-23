@@ -301,6 +301,7 @@ export default {
       this.rule_names = this.trunks.map((trunk) => trunk.rule);
       // display the search bar only if we have trunks
       this.check_trunks = this.trunks.length ? true : false;
+      console.debug("trunks", this.trunks);
       this.listProviders();
     },
     async listProviders() {
@@ -318,6 +319,7 @@ export default {
         `${taskAction}-completed-${eventId}`,
         this.listProvidersCompleted
       );
+      console.debug("this.instanceName", this.instanceName);
       const res = await to(
         this.createModuleTaskForApp(this.instanceName, {
           action: taskAction,
@@ -348,7 +350,6 @@ export default {
     },
     formatSipProviders(providers) {
       return providers
-        .filter((provider) => !provider.module_id.startsWith("nethvoice-proxy"))
         .map((provider) => {
           // validation of providers with missing fields and display an error
           // we stop if one provider is not valid, nscombobox will not display any entry
@@ -372,7 +373,8 @@ export default {
                 ")"
               : provider.module_id + " (" + provider.node_address + ")",
             value: provider.ui_name
-              ? provider.ui_name + " (" +
+              ? provider.ui_name +
+                " (" +
                 provider.module_id +
                 ")" +
                 "," +
@@ -391,6 +393,24 @@ export default {
         .filter((item) => item !== null);
     },
     listProvidersCompleted(taskContext, taskResult) {
+      // Find the node value for the current instance
+      const currentInstance = taskResult.output.find(
+        (provider) => provider.module_id === this.instanceName
+      );
+      const currentNode = currentInstance ? currentInstance.node : null;
+
+      // Remove the current instance from the list
+      taskResult.output = taskResult.output.filter(
+        (provider) => provider.module_id !== this.instanceName
+      );
+
+      // Keep only providers with the same node value
+      if (currentNode !== null) {
+        taskResult.output = taskResult.output.filter(
+          (provider) => provider.node === currentNode
+        );
+      }
+      // Format the remaining providers
       this.sip_providers = this.formatSipProviders(taskResult.output);
       this.loading.listTrunks = false;
     },
