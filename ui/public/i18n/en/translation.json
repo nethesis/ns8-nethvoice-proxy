@@ -35,15 +35,15 @@
     "delete": "Delete",
     "confirm_delete_rule_message": "Deleting this rule will remove its routing configuration permanently",
     "root": "Root",
-    "destination_instance": "Destination",
-    "search_trunks": "Search trunks",
-    "col_instances": "Application",
+    "destination_instance": "Destination application",
+    "search_trunks": "Filter rules",
+    "col_instances": "Destination application",
     "col_rule": "Root",
     "no_trunks": "No trunk routing rules configured",
     "no_trunks_description": "Start by adding a rule to route calls based on number prefixes",
     "configure_trunk_description": "Create a new rule to route calls based on a number prefix (Root)",
     "root_helper": "Enter the number prefix that triggers this rule",
-    "destination_instance_placeholder": "Choose a destination"
+    "destination_instance_placeholder": "Choose a destination application"
   },
   "settings": {
     "title": "Settings",
