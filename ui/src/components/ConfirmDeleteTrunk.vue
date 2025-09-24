@@ -11,7 +11,7 @@
     @primary-click="$emit('confirm')"
   >
     <template slot="title"
-      >{{ $t("trunks.delete_rule") }}: {{ trunk.rule }}</template
+      >{{ $t("trunks.delete_rule") }} {{ trunk.rule }}</template
     >
     <template slot="content">
       <div>{{ $t("trunks.confirm_delete_rule_message") }}</div>
