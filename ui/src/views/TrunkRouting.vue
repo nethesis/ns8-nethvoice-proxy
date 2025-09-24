@@ -220,7 +220,7 @@ import {
 } from "@nethserver/ns8-ui-lib";
 import to from "await-to-js";
 import ConfirmDeleteTrunk from "@/components/ConfirmDeleteTrunkModal";
-import CreateOrEditTrunk from "@/components/CreateOrEditTrunk";
+import CreateOrEditTrunk from "@/components/CreateOrEditTrunkModal";
 
 export default {
   name: "TrunkRouting",

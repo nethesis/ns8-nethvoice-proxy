@@ -84,7 +84,7 @@ import to from "await-to-js";
 import { UtilService, TaskService } from "@nethserver/ns8-ui-lib";
 import { mapState } from "vuex";
 export default {
-  name: "CreateOrEditTrunk",
+  name: "CreateOrEditTrunkModal",
   mixins: [UtilService, TaskService],
   props: {
     isShown: Boolean,
