@@ -18,23 +18,19 @@
     }}</template>
     <template slot="content">
       <cv-form>
-        <cv-row v-if="error.createTrunk">
-          <cv-column>
-            <NsInlineNotification
-              kind="error"
-              :title="$t('trunks.add_rule')"
-              :description="error.createTrunk"
-              :showCloseButton="false"
-            />
-          </cv-column>
-        </cv-row>
-        <cv-row>
-          <cv-column v-if="!isEdit">
-            <p class="mg-bottom-sm">
-              {{ $t("trunks.configure_trunk_description") }}
-            </p>
-          </cv-column>
-        </cv-row>
+        <div v-if="error.createTrunk">
+          <NsInlineNotification
+            kind="error"
+            :title="$t('trunks.add_rule')"
+            :description="error.createTrunk"
+            :showCloseButton="false"
+          />
+        </div>
+        <div v-if="!isEdit">
+          <p class="mg-bottom-sm">
+            {{ $t("trunks.configure_trunk_description") }}
+          </p>
+        </div>
         <NsTextInput
           v-model.trim="rule"
           :label="$t('trunks.root')"
@@ -63,16 +59,14 @@
         >
         </NsComboBox>
       </cv-form>
-      <cv-row v-if="error.createTrunk">
-        <cv-column>
-          <NsInlineNotification
-            kind="error"
-            :title="$t('trunks.add_rule')"
-            :description="error.createTrunk"
-            :showCloseButton="false"
-          />
-        </cv-column>
-      </cv-row>
+      <div v-if="error.createTrunk">
+        <NsInlineNotification
+          kind="error"
+          :title="$t('trunks.add_rule')"
+          :description="error.createTrunk"
+          :showCloseButton="false"
+        />
+      </div>
     </template>
     <template slot="secondary-button">{{ $t("common.cancel") }}</template>
     <template slot="primary-button">{{ $t("common.save") }}</template>
