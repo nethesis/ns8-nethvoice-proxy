@@ -24,7 +24,7 @@
 <script>
 import { UtilService, IconService } from "@nethserver/ns8-ui-lib";
 export default {
-  name: "ConfirmDeleteTrunk",
+  name: "ConfirmDeleteTrunkModal",
   mixins: [UtilService, IconService],
   props: {
     isShown: Boolean,

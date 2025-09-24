@@ -219,7 +219,7 @@ import {
   PageTitleService,
 } from "@nethserver/ns8-ui-lib";
 import to from "await-to-js";
-import ConfirmDeleteTrunk from "@/components/ConfirmDeleteTrunk";
+import ConfirmDeleteTrunk from "@/components/ConfirmDeleteTrunkModal";
 import CreateOrEditTrunk from "@/components/CreateOrEditTrunk";
 
 export default {
