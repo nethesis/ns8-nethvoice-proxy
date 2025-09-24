@@ -32,25 +32,6 @@
           />
         </cv-column>
       </cv-row>
-      <cv-row class="toolbar">
-        <cv-column>
-          <div>
-            <NsButton
-              v-if="trunks.length"
-              kind="primary"
-              class="page-toolbar-item"
-              :icon="Add20"
-              @click="toggleCreateTrunk"
-              :disabled="
-                loading.listTrunks ||
-                loading.setDeleteTrunk ||
-                !sip_providers.length
-              "
-              >{{ $t("trunks.add_rule") }}
-            </NsButton>
-          </div>
-        </cv-column>
-      </cv-row>
       <cv-row
         v-if="
           !sip_providers.length &&
@@ -72,6 +53,25 @@
       <cv-row>
         <cv-column>
           <cv-tile light>
+            <cv-row class="toolbar">
+              <cv-column>
+                <div>
+                  <NsButton
+                    v-if="trunks.length"
+                    kind="primary"
+                    class="page-toolbar-item"
+                    :icon="Add20"
+                    @click="toggleCreateTrunk"
+                    :disabled="
+                      loading.listTrunks ||
+                      loading.setDeleteTrunk ||
+                      !sip_providers.length
+                    "
+                    >{{ $t("trunks.add_rule") }}
+                  </NsButton>
+                </div>
+              </cv-column>
+            </cv-row>
             <NsDataTable
               :allRows="trunks"
               :columns="i18nTableColumns"
