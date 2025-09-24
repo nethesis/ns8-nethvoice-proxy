@@ -29,7 +29,7 @@
           </cv-column>
         </cv-row>
         <cv-row>
-          <cv-column>
+          <cv-column v-if="!isEdit">
             <p class="mg-bottom-sm">
               {{ $t("trunks.configure_trunk_description") }}
             </p>
