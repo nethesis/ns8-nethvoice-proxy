@@ -51,7 +51,13 @@
           </div>
         </cv-column>
       </cv-row>
-      <cv-row v-if="!sip_providers.length && trunks.length && !(loading.listTrunks || loading.setDeleteTrunk)">
+      <cv-row
+        v-if="
+          !sip_providers.length &&
+          trunks.length &&
+          !(loading.listTrunks || loading.setDeleteTrunk)
+        "
+      >
         <cv-column>
           <NsInlineNotification
             kind="warning"
@@ -332,10 +338,6 @@ export default {
     },
     listTrunksCompleted(taskContext, taskResult) {
       this.trunks = taskResult.output;
-      // parse the trunks and set to instances the description, hack for the search function
-      this.trunks.forEach((trunk) => {
-        trunk.instances = trunk.destination.description;
-      });
       // list all trunks rule names, used to check if a trunk already exists
       this.rule_names = this.trunks.map((trunk) => trunk.rule);
       // display the search bar only if we have trunks
@@ -409,22 +411,12 @@ export default {
                 provider.node_address +
                 ")"
               : provider.module_id + " (" + provider.node_address + ")",
-            value: provider.ui_name
-              ? provider.ui_name +
-                " (" +
-                provider.module_id +
-                ")" +
-                "," +
-                provider.module_id +
-                ",sip:" +
-                provider.node_address +
-                ":" +
-                provider.port
-              : provider.module_id +
-                ",sip:" +
-                provider.node_address +
-                ":" +
-                provider.port,
+            value:
+              provider.module_id +
+              ",sip:" +
+              provider.node_address +
+              ":" +
+              provider.port,
           };
         })
         .filter((item) => item !== null);
@@ -447,6 +439,20 @@ export default {
           (provider) => provider.node === currentNode
         );
       }
+      // Map trunks to use provider ui_name if available
+      this.trunks.forEach((trunk) => {
+        // Find the provider matching the trunk's destination
+        const provider = taskResult.output.find(
+          (provider) => provider.module_id === trunk.destination.description
+        );
+        // Set instances to ui_name if available, else module_id, else keep description
+        trunk.instances = provider
+          ? provider.ui_name && provider.ui_name.trim()
+            ? provider.ui_name + " (" + provider.module_id + ")"
+            : provider.module_id
+          : trunk.destination.description;
+      });
+
       // Format the remaining providers
       this.sip_providers = this.formatSipProviders(taskResult.output);
       this.loading.listTrunks = false;
