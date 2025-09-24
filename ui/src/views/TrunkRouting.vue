@@ -57,6 +57,7 @@
               <cv-column>
                 <div>
                   <NsButton
+                    class="button-bottom-margin"
                     v-if="trunks.length"
                     kind="primary"
                     :icon="Add20"
@@ -545,5 +546,8 @@ export default {
 .empty-state-button {
   margin-top: $spacing-07;
   margin-bottom: $spacing-07;
+}
+.button-bottom-margin {
+  margin-bottom: $spacing-05;
 }
 </style>
