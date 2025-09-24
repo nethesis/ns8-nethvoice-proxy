@@ -59,7 +59,6 @@
                   <NsButton
                     v-if="trunks.length"
                     kind="primary"
-                    class="page-toolbar-item"
                     :icon="Add20"
                     @click="toggleCreateTrunk"
                     :disabled="
