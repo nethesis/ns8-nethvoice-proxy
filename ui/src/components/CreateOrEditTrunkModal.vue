@@ -27,7 +27,7 @@
           />
         </div>
         <div v-if="!isEdit">
-          <p class="mg-bottom-sm">
+          <p class="mg-bottom-lg">
             {{ $t("trunks.configure_trunk_description") }}
           </p>
         </div>
