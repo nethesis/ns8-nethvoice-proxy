@@ -58,7 +58,7 @@
             :title="$t('trunks.providers_are_missing')"
             :description="$t('trunks.providers_are_missing_description')"
             :showCloseButton="false"
-            @click="goToSoftwareCenter()"
+            @action="goToSoftwareCenter"
             :actionLabel="$t('trunks.go_to_software_center')"
           />
         </cv-column>
