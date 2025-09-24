@@ -40,13 +40,13 @@
     "col_instances": "Destination application",
     "col_rule": "Root",
     "no_trunks": "No trunk routing rules configured",
-    "no_trunks_description": "Start by adding a rule to route calls based on number prefixes",
-    "configure_trunk_description": "Create a new rule to route calls based on a number prefix (Root)",
+    "no_trunks_description": "Start by adding a rule to route calls based on phone number prefix",
+    "configure_trunk_description": "Create a new rule to route calls based on a number prefix (root)",
     "root_helper": "Enter the number prefix that triggers this rule",
     "destination_instance_placeholder": "Choose a destination application",
     "providers_are_missing": "No NethVoice application available",
-    "providers_are_missing_description": "You need to install at least one NethVoice application on this node and be configured, in order to create trunk routing rules",
-    "go_to_software_center": "Go to Software Center"
+    "providers_are_missing_description": "You must install and configure at least one NethVoice application on this node before you can create trunk routing rules.",
+    "go_to_software_center": "Go to Software center"
   },
   "settings": {
     "title": "Settings",
