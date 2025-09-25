@@ -17,6 +17,14 @@ const routes = [
     alias: "/status", // important
   },
   {
+    path: "/trunkrouting",
+    name: "TrunkRouting",
+    component: () =>
+      import(
+        /* webpackChunkName: "trunkrouting" */ "../views/TrunkRouting.vue"
+      ),
+  },
+  {
     path: "/settings",
     name: "Settings",
     component: Settings,

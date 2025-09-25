@@ -1096,10 +1096,10 @@
     call-me-maybe "^1.0.1"
     glob-to-regexp "^0.3.0"
 
-"@nethserver/ns8-ui-lib@^1.0.3":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@nethserver/ns8-ui-lib/-/ns8-ui-lib-1.3.0.tgz#35e85060a9d1abade3684d44e2568e15b17b2600"
-  integrity sha512-JRC7shq4rHb/3wBfIFP3WUKEj6clC9Zfo9/9OatJ+MeT0SRuirAzqdkGepEF1daiKTrWlxiNfu0jQDWfJefojg==
+"@nethserver/ns8-ui-lib@^1.4.1":
+  version "1.4.1"
+  resolved "https://registry.npmmirror.com/@nethserver/ns8-ui-lib/-/ns8-ui-lib-1.4.1.tgz#f5cbdb23501e4f5b2fb2e4c3a6bff700a1806615"
+  integrity sha512-gS6HeB2/VjnnKfni7dMA5NbiJ/yLbJUpxb9qF+tIy/J4w4cIgn2L1mmKmj3ZYED8quJQzT3/kutWCSCRgIsLNQ==
   dependencies:
     "@rollup/plugin-json" "^4.1.0"
     core-js "^3.15.2"
@@ -9136,6 +9136,11 @@ vue-template-es2015-compiler@^1.9.0:
   version "1.9.1"
   resolved "https://registry.npmmirror.com/vue-template-es2015-compiler/download/vue-template-es2015-compiler-1.9.1.tgz#1ee3bc9a16ecbf5118be334bb15f9c46f82f5825"
   integrity sha1-HuO8mhbsv1EYvjNLsV+cRvgvWCU=
+
+vue2-debounce@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.npmmirror.com/vue2-debounce/-/vue2-debounce-1.0.1.tgz#2b4da2fe9d34f9c8be08ead9e8e68b988fd15f98"
+  integrity sha512-tZX6QltRUuGn9WUUVJDTWUmAqGugIUKcQN4praNAW4ZQPtBIyyZfvCLq7hKOOSdFhVRloXeFnCZvETibEgKNOw==
 
 vue@^2.6.11, vue@^2.6.12:
   version "2.6.14"
