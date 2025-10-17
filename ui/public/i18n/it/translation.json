@@ -3,7 +3,12 @@
         "required": "Obbligatorio",
         "processing": "Elaborazione in corso...",
         "work_in_progress": "In lavorazione",
-        "optional": "Opzionale"
+        "optional": "Opzionale",
+        "cancel": "Annulla",
+        "save": "Salva",
+        "clear_search": "Azzera ricerca",
+        "no_search_results": "Nessun risultato trovato",
+        "no_search_results_description": "Non abbiamo trovato nessun risultato per la tua ricerca"
     },
     "status": {
         "node": "Nodo",
@@ -45,7 +50,11 @@
         "network_timeout": "Timeout di rete",
         "generic_error": "Qualcosa è andato storto",
         "401": "Autenticazione non valida",
-        "403": "Operazione non autorizzata"
+        "403": "Operazione non autorizzata",
+        "root_invalid_alphanumeric_format": "Il nome radice deve essere alfanumerico (solo lettere e numeri)",
+        "root_already_exists": "Una regola con questo nome radice esiste già",
+        "error_loading_providers": "Errore caricamento lista provider di servizio",
+        "provider_missing_fields": "Un'istanza ha campi mancanti: {module_id}"
     },
     "action": {
         "configure-module": "Configura modulo",
@@ -55,7 +64,13 @@
         "get-name": "Visualizza nome",
         "list-backup-repositories": "Elenca repository di backup",
         "list-backups": "Elenca backup",
-        "list-installed-modules": "Elenca moduli installati"
+        "list-installed-modules": "Elenca moduli installati",
+        "Trunks_list_error": "Impossibile recuperare le regole di routing dei trunk",
+        "list-trunks": "Lista trunk",
+        "delete-rule": "Elimina regola",
+        "add-rule": "Aggiungi regola",
+        "edit-rule": "Modifica regola",
+        "list-service-providers": "Caricamento lista provider di servizio"
     },
     "task": {
         "cannot_create_task": "Impossibile eseguire task {action}"
@@ -66,5 +81,27 @@
     "warning": {
         "warning_title_message": "Attenzione: gli indirizzi IP non corrispondono",
         "different_ip_message": "Per il corretto funzionamento dei dispositivi della rete locale PBX è necessario che sul firewall (più precisamente sul dispositivo che gestisce il NAT dell'IP pubblico) sia abilitata la funzione 'hairpin NAT', nota anche come NAT reflection / NAT hairpining / NAT on a stick / loopback NAT."
+    },
+    "trunks": {
+        "add_rule": "Aggiungi regola",
+        "edit_rule": "Modifica regola",
+        "delete_rule": "Elimina regola",
+        "edit": "Modifica",
+        "delete": "Elimina",
+        "root": "Radice",
+        "confirm_delete_rule_message": "Cancellare questa regola rimuoverà la sua configurazione di routing permanente",
+        "no_trunks_description": "Inizia aggiungendo una regola per indirizzare le chiamate in base al prefisso del numero di telefono",
+        "configure_trunk_description": "Creare una nuova regola per indirizzare le chiamate in base a un prefisso di numero (radice)",
+        "root_helper": "Inserisci il prefisso del numero per questa regola",
+        "destination_instance_placeholder": "Scegli un'applicazione di destinazione",
+        "providers_are_missing": "Nessuna applicazione NethVoice disponibile",
+        "providers_are_missing_description": "È necessario installare e configurare almeno un'applicazione NethVoice su questo nodo prima di poter creare regole di routing dei trunk.",
+        "go_to_software_center": "Vai al Software Center",
+        "destination_instance": "Applicazione di destinazione",
+        "col_instances": "Applicazione di destinzione",
+        "search_trunks": "Filtra regole",
+        "title": "Regole di routing Trunk",
+        "no_trunks": "Nessuna regola di routing trunk configurata",
+        "col_rule": "Radice"
     }
 }
