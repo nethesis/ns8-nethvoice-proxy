@@ -16,7 +16,8 @@
         "address": "2001:db8:3333:4444:5555:6666:7777:8888",
         "public_address": "2001:db8:3333:4444:CCCC:DDDD:EEEE:FFFF"
       }
-    }
+    },
+    { "fqdn": "porxy.example.com", "addresses": {}, "forward_to": "nethvoice1" }
   ],
   "type": "object",
   "properties": {
@@ -67,6 +68,11 @@
         "title": "Netmask of the local network",
         "type": "string"
       }
-    }
+    },
+    "forward_to": {
+      "title": "NethVoice instance name to forward",
+      "type": "string",
+      "minLength": 1
+   }
   }
 }
