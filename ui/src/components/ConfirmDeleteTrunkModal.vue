@@ -1,0 +1,39 @@
+<!--
+  Copyright (C) 2025 Nethesis S.r.l.
+  SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<template>
+  <NsModal
+    kind="danger"
+    size="default"
+    :visible="isShown"
+    @modal-hidden="$emit('hide')"
+    @primary-click="$emit('confirm')"
+  >
+    <template slot="title"
+      >{{ $t("trunks.delete_rule") }} {{ trunk.rule }}</template
+    >
+    <template slot="content">
+      <div>{{ $t("trunks.confirm_delete_rule_message") }}</div>
+    </template>
+    <template slot="secondary-button">{{ core.$t("common.cancel") }}</template>
+    <template slot="primary-button">{{ $t("trunks.delete_rule") }}</template>
+  </NsModal>
+</template>
+
+<script>
+import { UtilService, IconService } from "@nethserver/ns8-ui-lib";
+export default {
+  name: "ConfirmDeleteTrunkModal",
+  mixins: [UtilService, IconService],
+  props: {
+    isShown: Boolean,
+    trunk: { type: [Object, null] },
+    core: { type: Object },
+  },
+};
+</script>
+
+<style scoped lang="scss">
+@import "../styles/carbon-utils";
+</style>
