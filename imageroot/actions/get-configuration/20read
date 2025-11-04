@@ -31,6 +31,8 @@ config["addresses"] = addresses
 
 config["fqdn"] = os.environ["KML_DEFAULT_FQDN"]
 
+config["lets_encrypt"] = agent.get_certificate(os.environ["KML_DEFAULT_FQDN"]).get('lets_encrypt', False)
+
 config["service_network"] = service_network
 
 config["local_networks"] = os.environ["LOCALNETWORKS"].split(",") if os.getenv("LOCALNETWORKS") else []

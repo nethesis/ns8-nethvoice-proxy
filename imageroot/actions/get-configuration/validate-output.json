@@ -24,6 +24,10 @@
       "format": "hostname",
       "minLength": 1
     },
+    "lets_encrypt": {
+      "title": "Enable Let's Encrypt certificate",
+      "type": "boolean"
+    },
     "addresses": {
       "title": "Address that are aspected to receive VoIP traffic",
       "type": "object",
