@@ -59,3 +59,35 @@ if "fqdn" in data:
         action='set-certificate',
         data={'fqdn': data["fqdn"]},
     )
+
+forward_to = os.getenv('FORWARD_TO', '')
+if 'forward_to' in data and data['forward_to'] != forward_to:
+    agent.set_env('FORWARD_TO', data['forward_to'])
+    rdb = agent.redis_connect(privileged=False)
+    asterisk_sip_port = rdb.hget(f"module/{data['forward_to']}/environment", "ASTERISK_SIP_PORT")
+    asterisk_sips_port = rdb.hget(f"module/{data['forward_to']}/environment", "ASTERISK_SIPS_PORT")
+
+    # Forward SIP (external 5060) to asterisk SIP port
+    if asterisk_sip_port:
+        agent.add_port_forward("5060", asterisk_sip_port, ["udp", "tcp"])
+
+    # Forward SIPS (external 5061) to asterisk SIPS port
+    if asterisk_sips_port:
+        agent.add_port_forward("5061", asterisk_sips_port, ["tcp", "udp"])
+else:
+    agent.unset_env('FORWARD_TO')
+    # Remove previous port forwards if forward_to is removed
+    if forward_to:
+        rdb = agent.redis_connect(privileged=False)
+        asterisk_sip_port = rdb.hget(f"module/{forward_to}/environment", "ASTERISK_SIP_PORT")
+        asterisk_sips_port = rdb.hget(f"module/{forward_to}/environment", "ASTERISK_SIPS_PORT")
+
+        # Remove SIP port forward
+        if asterisk_sip_port:
+            agent.remove_port_forward("5060", asterisk_sip_port, ["udp", "tcp"])
+
+        # Remove SIPS port forward
+        if asterisk_sips_port:
+            agent.remove_port_forward("5061", asterisk_sips_port, ["tcp", "udp"])
+
+
