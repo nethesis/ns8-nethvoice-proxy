@@ -48,14 +48,3 @@ if local_networks and "local_networks" in data:
     # Add extra local networks
     local_networks.update(set(data["local_networks"]))
     agent.set_env("LOCALNETWORKS", ",".join(local_networks))
-
-if "fqdn" in data:
-    # Set new fqdn
-    agent.set_env("KML_DEFAULT_FQDN", data["fqdn"])
-
-    # Request new certificate
-    response = agent.tasks.run(
-        agent_id=agent.resolve_agent_id('traefik@node'),
-        action='set-certificate',
-        data={'fqdn': data["fqdn"]},
-    )
