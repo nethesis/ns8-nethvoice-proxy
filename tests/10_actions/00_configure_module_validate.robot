@@ -39,3 +39,11 @@ Service network's address and netmask must be valid
 Networks in local networks list must be valid
     ${response} =  Run task    module/${module_id}/configure-module
     ...    {"local_networks": ["A"]}    rc_expected=3    decode_json=False
+
+lets_encrypt field must be a boolean
+    ${response} =  Run task    module/${module_id}/configure-module
+    ...    {"lets_encrypt": "A"}    rc_expected=10    decode_json=False
+
+Lets encrypt can be enabled only with valid FQDN
+    ${response} =  Run task    module/${module_id}/configure-module
+    ...    {"fqdn": "example.com", "lets_encrypt": true}    rc_expected=3    decode_json=False

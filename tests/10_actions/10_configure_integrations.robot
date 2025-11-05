@@ -38,7 +38,7 @@ Set an address behind NAT
 
 Set FQDN to a valid value
     Run task    module/${module_id}/configure-module
-    ...    {"fqdn": "example.com"}
+    ...    {"fqdn": "example.com", "lets_encrypt": false}
     ${response} =  Run task    module/${module_id}/get-configuration
     ...    {}
     Should Be Equal   ${response["fqdn"]}    example.com
