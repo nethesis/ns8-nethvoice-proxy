@@ -15,13 +15,12 @@ data = json.load(sys.stdin)
 # Check if fqdn field is present
 fqdn = data["fqdn"] if "fqdn" in data else os.environ["KML_DEFAULT_FQDN"]
 
-# Chceck if the letsencrypt field is present
-if "lets_encrypt" in data:
-    agent.set_certificate(
-            {'fqdn': fqdn,
-            'lets_encrypt': data['lets_encrypt'],
-            }
-        )
+
+# Check if the lets_encrypt or fqdn fields are present to set the certificate.
+# If fqdn is present but lets_encrypt is not, we assume lets_encrypt is True for backward compatibility.
+# Otherwise, we do not change the certificate settings.
+if "fqdn" in data or "lets_encrypt" in data:
+    agent.set_certificate( {'fqdn': fqdn, 'lets_encrypt': data.get("lets_encrypt", True)} )
 
 # if all previous steps are successful, set the FQDN
 agent.set_env("KML_DEFAULT_FQDN", fqdn)
