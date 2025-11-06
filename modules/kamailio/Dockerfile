@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:20.10@sha256:a7b08558af07bcccca994b01e1c84f1d14a2156e0099fcf7fcf73f52d082791e
 
 LABEL maintainer="Giovanni Tommasini <giovanni.tommasini@evoseed.io>"
 
