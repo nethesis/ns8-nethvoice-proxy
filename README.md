@@ -4,6 +4,9 @@ NS8 NethVoice proxy module, a SIP and RTP proxy allows multiple instances of
 NethVoice to be hosted on the same Node.
 The proxy uses Kamailio and rtpengine as core components.
 
+This module is developed by [evoseed](https://evoseed.io/) and maintained by Nethesis.
+Most of the development is tracked privately inside [evoseed portal](https://nethesis.evoseed.it/).
+
 ## Module overview
 
 ```mermaid
