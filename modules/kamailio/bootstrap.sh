@@ -33,6 +33,10 @@ if [ "${BEHIND_NAT}" == "true" ]; then
     echo "listen=tcp:${PRIVATE_IP}:5060 advertise ${PUBLIC_IP}:5060" >> /tmp/kamailio-local-additional.cfg
     # doing the same for TLS
     echo "listen=tls:${PRIVATE_IP}:5061 advertise ${PUBLIC_IP}:5061" >> /tmp/kamailio-local-additional.cfg
+    # Add listeners for port 6060
+    echo "listen=udp:${PRIVATE_IP}:6060" >> /tmp/kamailio-local-additional.cfg
+    echo "listen=tcp:${PRIVATE_IP}:6060" >> /tmp/kamailio-local-additional.cfg
+    echo "listen=tls:${PRIVATE_IP}:6061" >> /tmp/kamailio-local-additional.cfg
 else
     # now I have to add the listen with the public IP in the kamailio-local-additional.cfg
     echo "listen=udp:${PUBLIC_IP}:5060" > /tmp/kamailio-local-additional.cfg
