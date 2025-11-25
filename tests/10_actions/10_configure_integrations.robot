@@ -5,11 +5,12 @@ Library    String
 Resource  ../api.resource
 
 *** Test Cases ***
-Set an address
+Set a FQDN without let's encrypt and address an without NAT
     Run task    module/${module_id}/configure-module
-    ...    {"addresses": {"address": "${local_ip}"}}
+    ...    {"fqdn": "example.com", "lets_encrypt": false, "addresses": {"address": "${local_ip}"}}
     ${response} =  Run task    module/${module_id}/get-configuration
     ...    {}
+    Should Be Equal   ${response["fqdn"]}    example.com
     Should Be Equal   ${response["addresses"]}    ${{ {"address": "${local_ip}"} }}
     Should Be Empty   ${response['local_networks']}
    ${response} =  Run task    module/${module_id}/list-service-providers
@@ -19,9 +20,9 @@ Set an address
     ...    {"service": "sip", "transport": "udp", "filter": {"module_id": "${module_id}"} }
     Should Be Equal    ${response[0]['address']}    ${local_ip}
 
-Set an address behind NAT
+Set a FQDN without let's encrypt and an address with NAT
     Run task    module/${module_id}/configure-module
-    ...    {"addresses": {"address": "${local_ip}", "public_address": "1.2.3.4"}, "local_networks": ["10.20.30.0/24"]}
+    ...    {"fqdn": "example.com", "lets_encrypt": false, "addresses": {"address": "${local_ip}", "public_address": "1.2.3.4"}, "local_networks": ["10.20.30.0/24"]}
     ${response} =  Run task    module/${module_id}/get-configuration
     ...    {}
     Should Be Equal   ${response["addresses"]}    ${{ {"address": "${local_ip}", "public_address": "1.2.3.4"} }}
@@ -35,10 +36,3 @@ Set an address behind NAT
     ...    {"service": "sip", "transport": "udp", "filter": {"module_id": "${module_id}"} }
     Should Be Equal    ${response[0]['address']}    ${local_ip}
     Should Be Equal    ${response[0]['public_address']}    1.2.3.4
-
-Set FQDN to a valid value
-    Run task    module/${module_id}/configure-module
-    ...    {"fqdn": "example.com", "lets_encrypt": false}
-    ${response} =  Run task    module/${module_id}/get-configuration
-    ...    {}
-    Should Be Equal   ${response["fqdn"]}    example.com
