@@ -4,7 +4,6 @@
   "$id": "http://schema.nethserver.org/nethvoice-proxy/configure-module-input.json",
   "description": "Configure nethvoice-proxy",
   "examples": [
-    { "fqdn": "porxy.example.com", "addresses": {} },
     { "fqdn": "porxy.example.com", "addresses": { "address": "1.2.3.4" } },
     {
       "fqdn": "porxy.example.com",
@@ -19,6 +18,8 @@
     }
   ],
   "type": "object",
+  "required": ["fqdn", "addresses"],
+  "additionalProperties": false,
   "properties": {
     "fqdn": {
       "title": "FQDN of the proxy",
