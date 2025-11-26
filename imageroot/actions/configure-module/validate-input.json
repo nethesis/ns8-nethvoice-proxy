@@ -4,13 +4,15 @@
   "$id": "http://schema.nethserver.org/nethvoice-proxy/configure-module-input.json",
   "description": "Configure nethvoice-proxy",
   "examples": [
-    { "fqdn": "porxy.example.com", "addresses": { "address": "1.2.3.4" } },
+    { "fqdn": "proxy.example.com", "addresses": { "address": "1.2.3.4" } },
     {
-      "fqdn": "porxy.example.com",
+      "fqdn": "proxy.example.com",
+      "lets_encrypt": true,
       "addresses": { "address": "192.168.1.1", "public_address": "1.2.3.4" }
     },
     {
-      "fqdn": "porxy.example.com",
+      "fqdn": "proxy.example.com",
+      "lets_encrypt": false,
       "addresses": {
         "address": "2001:db8:3333:4444:5555:6666:7777:8888",
         "public_address": "2001:db8:3333:4444:CCCC:DDDD:EEEE:FFFF"
