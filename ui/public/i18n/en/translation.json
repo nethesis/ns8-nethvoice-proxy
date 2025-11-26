@@ -57,12 +57,16 @@
     "fqdn_helper": "FQDN of the instance. Must be a valid domain name",
     "address": "Public IP address",
     "address_helper": "IPv4 address expected to receive VoIP traffic",
+    "public_address": "Public IP address",
+    "public_address_helper": "Public IPV4 address expected to receive VoIP traffic, in case of NAT",
     "addresses_format": "Must be in IPv4 format",
     "interface": "Network interface",
     "interface_placeholder": "Select interface",
     "address_and_iface_dont_match": "@:settings.interface and @:settings.address do not match",
     "address_and_iface_dont_match_message": "For the devices in the PBX local network to work correctly, the 'Hairpin NAT' feature — also known as 'NAT reflection', 'NAT hairpinning', 'NAT on a stick' or 'Loopback NAT' — must be enabled on the firewall (specifically, on the device that manages the NAT of the public IP).",
-    "address_tooltip": "This is required only if it differs from @:settings.interface address. The address is filled automatically based on the resolved FQDN above, but you can change it if needed."
+    "address_tooltip": "This is required only if it differs from @:settings.interface address. The address is filled automatically based on the resolved FQDN above, but you can change it if needed.",
+    "interfaces": "Network interfaces",
+    "interfaces_placeholder": "Select interface"
   },
   "about": {
     "title": "About"
@@ -104,5 +108,9 @@
     "provider_missing_fields": "One instance has missing fields: {module_id}",
     "invalid_fqdn": "FQDN cannot end with .invalid",
     "address_cannot_be_same_as_iface": "Enter the public IP address only if it differs from the network interface IP address"
+  },
+  "warning": {
+    "warning_title_message": "Warning: IP addresses don't match",
+    "different_ip_message": "In order for the devices in the PBX local network to work correctly, the 'hairpin NAT' function, also known as NAT reflection / NAT hairpining / NAT on a stick / loopback NAT, must be enabled on the firewall (more precisely on the device that manages the NAT of the public IP)."
   }
 }
