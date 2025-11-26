@@ -1,7 +1,7 @@
 {
     "common": {
         "required": "Obbligatorio",
-        "processing": "Elaborazione in corso...",
+        "processing": "Elaborazione in corso…",
         "work_in_progress": "In lavorazione",
         "optional": "Opzionale",
         "cancel": "Annulla",
