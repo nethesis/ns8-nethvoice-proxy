@@ -44,7 +44,7 @@
           >
             <NsTextInput
               :label="$t('settings.fqdn')"
-              v-model="fqdn"
+              v-model.trim="fqdn"
               :placeholder="$t('settings.fqdn')"
               :disabled="loading.configureModule"
               :invalid-message="error.fqdn"
@@ -223,8 +223,6 @@ export default {
       fqdn: "",
       address: "",
       resolvedIp: "",
-      ipAddressPersonal: "",
-      public_address: "",
       iface: "",
       fqdnTimeout: 0,
       isLetsEncryptEnabled: false,
@@ -245,7 +243,6 @@ export default {
         getAvailableInterfaces: "",
         fqdn: "",
         address: "",
-        ipAddressPersonal: "",
         public_address: "",
         iface: "",
         getStatus: "",
@@ -380,7 +377,7 @@ export default {
         clearTimeout(this.fqdnTimeout);
       }
 
-      if (this.fqdn.trim() !== "") {
+      if (this.fqdn) {
         this.loading.resolveFqdn = true;
 
         this.fqdnTimeout = setTimeout(() => {
@@ -472,7 +469,7 @@ export default {
     },
     getAvailableInterfacesAborted(taskResult, taskContext) {
       console.error(`${taskContext.action} aborted`, taskResult);
-      this.error.getConfiguration = this.$t("error.generic_error");
+      this.error.getAvailableInterfaces = this.$t("error.generic_error");
       this.loading.getAvailableInterfaces = false;
       this.getConfiguration();
     },
