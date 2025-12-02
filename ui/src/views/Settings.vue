@@ -449,7 +449,7 @@ export default {
 
       if (err) {
         console.error(`error creating task ${taskAction}`, err);
-        this.error.getConfiguration = this.getErrorMessage(err);
+        this.error.getAvailableInterfaces = this.getErrorMessage(err);
         this.loading.getAvailableInterfaces = false;
         return;
       }
