@@ -455,6 +455,9 @@ export default {
       const interfaces = [];
 
       for (const iface of taskResult.output.data) {
+        if (!iface.addresses || iface.addresses.length === 0) {
+          continue;
+        }
         const interfacesAddress = iface.addresses[0].address;
         const label = `${iface.name} - ${interfacesAddress}`;
 
