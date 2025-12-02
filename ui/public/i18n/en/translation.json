@@ -84,7 +84,8 @@
     "edit-rule": "Edit rule",
     "Trunks_list_error": "Cannot retrieve trunk routing rules",
     "list-service-providers": "List service providers",
-    "list-trunks": "List trunks"
+    "list-trunks": "List trunks",
+    "get-available-interfaces": "Get available interfaces"
   },
   "error": {
     "error": "Error",
@@ -100,7 +101,8 @@
     "cannot_retrieve_module_info": "Cannot retrieve module info",
     "cannot_retrieve_installed_modules": "Cannot retrieve installed modules",
     "error_loading_providers": "Error loading list-service-providers",
-    "provider_missing_fields": "One instance have missing fields: {module_id}",
-    "invalid_fqdn": "FQDN cannot end with .invalid"
+    "provider_missing_fields": "One instance has missing fields: {module_id}",
+    "invalid_fqdn": "FQDN cannot end with .invalid",
+    "address_cannot_be_same_as_iface": "Enter the public IP address only if it differs from the network interface IP address"
   }
 }

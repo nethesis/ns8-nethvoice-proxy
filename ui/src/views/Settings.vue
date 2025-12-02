@@ -29,6 +29,16 @@
         />
       </cv-column>
     </cv-row>
+    <cv-row v-if="error.getAvailableInterfaces">
+      <cv-column>
+        <NsInlineNotification
+          kind="error"
+          :title="$t('action.get-available-interfaces')"
+          :description="error.getAvailableInterfaces"
+          :showCloseButton="false"
+        />
+      </cv-column>
+    </cv-row>
     <cv-row>
       <cv-column>
         <cv-tile light>
@@ -364,6 +374,17 @@ export default {
       if (!this.iface) {
         this.error.iface = this.$t("common.required");
         isValidationOk = false;
+      }
+
+      if (this.address && this.address === this.iface) {
+        this.error.public_address = this.$t(
+          "error.address_cannot_be_same_as_iface"
+        );
+
+        if (isValidationOk) {
+          this.focusElement("public_address");
+          isValidationOk = false;
+        }
       }
       return isValidationOk;
     },
