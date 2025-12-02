@@ -391,7 +391,7 @@ export default {
       }
     },
     resolveFqdn() {
-      fetch(`https://dns.google/resolve?name=${this.fqdn}`)
+      fetch(`https://dns.google/resolve?name=${encodeURIComponent(this.fqdn)}`)
         .then((response) => response.json())
         .then((data) => {
           if (data.Answer && data.Answer.length > 0) {
