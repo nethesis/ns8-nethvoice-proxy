@@ -960,10 +960,12 @@
   resolved "https://registry.yarnpkg.com/@carbon/icon-helpers/-/icon-helpers-10.19.0.tgz#f6b608b181b4ca4aeeadac72ec11b7cf530b4d1c"
   integrity sha512-2eIecDuoEEx+nORHtTBmj5lV/N4Q1kP7XCZUkF15WfXxZHx2RI6KhS4HnMPDoylguhavnRjSIK1gl6oG3Z3wSQ==
 
-"@carbon/icon-helpers@^10.24.0":
-  version "10.24.0"
-  resolved "https://registry.yarnpkg.com/@carbon/icon-helpers/-/icon-helpers-10.24.0.tgz#2f3fbc8b0b64090c21833cd81eabadc41d56b684"
-  integrity sha512-kmzN2Zjyp4EmCAlGu561+dJVABH96n5+RnjmsPdv4wrSx+FNyzbxnKYV1x2FYrTxtZ9LB+pd3EofEyVuQM6V0Q==
+"@carbon/icon-helpers@^10.53.1":
+  version "10.69.0"
+  resolved "https://registry.yarnpkg.com/@carbon/icon-helpers/-/icon-helpers-10.69.0.tgz#cf17223d296ec1750c01f3cd33667eb7e50c0ceb"
+  integrity sha512-AYkP9+le5pLllM4OX1zHCSpBIX4uk8hzaV7EakyzQsUoWZIdLip0+j1n9WJvGA7EnMMaFxtmRkt1KAbSGi+YIg==
+  dependencies:
+    "@ibm/telemetry-js" "^1.5.0"
 
 "@carbon/icons-vue@10.27.0":
   version "10.27.0"
@@ -973,11 +975,12 @@
     "@carbon/icon-helpers" "^10.14.0"
 
 "@carbon/icons-vue@^10.37.0":
-  version "10.41.0"
-  resolved "https://registry.yarnpkg.com/@carbon/icons-vue/-/icons-vue-10.41.0.tgz#154c1d1c5db5714ef4eacf301babc4adf0815f04"
-  integrity sha512-cS/nKIv/l92+r9E0Xrt2bG78WSdROYzt6D+AXnMwgwBPhCN7kJc4mKiKyYI7LScrwgsJ8y4Ay2PUrn5txebaxw==
+  version "10.99.1"
+  resolved "https://registry.yarnpkg.com/@carbon/icons-vue/-/icons-vue-10.99.1.tgz#32ce73c6271e23226b1dc092b541f6ee269c1be0"
+  integrity sha512-VC0mRjGri+Ghv8Zkk3iUoaVYUTHLstXj5sB+qYnqPi1sKlE8lUOokgO+r8ReipFUq3um8xze/BXzEjWJQtYC6A==
   dependencies:
-    "@carbon/icon-helpers" "^10.24.0"
+    "@carbon/icon-helpers" "^10.53.1"
+    "@ibm/telemetry-js" "^1.5.0"
 
 "@carbon/telemetry@0.0.0-alpha.6", "@carbon/telemetry@^0.0.0-alpha.6":
   version "0.0.0-alpha.6"
@@ -1046,6 +1049,11 @@
   integrity sha1-aNk1+j6uf91asNf5U/MgXYsr/Ck=
   dependencies:
     "@hapi/hoek" "^8.3.0"
+
+"@ibm/telemetry-js@^1.5.0":
+  version "1.10.2"
+  resolved "https://registry.yarnpkg.com/@ibm/telemetry-js/-/telemetry-js-1.10.2.tgz#6d4bfb5cce275b8a061c64199bcc9f1ad23477b2"
+  integrity sha512-F8+/NNUwtm8BuFz18O9KPvIFTFDo8GUSoyhPxPjEpk7nEyEzWGfhIiEPhL00B2NdHRLDSljh3AiCfSnL/tutiQ==
 
 "@intervolga/optimize-cssnano-plugin@^1.0.5":
   version "1.0.6"
