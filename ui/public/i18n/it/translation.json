@@ -8,7 +8,8 @@
         "save": "Salva",
         "clear_search": "Pulisci ricerca",
         "no_search_results": "Nessun risultato trovato",
-        "no_search_results_description": "Non abbiamo trovato nessun risultato per la tua ricerca"
+        "no_search_results_description": "Non abbiamo trovato nessun risultato per la tua ricerca",
+        "loading": "Caricamento"
     },
     "status": {
         "node": "Nodo",
@@ -32,13 +33,14 @@
         "configure_instance": "Configura {instance}",
         "fqdn": "Dominio proxy",
         "fqdn_helper": "FQDN dell'istanza. Deve essere un nome di dominio valido",
-        "address": "Indirizzo IP",
-        "address_helper": "Indirizzo IPv4che riceverà il traffico VoIP",
-        "public_address": "Indirizzo IP pubblico",
-        "public_address_helper": "Indirizzo IPV4 pubblico che riceverà il traffico VoIP, in caso di NAT",
+        "address": "Indirizzo IP pubblico",
+        "address_helper": "Indirizzo IPv4 che riceverà il traffico VoIP",
         "addresses_format": "Deve essere nel formato IPv4",
-        "interfaces": "Interfacce di rete",
-        "interfaces_placeholder": "Seleziona un'interfaccia"
+        "interface": "Interfaccia di rete",
+        "interface_placeholder": "Seleziona interfaccia",
+        "address_and_iface_dont_match": "@:settings.interface e @:settings.address non corrispondono",
+        "address_and_iface_dont_match_message": "Affinché i dispositivi nella rete locale del PBX funzionino correttamente, la funzione 'Hairpin NAT' — nota anche come 'NAT reflection', 'NAT hairpinning', 'NAT on a stick' o 'Loopback NAT' — deve essere abilitata sul firewall (in particolare, sul dispositivo che gestisce il NAT dell'IP pubblico).",
+        "address_tooltip": "Questo è richiesto solo se differisce dall'indirizzo di @:settings.interface. L'indirizzo viene compilato automaticamente in base al FQDN risolto sopra, ma puoi modificarlo se necessario."
     },
     "error": {
         "error": "Errore",
@@ -54,7 +56,9 @@
         "root_invalid_alphanumeric_format": "Il nome radice deve essere alfanumerico (solo lettere e numeri)",
         "root_already_exists": "Una regola con questo nome radice esiste già",
         "error_loading_providers": "Errore caricamento lista provider di servizio",
-        "provider_missing_fields": "Un'istanza ha campi mancanti: {module_id}"
+        "provider_missing_fields": "Un'istanza ha campi mancanti: {module_id}",
+        "invalid_fqdn": "Il FQDN non può terminare con .invalid",
+        "address_cannot_be_same_as_iface": "Inserisci l'indirizzo IP pubblico solo se è diverso dall'indirizzo IP dell'interfaccia di rete"
     },
     "action": {
         "configure-module": "Configura modulo",
@@ -70,17 +74,14 @@
         "delete-rule": "Elimina regola",
         "add-rule": "Aggiungi regola",
         "edit-rule": "Modifica regola",
-        "list-service-providers": "Caricamento lista provider di servizio"
+        "list-service-providers": "Caricamento lista provider di servizio",
+        "get-available-interfaces": "Visualizza interfacce disponibili"
     },
     "task": {
         "cannot_create_task": "Impossibile eseguire task {action}"
     },
     "about": {
         "title": "Informazioni"
-    },
-    "warning": {
-        "warning_title_message": "Attenzione: gli indirizzi IP non corrispondono",
-        "different_ip_message": "Per il corretto funzionamento dei dispositivi della rete locale PBX è necessario che sul firewall (più precisamente sul dispositivo che gestisce il NAT dell'IP pubblico) sia abilitata la funzione 'hairpin NAT', nota anche come NAT reflection / NAT hairpining / NAT on a stick / loopback NAT."
     },
     "trunks": {
         "add_rule": "Aggiungi regola",
