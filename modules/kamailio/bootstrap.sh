@@ -57,6 +57,10 @@ echo "listen=udp:${SERVICE_IP}:5060" >> /tmp/kamailio-local-additional.cfg
 echo "listen=tcp:${SERVICE_IP}:5060" >> /tmp/kamailio-local-additional.cfg
 echo "listen=tls:${SERVICE_IP}:5061" >> /tmp/kamailio-local-additional.cfg
 
+# Set default value for LOCAL_SOURCE_SUBNETS if not defined
+if [ -z "${LOCAL_SOURCE_SUBNETS}" ]; then
+    export LOCAL_SOURCE_SUBNETS=""
+fi
 
 # rendering the template of kamailio-local.cfg and kamailio.cfg
 envsubst < /etc/kamailio/template.kamailio-local.cfg > /tmp/kamailio-local.cfg

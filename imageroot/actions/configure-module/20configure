@@ -48,3 +48,14 @@ if local_networks and "local_networks" in data:
     # Add extra local networks
     local_networks.update(set(data["local_networks"]))
     agent.set_env("LOCALNETWORKS", ",".join(local_networks))
+
+# Set LOCAL_SOURCE_SUBNETS for clients that should not use advertised IP
+if "local_source_subnets" in data and data["local_source_subnets"]:
+    # Join subnets with comma separator
+    if isinstance(data["local_source_subnets"], list):
+        agent.set_env("LOCAL_SOURCE_SUBNETS", ",".join(data["local_source_subnets"]))
+    else:
+        agent.set_env("LOCAL_SOURCE_SUBNETS", data["local_source_subnets"])
+else:
+    # Set empty if not configured
+    agent.set_env("LOCAL_SOURCE_SUBNETS", "")
