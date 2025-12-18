@@ -122,4 +122,16 @@ export default {
 
 <style lang="scss">
 @import "styles/carbon-utils";
+
+.top-0\.5 {
+  top: 2px;
+}
+
+.relative {
+  position: relative;
+}
+
+.mb-0 {
+  margin-bottom: 0 !important;
+}
 </style>

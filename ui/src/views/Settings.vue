@@ -19,79 +19,178 @@
         />
       </cv-column>
     </cv-row>
+    <cv-row v-if="error.getStatus">
+      <cv-column>
+        <NsInlineNotification
+          kind="error"
+          :title="$t('action.get-status')"
+          :description="error.getStatus"
+          :showCloseButton="false"
+        />
+      </cv-column>
+    </cv-row>
+    <cv-row v-if="error.getAvailableInterfaces">
+      <cv-column>
+        <NsInlineNotification
+          kind="error"
+          :title="$t('action.get-available-interfaces')"
+          :description="error.getAvailableInterfaces"
+          :showCloseButton="false"
+        />
+      </cv-column>
+    </cv-row>
     <cv-row>
       <cv-column>
         <cv-tile light>
-          <cv-form @submit.prevent="configureModule">
-            <cv-text-input
+          <cv-skeleton-text
+            v-show="loading.getConfiguration"
+            :paragraph="true"
+            heading
+            :line-count="10"
+          ></cv-skeleton-text>
+          <cv-form
+            v-show="!loading.getConfiguration"
+            @submit.prevent="configureModule"
+          >
+            <NsTextInput
               :label="$t('settings.fqdn')"
-              v-model="fqdn"
+              v-model.trim="fqdn"
               :placeholder="$t('settings.fqdn')"
-              :disabled="loading.getConfiguration || loading.configureModule"
+              :disabled="loading.configureModule"
               :invalid-message="error.fqdn"
               :helperText="$t('settings.fqdn_helper')"
               ref="fqdn"
               @input="onFqdnChange"
-            ></cv-text-input>
-            <NsComboBox
-              :title="$t('settings.interfaces')"
-              :options="interfacesList"
-              :auto-highlight="true"
-              :label="$t('settings.interfaces_placeholder')"
-              :disabled="loading.getConfiguration || loading.configureModule"
-              :invalid-message="error.interfaces"
-              :acceptUserInput="false"
-              v-model="interfaces"
-              ref="interfaces"
-              @change="onInterfaceChange"
-            />
-            <template>
-              <div class="input-container">
-                <div class="label-and-loading">
-                  <label class="input-label">{{
-                    $t("settings.address")
-                  }}</label>
-                  <cv-loading
-                    v-if="loading.pathLoading"
-                    small
-                    class="loading-icon"
-                  />
+            ></NsTextInput>
+            <!-- let's encrypt toggle -->
+            <NsToggle
+              value="letsEncrypt"
+              :label="core.$t('apps_lets_encrypt.request_https_certificate')"
+              v-model="isLetsEncryptEnabled"
+              :disabled="loading.configureModule"
+            >
+              <template #tooltip>
+                <div class="mg-bottom-sm">
+                  {{ core.$t("apps_lets_encrypt.lets_encrypt_tips") }}
                 </div>
-                <cv-text-input
-                  v-model="address"
-                  :placeholder="ipAddressPersonal || $t('settings.address')"
-                  :disabled="
-                    loading.getConfiguration || loading.configureModule
-                  "
-                  :invalid-message="error.address"
-                  :helperText="$t('settings.address_helper')"
-                  ref="address"
-                  @input="onInterfaceChange"
+                <div class="mg-bottom-sm">
+                  <cv-link @click="goToCertificates">
+                    {{ core.$t("apps_lets_encrypt.go_to_tls_certificates") }}
+                  </cv-link>
+                </div>
+              </template>
+              <template slot="text-left">{{
+                core.$t("common.disabled")
+              }}</template>
+              <template slot="text-right">{{
+                core.$t("common.enabled")
+              }}</template>
+            </NsToggle>
+            <!-- disabling let's encrypt warning -->
+            <NsInlineNotification
+              v-if="
+                isLetsEncryptCurrentlyEnabled && !isLetsEncryptEnabled && status
+              "
+              kind="warning"
+              :title="
+                core.$t('apps_lets_encrypt.lets_encrypt_disabled_warning')
+              "
+              :description="
+                core.$t(
+                  'apps_lets_encrypt.lets_encrypt_disabled_warning_description',
+                  {
+                    node: status.node_ui_name
+                      ? status.node_ui_name
+                      : status.node,
+                  }
+                )
+              "
+              :showCloseButton="false"
+            />
+            <NsComboBox
+              :title="$t('settings.interface')"
+              :options="interfaces"
+              :auto-highlight="true"
+              :label="
+                loading.getAvailableInterfaces
+                  ? $t('common.loading')
+                  : $t('settings.interface_placeholder')
+              "
+              :disabled="
+                loading.configureModule || loading.getAvailableInterfaces
+              "
+              :invalid-message="error.iface"
+              :acceptUserInput="false"
+              v-model="iface"
+              ref="iface"
+            />
+            <!-- public address -->
+            <div class="flex flex-col">
+              <div class="flex">
+                <div class="bx--label mb-0">
+                  {{
+                    `${$t("settings.address")} (${core.$t("common.optional")})`
+                  }}
+                  <cv-interactive-tooltip
+                    alignment="start"
+                    direction="bottom"
+                    class="info relative top-0.5"
+                  >
+                    <template slot="content">
+                      {{ $t("settings.address_tooltip") }}
+                    </template>
+                  </cv-interactive-tooltip>
+                </div>
+                <cv-loading
+                  v-if="loading.resolveFqdn"
+                  small
+                  class="mg-left-sm"
                 />
               </div>
-            </template>
-            <cv-row v-if="error.configureModule">
-              <cv-column>
-                <NsInlineNotification
-                  kind="error"
-                  :title="$t('action.configure-module')"
-                  :description="error.configureModule"
-                  :showCloseButton="false"
-                />
-              </cv-column>
-            </cv-row>
+              <cv-text-input
+                v-model="address"
+                :disabled="loading.configureModule"
+                :invalid-message="error.public_address"
+                :helperText="$t('settings.address_helper')"
+                ref="public_address"
+              />
+            </div>
             <NsInlineNotification
-              v-if="warningVisible"
+              v-if="addressAndInterfaceDontMatch"
               kind="warning"
-              :title="$t('warning.warning_title_message')"
-              :description="$t('warning.different_ip_message')"
+              :title="$t('settings.address_and_iface_dont_match')"
+              :description="$t('settings.address_and_iface_dont_match_message')"
+              :showCloseButton="false"
+            />
+            <NsInlineNotification
+              v-if="validationErrorDetails.length"
+              kind="error"
+              :title="core.$t('apps_lets_encrypt.cannot_obtain_certificate')"
+              :showCloseButton="false"
+            >
+              <template #description>
+                <div class="flex flex-col gap-2">
+                  <div
+                    v-for="(detail, index) in validationErrorDetails"
+                    :key="index"
+                  >
+                    {{ detail }}
+                  </div>
+                </div>
+              </template>
+            </NsInlineNotification>
+            <NsInlineNotification
+              v-if="error.configureModule"
+              kind="error"
+              :title="$t('action.configure-module')"
+              :description="error.configureModule"
               :showCloseButton="false"
             />
             <NsButton
               kind="primary"
               :icon="Save20"
               :loading="loading.configureModule"
-              :disabled="loading.getConfiguration || loading.configureModule"
+              :disabled="loading.configureModule"
               >{{ $t("settings.save") }}</NsButton
             >
           </cv-form>
@@ -130,32 +229,49 @@ export default {
         page: "settings",
       },
       urlCheckInterval: null,
+      config: null,
       fqdn: "",
       address: "",
-      ipAddressPersonal: "",
-      public_address: "",
-      interfaces: "",
-      warningVisible: false,
+      resolvedIp: "",
+      iface: "",
+      fqdnTimeout: 0,
+      isLetsEncryptEnabled: false,
+      isLetsEncryptCurrentlyEnabled: false,
+      validationErrorDetails: [],
+      status: null,
       loading: {
         getConfiguration: false,
         configureModule: false,
-        interfaces: false,
-        pathLoading: false,
+        getAvailableInterfaces: false,
+        resolveFqdn: false,
+        getStatus: false,
       },
-      interfacesList: [],
+      interfaces: [],
       error: {
         getConfiguration: "",
         configureModule: "",
+        getAvailableInterfaces: "",
         fqdn: "",
         address: "",
-        ipAddressPersonal: "",
         public_address: "",
-        interfaces: "",
+        iface: "",
+        getStatus: "",
       },
     };
   },
   computed: {
     ...mapState(["instanceName", "core", "appName"]),
+    addressAndInterfaceDontMatch() {
+      return this.address && this.iface && this.address !== this.iface;
+    },
+  },
+  watch: {
+    interfaces() {
+      this.updateIfaceValue();
+    },
+    config() {
+      this.updateIfaceValue();
+    },
   },
   beforeRouteEnter(to, from, next) {
     next((vm) => {
@@ -169,7 +285,8 @@ export default {
   },
   created() {
     this.getConfiguration();
-    this.getUserInterfaces();
+    this.getAvailableInterfaces();
+    this.getStatus();
   },
   methods: {
     async getConfiguration() {
@@ -215,67 +332,57 @@ export default {
       this.loading.getConfiguration = false;
     },
     getConfigurationCompleted(taskContext, taskResult) {
-      this.loading.getConfiguration = false;
       const config = taskResult.output;
-      // set configuration fields
+      this.config = config;
       this.fqdn = config.fqdn;
-      this.interfaces = config.addresses.address;
-      this.loading.pathLoading = true;
+      this.isLetsEncryptEnabled = config.lets_encrypt;
+      this.isLetsEncryptCurrentlyEnabled = config.lets_encrypt;
 
-      fetch(`https://dns.google/resolve?name=${this.fqdn}`)
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.Answer && data.Answer.length > 0) {
-            for (let record of data.Answer) {
-              if (record.type === 1) {
-                const publicIP = record.data;
-                this.ipAddressPersonal = publicIP;
-                break;
-              }
-            }
-            this.address =
-              config.addresses.public_address || this.ipAddressPersonal;
-          } else {
-            this.ipAddressPersonal = null;
-            this.address =
-              config.addresses.public_address || this.ipAddressPersonal;
-          }
-        })
-        .catch((error) => {
-          console.error("Error", error);
-        })
-        .finally(() => {
-          this.loading.pathLoading = false;
-        });
+      // this.iface is set on get-available-interfaces completion
 
-      setInterval(() => {
-        if (
-          this.address !== "" &&
-          this.address !== null &&
-          this.interfaces !== this.address
-        ) {
-          this.warningVisible = true;
-        }
-      }, 1000);
+      if (config.addresses.public_address) {
+        this.address = config.addresses.public_address;
+      } else {
+        this.resolveFqdn();
+      }
+      this.loading.getConfiguration = false;
 
       // focus first configuration field
-      this.focusElement("address");
+      this.focusElement("fqdn");
     },
     validateConfigureModule() {
       this.clearErrors(this);
+      this.validationErrorDetails = [];
       let isValidationOk = true;
 
-      if (!this.interfaces) {
-        this.error.interfaces = this.$t("common.required");
-        isValidationOk = false;
-      }
-      // validate configuration fields
       if (!this.fqdn) {
-        // field cannot be empty
         this.error.fqdn = this.$t("common.required");
 
         if (isValidationOk) {
           this.focusElement("fqdn");
+          isValidationOk = false;
+        }
+      } else if (this.fqdn.endsWith(".invalid")) {
+        this.error.fqdn = this.$t("error.invalid_fqdn");
+
+        if (isValidationOk) {
+          this.focusElement("fqdn");
+          isValidationOk = false;
+        }
+      }
+
+      if (!this.iface) {
+        this.error.iface = this.$t("common.required");
+        isValidationOk = false;
+      }
+
+      if (this.address && this.address === this.iface) {
+        this.error.public_address = this.$t(
+          "error.address_cannot_be_same_as_iface"
+        );
+
+        if (isValidationOk) {
+          this.focusElement("public_address");
           isValidationOk = false;
         }
       }
@@ -291,45 +398,45 @@ export default {
         clearTimeout(this.fqdnTimeout);
       }
 
-      if (this.fqdn.trim() !== "") {
-        this.loading.pathLoading = true;
+      if (this.fqdn) {
+        this.loading.resolveFqdn = true;
+
         this.fqdnTimeout = setTimeout(() => {
-          fetch(`https://dns.google/resolve?name=${this.fqdn}`)
-            .then((response) => response.json())
-            .then((data) => {
-              if (data.Answer && data.Answer.length > 0) {
-                for (let record of data.Answer) {
-                  if (record.type === 1) {
-                    const publicIP = record.data;
-                    this.ipAddressPersonal = publicIP;
-                    break;
-                  }
-                }
-                if (
-                  this.ipAddressPersonal !== null &&
-                  (this.address === undefined ||
-                    this.address === "" ||
-                    this.address === null)
-                ) {
-                  this.address = this.ipAddressPersonal;
-                }
-              } else {
-                this.ipAddressPersonal = null;
-              }
-            })
-            .catch((error) => {
-              console.error("Error", error);
-            })
-            .finally(() => {
-              this.loading.pathLoading = false;
-            });
+          this.resolveFqdn();
         }, 1000);
       } else {
-        this.loading.pathLoading = false;
+        this.loading.resolveFqdn = false;
       }
     },
-    async getUserInterfaces() {
-      this.loading.userInterfaces = true;
+    resolveFqdn() {
+      fetch(`https://dns.google/resolve?name=${encodeURIComponent(this.fqdn)}`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.Answer && data.Answer.length > 0) {
+            for (let record of data.Answer) {
+              if (record.type === 1) {
+                this.resolvedIp = record.data;
+                break;
+              }
+            }
+
+            // set public address only if different from selected interface
+            if (this.resolvedIp !== this.iface) {
+              this.address = this.resolvedIp;
+            }
+          } else {
+            this.resolvedIp = "";
+          }
+        })
+        .catch((error) => {
+          console.error("Error resolving fqdn", error);
+        })
+        .finally(() => {
+          this.loading.resolveFqdn = false;
+        });
+    },
+    async getAvailableInterfaces() {
+      this.loading.getAvailableInterfaces = true;
 
       const taskAction = "get-available-interfaces";
       const eventId = this.getUuid();
@@ -337,13 +444,13 @@ export default {
       // register to task error
       this.core.$root.$once(
         `${taskAction}-aborted-${eventId}`,
-        this.getUserInterfacesAborted
+        this.getAvailableInterfacesAborted
       );
 
       // register to task completion
       this.core.$root.$once(
         `${taskAction}-completed-${eventId}`,
-        this.getUserInterfacesCompleted
+        this.getAvailableInterfacesCompleted
       );
 
       const res = await to(
@@ -364,41 +471,52 @@ export default {
 
       if (err) {
         console.error(`error creating task ${taskAction}`, err);
-        this.error.getConfiguration = this.getErrorMessage(err);
-        this.loading.userInterfaces = false;
+        this.error.getAvailableInterfaces = this.getErrorMessage(err);
+        this.loading.getAvailableInterfaces = false;
         return;
       }
     },
-    getUserInterfacesCompleted(taskContext, taskResult) {
-      this.interfacesList = [];
-      for (const test of taskResult.output.data) {
-        const interfacesAddress = test.addresses[0].address;
-        const label = `${test.name} - ${interfacesAddress}`;
+    getAvailableInterfacesCompleted(taskContext, taskResult) {
+      const interfaces = [];
 
-        this.interfacesList.push({
-          name: test.name,
+      for (const iface of taskResult.output.data) {
+        if (!iface.addresses || iface.addresses.length === 0) {
+          continue;
+        }
+        const interfacesAddress = iface.addresses[0].address;
+        const label = `${iface.name} - ${interfacesAddress}`;
+
+        interfaces.push({
+          name: iface.name,
           label: label,
           value: interfacesAddress,
         });
       }
-      this.loading.userInterfaces = false;
-      this.getConfiguration();
+      this.interfaces = interfaces;
+      this.loading.getAvailableInterfaces = false;
     },
-    getUserInterfacesAborted(taskResult, taskContext) {
+    getAvailableInterfacesAborted(taskResult, taskContext) {
       console.error(`${taskContext.action} aborted`, taskResult);
-      this.error.getConfiguration = this.$t("error.generic_error");
-      this.loading.userInterfaces = false;
+      this.error.getAvailableInterfaces = this.$t("error.generic_error");
+      this.loading.getAvailableInterfaces = false;
       this.getConfiguration();
     },
     configureModuleValidationFailed(validationErrors) {
       this.loading.configureModule = false;
 
       for (const validationError of validationErrors) {
-        let field = this.getValidationErrorField(validationError);
+        if (validationError.details) {
+          // show inline error notification with details
+          this.validationErrorDetails = validationError.details
+            .split("\n")
+            .filter((detail) => detail.trim() !== "");
+        } else {
+          let field = this.getValidationErrorField(validationError);
 
-        if (field !== "(root)") {
-          // set i18n error message
-          this.error[field] = this.$t("settings." + validationError.error);
+          if (field !== "(root)") {
+            // set i18n error message
+            this.error[field] = this.$t("settings." + validationError.error);
+          }
         }
       }
     },
@@ -434,12 +552,13 @@ export default {
       let dataPayload = {
         fqdn: this.fqdn,
         addresses: {
-          address: this.interfaces,
+          address: this.iface,
         },
+        lets_encrypt: this.isLetsEncryptEnabled,
       };
 
       // check if public_address exists and is different from local ip address
-      if (this.address && this.address !== this.interfaces) {
+      if (this.address && this.address !== this.iface) {
         dataPayload.addresses.public_address = this.address;
       }
 
@@ -476,11 +595,66 @@ export default {
       // reload configuration
       this.getConfiguration();
     },
-    onInterfaceChange() {
-      if (this.interfaces !== this.address) {
-        this.warningVisible = true;
-      } else {
-        this.warningVisible = false;
+    async getStatus() {
+      this.loading.getStatus = true;
+      this.error.getStatus = "";
+      const taskAction = "get-status";
+      const eventId = this.getUuid();
+
+      // register to task error
+      this.core.$root.$once(
+        `${taskAction}-aborted-${eventId}`,
+        this.getStatusAborted
+      );
+
+      // register to task completion
+      this.core.$root.$once(
+        `${taskAction}-completed-${eventId}`,
+        this.getStatusCompleted
+      );
+
+      const res = await to(
+        this.createModuleTaskForApp(this.instanceName, {
+          action: taskAction,
+          extra: {
+            title: this.$t("action." + taskAction),
+            isNotificationHidden: true,
+            eventId,
+          },
+        })
+      );
+      const err = res[0];
+
+      if (err) {
+        console.error(`error creating task ${taskAction}`, err);
+        this.error.getStatus = this.getErrorMessage(err);
+        this.loading.getStatus = false;
+        return;
+      }
+    },
+    getStatusAborted(taskResult, taskContext) {
+      console.error(`${taskContext.action} aborted`, taskResult);
+      this.error.getStatus = this.$t("error.generic_error");
+      this.loading.getStatus = false;
+    },
+    getStatusCompleted(taskContext, taskResult) {
+      this.status = taskResult.output;
+      this.loading.getStatus = false;
+    },
+    goToCertificates() {
+      this.core.$router.push("/settings/tls-certificates");
+    },
+    updateIfaceValue() {
+      if (
+        this.interfaces &&
+        this.interfaces.length &&
+        this.config &&
+        this.config.addresses.address &&
+        this.config.addresses.address !== "127.0.0.1"
+      ) {
+        this.$nextTick(() => {
+          this.iface = this.config.addresses.address;
+        });
       }
     },
   },
