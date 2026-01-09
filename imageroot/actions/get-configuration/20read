@@ -37,4 +37,6 @@ config["service_network"] = service_network
 
 config["local_networks"] = os.environ["LOCALNETWORKS"].split(",") if os.getenv("LOCALNETWORKS") else []
 
+config["local_source_subnets"] = os.environ["LOCAL_SOURCE_SUBNETS"].split(",") if os.getenv("LOCAL_SOURCE_SUBNETS") else []
+
 json.dump(config, fp=sys.stdout)
