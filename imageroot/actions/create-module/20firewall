@@ -8,8 +8,11 @@
 import os
 import agent
 
-# Open SIP (5060), SIPS (5061) port and RTP range (10000-20000)
+# Open SIP (5060), SIPS (5061), custom port (6060,6061) and RTP range (10000-20000)
 agent.assert_exp(agent.add_public_service(os.environ['MODULE_ID'], [
     "5060-5061/tcp",
     "5060-5061/udp",
+    "6060/tcp",
+    "6060/udp",
+    "6061/tcp",
     "10000-20000/udp"]))

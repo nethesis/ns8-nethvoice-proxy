@@ -25,3 +25,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `redis` module folder
 - `rtpengine` module folder
 - basic structure of folders and files (`modules`, `.env.template`, `.gitignore`, `CHANGELOG.md`, ...)
+- **LOCAL_SOURCE_SUBNETS**: Nuova funzionalità per gestire subnet locali che non devono utilizzare l'advertised IP pubblico. Permette di configurare una o più subnet (separate da virgola) da cui i pacchetti SIP ricevuti non useranno l'IP pubblico advertised ma l'IP privato locale. Utile per scenari con client SIP sia interni (LAN) che esterni (Internet).

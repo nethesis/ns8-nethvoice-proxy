@@ -74,6 +74,15 @@
         "title": "Netmask of the local network",
         "type": "string"
       }
+    },
+    "local_source_subnets": {
+      "title": "Local source subnets (clients from these subnets won't use advertised IP)",
+      "type": "array",
+      "items": {
+        "title": "Subnet in CIDR notation (e.g., 192.168.0.0/24)",
+        "type": "string",
+        "pattern": "^([0-9]{1,3}\\.){3}[0-9]{1,3}/[0-9]{1,2}$"
+      }
     }
   }
 }

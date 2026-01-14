@@ -1,0 +1,20 @@
+{
+  "fqdn": "proxy.nethvoice.local",
+  "lets_encrypt": false,
+  "addresses": {
+    "address": "192.168.0.248",
+    "public_address": "88.88.88.1"
+  },
+  "service_network": {
+    "address": "10.5.4.1",
+    "netmask": "10.5.4.0/24"
+  },
+  "local_networks": [
+    "192.168.0.0/24",
+    "10.5.4.0/24"
+  ],
+  "local_source_subnets": [
+    "192.168.0.0/24"
+  ]
+}
+
