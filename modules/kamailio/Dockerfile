@@ -6,7 +6,7 @@ ENV REFRESHED_AT 2024-04-24
 ENV TZ="Europe/Rome"
 
 ENV DEBIAN_FRONTEND="noninteractive"
-ENV KAMAILIO_VERSION="5.8.6"
+ENV KAMAILIO_VERSION="5.8.7"
 
 RUN apt-get update && apt-get install --no-install-recommends --assume-yes gnupg wget && rm -rf /var/lib/apt/lists/*
 RUN echo "deb http://deb.kamailio.org/kamailio58 focal main" > /etc/apt/sources.list.d/kamailio.list
