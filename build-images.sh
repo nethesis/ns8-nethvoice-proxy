@@ -74,7 +74,7 @@ buildah config --entrypoint=/ \
     --label="org.nethserver.min-core=3.12.4-0" \
     --label="org.nethserver.max-per-node=1" \
     --label="org.nethserver.rootfull=0" \
-    --label="org.nethserver.authorizations=node:fwadm traefik@any:certadm" \
+    --label="org.nethserver.authorizations=node:fwadm,portsadm traefik@any:certadm" \
     --label="org.nethserver.tcp-ports-demand=2" \
     --label="org.nethserver.images=${repobase}/nethvoice-proxy-postgres:${IMAGETAG:-latest} \
     ${repobase}/nethvoice-proxy-kamailio:${IMAGETAG:-latest} \
