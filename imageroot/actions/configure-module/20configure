@@ -15,6 +15,20 @@ data = json.load(sys.stdin)
 
 local_networks = set()
 
+# Function to create rich rules for port forwarding
+def create_port_forward_rules(local_networks_list, private_ip):
+    """Create rich rules for each local network"""
+    rules = []
+    for network in local_networks_list:
+        if network:  # Skip empty networks
+            # Port forward 5060 UDP to 6060
+            rules.append(f'rule family=ipv4 source address={network} forward-port port=5060 protocol=udp to-port=6060')
+            # Port forward 5060 TCP to 6060
+            rules.append(f'rule family=ipv4 source address={network} forward-port port=5060 protocol=tcp to-port=6060')
+            # Port forward 5061 TCP to 6061
+            rules.append(f'rule family=ipv4 source address={network} forward-port port=5061 protocol=tcp to-port=6061')
+    return rules
+
 if "addresses" in data:
 
     address = data["addresses"]
@@ -22,19 +36,59 @@ if "addresses" in data:
     # Set public and private IP
     if "public_address" not in address:
         # if there's no public address, the proxy is not behind NAT
+
+        # Clean up any existing port forwarding rich rules based on previous configuration
+        prev_localnetworks = os.environ.get("LOCALNETWORKS")
+        prev_private_ip = os.environ.get("PRIVATE_IP")
+        if prev_localnetworks and prev_private_ip:
+            prev_networks = [n for n in prev_localnetworks.split(",") if n]
+            previous_rules = create_port_forward_rules(prev_networks, prev_private_ip)
+            if previous_rules:
+                result = agent.remove_rich_rules(previous_rules)
+                if not result:
+                    print("Warning: Failed to remove some rich rules", file=sys.stderr)
+
         agent.set_env("PUBLIC_IP", address["address"])
         agent.set_env("PRIVATE_IP", "")
         agent.set_env("BEHIND_NAT", "false")
         agent.unset_env("LOCALNETWORKS")
     else:
-        # if there's a public address, the proxy is behind NAT
+        # If there's a public address, the proxy is behind NAT
+
+        # Get local network from routing table (excluding default route)
+        detected_network = os.popen("ip route | grep -v default | grep 'src " + address["address"] + "' | awk '{print $1}'").read().strip()
+        if detected_network:
+            local_networks.add(detected_network)
+
+        # Check if local_networks field is present in data
+        if "local_networks" in data and data["local_networks"]:
+            # Add extra local networks
+            local_networks.update(set(data["local_networks"]))
+
+        # Remove existing port forwarding rules based on previous configuration before adding new ones
+        prev_localnetworks = os.environ.get("LOCALNETWORKS")
+        prev_private_ip = os.environ.get("PRIVATE_IP")
+        if prev_localnetworks and prev_private_ip:
+            prev_networks = [n for n in prev_localnetworks.split(",") if n]
+            previous_rules = create_port_forward_rules(prev_networks, prev_private_ip)
+            if previous_rules:
+                agent.remove_rich_rules(previous_rules)
+
         agent.set_env("PUBLIC_IP", address["public_address"])
         agent.set_env("PRIVATE_IP", address["address"])
         agent.set_env("BEHIND_NAT", "true")
 
-        # Get local network from routing table (excluding default route)
-        local_networks.add(os.popen("ip route | grep -v default | grep 'src " + address["address"] + "' | awk '{print $1}'").read().strip())
-        agent.set_env("LOCALNETWORKS", list(local_networks)[0])
+        # Store local networks
+        if local_networks:
+            agent.set_env("LOCALNETWORKS", ",".join(local_networks))
+
+        # Create and apply new port forwarding rules for each local network
+        if local_networks:
+            new_rules = create_port_forward_rules(list(local_networks), address["address"])
+            if new_rules:
+                result = agent.add_rich_rules(new_rules)
+                if not result:
+                    print("Warning: Failed to add some rich rules", file=sys.stderr)
 
     agent.set_env("DEFAULT_CONTACT", address["address"] + ":5060" if "public_address" not in address else address["public_address"] + ":5060")
 
@@ -42,9 +96,3 @@ if "service_net" in data:
     service = data["service_net"]
     agent.set_env("SERVICE_IP", service["address"])
     agent.set_env("SERVICE_NET", service["netmask"])
-
-#check if local_networks is not empty and local_networks filed is present in data
-if local_networks and "local_networks" in data:
-    # Add extra local networks
-    local_networks.update(set(data["local_networks"]))
-    agent.set_env("LOCALNETWORKS", ",".join(local_networks))
