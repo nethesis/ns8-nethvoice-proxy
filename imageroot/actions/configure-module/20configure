@@ -16,7 +16,7 @@ data = json.load(sys.stdin)
 local_networks = set()
 
 # Function to create rich rules for port forwarding
-def create_port_forward_rules(local_networks_list, private_ip):
+def create_port_forward_rules(local_networks_list):
     """Create rich rules for each local network"""
     rules = []
     for network in local_networks_list:
@@ -42,7 +42,7 @@ if "addresses" in data:
         prev_private_ip = os.environ.get("PRIVATE_IP")
         if prev_localnetworks and prev_private_ip:
             prev_networks = [n for n in prev_localnetworks.split(",") if n]
-            previous_rules = create_port_forward_rules(prev_networks, prev_private_ip)
+            previous_rules = create_port_forward_rules(prev_networks)
             if previous_rules:
                 result = agent.remove_rich_rules(previous_rules)
                 if not result:
@@ -70,7 +70,7 @@ if "addresses" in data:
         prev_private_ip = os.environ.get("PRIVATE_IP")
         if prev_localnetworks and prev_private_ip:
             prev_networks = [n for n in prev_localnetworks.split(",") if n]
-            previous_rules = create_port_forward_rules(prev_networks, prev_private_ip)
+            previous_rules = create_port_forward_rules(prev_networks)
             if previous_rules:
                 agent.remove_rich_rules(previous_rules)
 
@@ -84,7 +84,7 @@ if "addresses" in data:
 
         # Create and apply new port forwarding rules for each local network
         if local_networks:
-            new_rules = create_port_forward_rules(list(local_networks), address["address"])
+            new_rules = create_port_forward_rules(list(local_networks))
             if new_rules:
                 result = agent.add_rich_rules(new_rules)
                 if not result:
