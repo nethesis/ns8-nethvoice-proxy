@@ -9,10 +9,13 @@ import os
 import agent
 
 # Open SIP (5060), SIPS (5061), custom port (6060,6061) and RTP range (10000-20000)
+# Note: Port 6061 is TCP-only because it's used for TLS (SIPS), which requires TCP.
+# Port 5061 includes UDP in the range notation (5060-5061/udp) for simplicity,
+# but SIPS/TLS on 5061 only uses TCP in practice.
 agent.assert_exp(agent.add_public_service(os.environ['MODULE_ID'], [
     "5060-5061/tcp",
     "5060-5061/udp",
     "6060/tcp",
     "6060/udp",
-    "6061/tcp",
+    "6061/tcp",  # TLS/SIPS - TCP only (TLS requires TCP)
     "10000-20000/udp"]))
