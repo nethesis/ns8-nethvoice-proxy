@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2026 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import agent
+import json
+import sys
+import os
+
+# Read the current configuration from get-configuration action
+try:
+    # Execute get-configuration action to retrieve current settings
+    response = agent.tasks.run(
+        agent_id=os.environ['AGENT_ID'],
+        action='get-configuration',
+        data={}
+    )
+
+    config = response['output']
+
+    # Check if FQDN exists and doesn't end with .invalid
+    fqdn = config.get('fqdn', '')
+
+    if fqdn and not fqdn.endswith('.invalid'):
+        # FQDN is valid, reapply configuration to configure-module action
+        print(f"Reapplying configuration for FQDN: {fqdn}", file=sys.stderr)
+
+        agent.tasks.run(
+            agent_id=os.environ['AGENT_ID'],
+            action='configure-module',
+            data=config
+        )
+
+        print("Configuration reapplied successfully", file=sys.stderr)
+    else:
+        print(f"Skipping reconfiguration: FQDN '{fqdn}' is not valid or ends with .invalid", file=sys.stderr)
+
+except Exception as e:
+    print(f"Error during reconfiguration: {e}", file=sys.stderr)
+    # Don't fail the update process, just log the error
+    sys.exit(0)

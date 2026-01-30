@@ -6,6 +6,36 @@
 #
 
 import os
+import sys
 import agent
+
+# Function to create rich rules for port forwarding (same as configure-module)
+def create_port_forward_rules(local_networks_list):
+    """Create rich rules for each local network"""
+    rules = []
+    for network in local_networks_list:
+        if network:  # Skip empty networks
+            # Port forward 5060 UDP to 6060
+            rules.append(f'rule family=ipv4 source address={network} forward-port port=5060 protocol=udp to-port=6060')
+            # Port forward 5060 TCP to 6060
+            rules.append(f'rule family=ipv4 source address={network} forward-port port=5060 protocol=tcp to-port=6060')
+            # Port forward 5061 TCP to 6061
+            rules.append(f'rule family=ipv4 source address={network} forward-port port=5061 protocol=tcp to-port=6061')
+    return rules
+
+# Clean up any existing port forwarding rich rules (only if behind NAT)
+behind_nat = os.environ.get("BEHIND_NAT") == "true"
+public_ip = os.environ.get("PUBLIC_IP")
+prev_localnetworks = os.environ.get("LOCALNETWORKS")
+prev_private_ip = os.environ.get("PRIVATE_IP")
+
+# Only remove rich-rules if there was a public address (behind NAT scenario)
+if behind_nat and public_ip and prev_localnetworks and prev_private_ip:
+    prev_networks = [n for n in prev_localnetworks.split(",") if n]
+    previous_rules = create_port_forward_rules(prev_networks)
+    if previous_rules:
+        result = agent.remove_rich_rules(previous_rules)
+        if not result:
+            print("Warning: Failed to remove some rich rules", file=sys.stderr)
 
 agent.remove_public_service(os.environ['MODULE_ID'])
