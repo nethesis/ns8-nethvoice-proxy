@@ -18,6 +18,7 @@ try:
         action='get-configuration',
         data={}
     )
+    agent.assert_exp(response['exit_code'] == 0)
 
     config = response['output']
 
@@ -28,11 +29,12 @@ try:
         # FQDN is valid, reapply configuration to configure-module action
         print(f"Reapplying configuration for FQDN: {fqdn}", file=sys.stderr)
 
-        agent.tasks.run(
+        response = agent.tasks.run(
             agent_id=os.environ['AGENT_ID'],
             action='configure-module',
             data=config
         )
+        agent.assert_exp(response['exit_code'] == 0)
 
         print("Configuration reapplied successfully", file=sys.stderr)
     else:
@@ -40,5 +42,4 @@ try:
 
 except Exception as e:
     print(f"Error during reconfiguration: {e}", file=sys.stderr)
-    # Don't fail the update process, just log the error
-    sys.exit(0)
+    sys.exit(1)
