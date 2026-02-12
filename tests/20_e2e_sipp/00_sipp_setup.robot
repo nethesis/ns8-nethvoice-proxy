@@ -14,6 +14,32 @@ Upload SIPp scenario files
     [Documentation]    Copy all SIPp XML scenarios to the NS8 node
     Upload SIPp Scenarios
 
+Verify uploaded scenarios are readable
+    [Documentation]    Check that uploaded scenario files are intact on the node
+    ${output}    ${rc}=    Execute Command
+    ...    runagent -m ${module_id} sh -c 'ls -la $HOME/sipp_scenarios/ && echo "---" && file $HOME/sipp_scenarios/uas_answer.xml && echo "---" && head -3 $HOME/sipp_scenarios/uas_answer.xml && echo "---" && xxd $HOME/sipp_scenarios/uas_answer.xml | head -3'
+    ...    return_rc=True
+    Log    Scenario file diagnostics: ${output}
+    Should Be Equal As Integers    ${rc}    0
+    Should Contain    ${output}    uas_answer.xml
+
+Verify SIPp can parse a minimal scenario
+    [Documentation]    Create and parse a minimal inline scenario to confirm SIPp works
+    ${output}    ${rc}=    Execute Command
+    ...    runagent -m ${module_id} sh -c 'echo '"'"'<?xml version="1.0" encoding="UTF-8"?><scenario name="test"><recv request="INVITE" crlf="true"/></scenario>'"'"' > /tmp/sipp_test_parse.xml && $HOME/bin/sipp -sf /tmp/sipp_test_parse.xml -p 19999 -bg 2>&1; echo "EXIT:$?"; rm -f /tmp/sipp_test_parse.xml'
+    ...    return_rc=True
+    Log    SIPp minimal parse test: ${output}
+    # SIPp with -bg should output a PID if parsing succeeds
+    Should Not Contain    ${output}    Unable to load or parse    SIPp cannot parse even a minimal scenario — binary may be broken
+
+Verify SIPp can parse uploaded scenario
+    [Documentation]    Confirm SIPp can parse the actual uas_answer.xml scenario
+    ${output}    ${rc}=    Execute Command
+    ...    runagent -m ${module_id} sh -c '$HOME/bin/sipp -sf $HOME/sipp_scenarios/uas_answer.xml -p 19998 -bg 2>&1; RET=$?; kill $(cat /tmp/sipp_19998_*.pid 2>/dev/null) 2>/dev/null; echo "EXIT:$RET"'
+    ...    return_rc=True
+    Log    SIPp parse uas_answer test: ${output}
+    Should Not Contain    ${output}    Unable to load or parse    SIPp cannot parse uas_answer.xml: ${output}
+
 Verify SIPp is working
     [Documentation]    Confirm SIPp binary is functional
     Verify SIPp Available
