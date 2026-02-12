@@ -52,11 +52,11 @@ Install SIPp On Node
         ...    runagent -m ${module_id} sh -c 'curl -L -o $HOME/bin/sipp https://github.com/SIPp/sipp/releases/latest/download/sipp && chmod +x $HOME/bin/sipp'
         ...    return_rc=True    timeout=60s
         Should Be Equal As Integers    ${rc}    0    Failed to download SIPp: ${stdout}
-        # Verify installation
+        # Verify installation - SIPp -v exits with code 99, so check output instead
         ${stdout}    ${rc}=    Execute Command
-        ...    runagent -m ${module_id} sh -c '$HOME/bin/sipp -v'
+        ...    runagent -m ${module_id} sh -c '$HOME/bin/sipp -v 2>&1'
         ...    return_rc=True
-        Should Be Equal As Integers    ${rc}    0    SIPp binary is not working: ${stdout}
+        Should Contain    ${stdout}    SIPp    SIPp binary is not working: ${stdout}
         Log    SIPp installed successfully: ${stdout}
     ELSE
         Log    SIPp already available at: ${sipp_path}
@@ -81,8 +81,8 @@ Upload SIPp Scenarios
 Verify SIPp Available
     [Documentation]    Confirm SIPp is installed and working
     ${output}    ${rc}=    Execute Command    runagent -m ${module_id} sh -c '$HOME/bin/sipp -v 2>&1 | head -1'    return_rc=True
-    Should Be Equal As Integers    ${rc}    0    SIPp not available on node
-    Should Contain    ${output}    SIPp
+    # SIPp -v returns exit code 99, so just check output contains "SIPp"
+    Should Contain    ${output}    SIPp    SIPp not available on node
     Log    SIPp version: ${output}
 
 # --- UAS (Mock PBX) Management ---
