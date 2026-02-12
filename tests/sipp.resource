@@ -13,7 +13,7 @@ Resource   ./api.resource
 
 *** Variables ***
 # SIPp scenario files are uploaded to this directory in module home
-${SIPP_SCENARIOS_DIR}        ~/sipp_scenarios
+${SIPP_SCENARIOS_DIR}        $HOME/sipp_scenarios
 # Ports for mock PBX UAS instances (must not conflict with Kamailio 5060/5061)
 ${PBX1_SIP_PORT}             5080
 ${PBX2_SIP_PORT}             5082
@@ -46,15 +46,15 @@ Install SIPp On Node
     IF    '${sipp_path}' == 'not_found'
         Log    SIPp not found, installing from GitHub releases
         # Create bin directory in module home
-        Execute Command    runagent -m ${module_id} mkdir -p ~/bin
+        Execute Command    runagent -m ${module_id} sh -c 'mkdir -p $HOME/bin'
         # Download latest SIPp binary from GitHub releases
         ${stdout}    ${rc}=    Execute Command
-        ...    runagent -m ${module_id} sh -c 'curl -L -o ~/bin/sipp https://github.com/SIPp/sipp/releases/latest/download/sipp && chmod +x ~/bin/sipp'
+        ...    runagent -m ${module_id} sh -c 'curl -L -o $HOME/bin/sipp https://github.com/SIPp/sipp/releases/latest/download/sipp && chmod +x $HOME/bin/sipp'
         ...    return_rc=True    timeout=60s
         Should Be Equal As Integers    ${rc}    0    Failed to download SIPp: ${stdout}
         # Verify installation
         ${stdout}    ${rc}=    Execute Command
-        ...    runagent -m ${module_id} ~/bin/sipp -v
+        ...    runagent -m ${module_id} sh -c '$HOME/bin/sipp -v'
         ...    return_rc=True
         Should Be Equal As Integers    ${rc}    0    SIPp binary is not working: ${stdout}
         Log    SIPp installed successfully: ${stdout}
@@ -80,7 +80,7 @@ Upload SIPp Scenarios
 
 Verify SIPp Available
     [Documentation]    Confirm SIPp is installed and working
-    ${output}    ${rc}=    Execute Command    runagent -m ${module_id} ~/bin/sipp -v 2>&1 | head -1    return_rc=True
+    ${output}    ${rc}=    Execute Command    runagent -m ${module_id} sh -c '$HOME/bin/sipp -v 2>&1 | head -1'    return_rc=True
     Should Be Equal As Integers    ${rc}    0    SIPp not available on node
     Should Contain    ${output}    SIPp
     Log    SIPp version: ${output}
@@ -94,7 +94,7 @@ Start UAS Server
     Execute Command    runagent -m ${module_id} sh -c 'fuser -k ${port}/udp 2>/dev/null; fuser -k ${port}/tcp 2>/dev/null; sleep 1'    timeout=10s
     ${pid_file}=    Set Variable    /tmp/sipp_uas_${port}.pid
     ${cmd}=    Set Variable
-    ...    runagent -m ${module_id} sh -c 'nohup ~/bin/sipp -sf ${SIPP_SCENARIOS_DIR}/sipp_scenarios/${scenario} -p ${port} -mi 127.0.0.1 -mp ${media_port} -rtp_echo -trace_stat -stf /tmp/sipp_uas_${port}_stat.csv -trace_err -error_file /tmp/sipp_uas_${port}_err.log -bg ${extra_args} > /tmp/sipp_uas_${port}.log 2>&1 & echo $!'
+    ...    runagent -m ${module_id} sh -c 'nohup $HOME/bin/sipp -sf ${SIPP_SCENARIOS_DIR}/sipp_scenarios/${scenario} -p ${port} -mi 127.0.0.1 -mp ${media_port} -rtp_echo -trace_stat -stf /tmp/sipp_uas_${port}_stat.csv -trace_err -error_file /tmp/sipp_uas_${port}_err.log -bg ${extra_args} > /tmp/sipp_uas_${port}.log 2>&1 & echo $!'
     ${pid}    ${rc}=    Execute Command    ${cmd}    return_rc=True
     Should Be Equal As Integers    ${rc}    0    Failed to start UAS on port ${port}
     ${pid}=    Strip String    ${pid}
@@ -134,7 +134,7 @@ Run SIPp UAC
     ${err_file}=    Set Variable    /tmp/sipp_uac_${scenario}_err.log
     ${screen_file}=    Set Variable    /tmp/sipp_uac_${scenario}_screen.log
     ${cmd}=    Set Variable
-    ...    runagent -m ${module_id} ~/bin/sipp ${target_ip}:${target_port} -sf ${SIPP_SCENARIOS_DIR}/sipp_scenarios/${scenario} -s ${service} -m ${calls} -r ${call_rate} -l ${concurrent} -d ${duration} -t ${transport} -mi 127.0.0.1 -mp ${SIPP_MEDIA_PORT_UAC} -trace_stat -stf ${stat_file} -trace_err -error_file ${err_file} -timeout ${SIPP_TIMEOUT} -timeout_error ${extra_args} 2>&1
+    ...    runagent -m ${module_id} sh -c '$HOME/bin/sipp ${target_ip}:${target_port} -sf ${SIPP_SCENARIOS_DIR}/sipp_scenarios/${scenario} -s ${service} -m ${calls} -r ${call_rate} -l ${concurrent} -d ${duration} -t ${transport} -mi 127.0.0.1 -mp ${SIPP_MEDIA_PORT_UAC} -trace_stat -stf ${stat_file} -trace_err -error_file ${err_file} -timeout ${SIPP_TIMEOUT} -timeout_error ${extra_args} 2>&1'
     ${stdout}    ${stderr}    ${rc}=    Execute Command    ${cmd}
     ...    return_stdout=True    return_stderr=True    return_rc=True    timeout=${${SIPP_TIMEOUT} + 30}s
     Log    SIPp UAC stdout: ${stdout}
