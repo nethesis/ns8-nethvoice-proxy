@@ -88,21 +88,34 @@ Verify SIPp Available
 # --- UAS (Mock PBX) Management ---
 
 Start UAS Server
-    [Documentation]    Start a SIPp UAS server in the background
+    [Documentation]    Start a SIPp UAS server in the background using -bg flag.
+    ...    SIPp -bg forks a daemon and prints the child PID to stdout.
     [Arguments]    ${scenario}    ${port}    ${media_port}=${SIPP_MEDIA_PORT_UAS1}    ${extra_args}=${EMPTY}
     # Kill any existing SIPp on this port first
     Execute Command    runagent -m ${module_id} sh -c 'fuser -k ${port}/udp 2>/dev/null; fuser -k ${port}/tcp 2>/dev/null; sleep 1'    timeout=10s
     ${pid_file}=    Set Variable    /tmp/sipp_uas_${port}.pid
+    # Use -bg only (no nohup/&). SIPp forks and prints the daemon PID to stdout.
     ${cmd}=    Set Variable
-    ...    runagent -m ${module_id} sh -c 'nohup $HOME/bin/sipp -sf ${SIPP_SCENARIOS_DIR}/${scenario} -p ${port} -mi 127.0.0.1 -mp ${media_port} -rtp_echo -trace_stat -stf /tmp/sipp_uas_${port}_stat.csv -trace_err -error_file /tmp/sipp_uas_${port}_err.log -bg ${extra_args} > /tmp/sipp_uas_${port}.log 2>&1 & echo $!'
-    ${pid}    ${rc}=    Execute Command    ${cmd}    return_rc=True
-    Should Be Equal As Integers    ${rc}    0    Failed to start UAS on port ${port}
-    ${pid}=    Strip String    ${pid}
+    ...    runagent -m ${module_id} sh -c '$HOME/bin/sipp -sf ${SIPP_SCENARIOS_DIR}/${scenario} -p ${port} -mi 127.0.0.1 -mp ${media_port} -rtp_echo -trace_stat -stf /tmp/sipp_uas_${port}_stat.csv -trace_err -error_file /tmp/sipp_uas_${port}_err.log -bg ${extra_args} 2>/tmp/sipp_uas_${port}.log'
+    ${output}    ${rc}=    Execute Command    ${cmd}    return_rc=True
+    Log    SIPp -bg output: ${output}, rc: ${rc}
+    # SIPp -bg exits with 0 on success, prints PID; non-zero on failure
+    IF    ${rc} != 0
+        ${log_content}=    Execute Command    runagent -m ${module_id} cat /tmp/sipp_uas_${port}.log 2>/dev/null
+        Fail    Failed to start UAS on port ${port} (rc=${rc}): ${output} ${log_content}
+    END
+    ${pid}=    Strip String    ${output}
+    # Validate we got a numeric PID
+    Should Match Regexp    ${pid}    ^[0-9]+$    SIPp -bg did not return a valid PID: '${pid}'
     Execute Command    runagent -m ${module_id} sh -c 'echo ${pid} > ${pid_file}'
-    # Wait for UAS to be ready
+    # Wait for UAS to be ready and verify it's still running
     Sleep    2s
     ${check_rc}=    Execute Command    runagent -m ${module_id} kill -0 ${pid} 2>/dev/null    return_rc=True    return_stdout=False
-    Should Be Equal As Integers    ${check_rc}    0    UAS process ${pid} on port ${port} died immediately
+    IF    ${check_rc} != 0
+        ${log_content}=    Execute Command    runagent -m ${module_id} cat /tmp/sipp_uas_${port}.log 2>/dev/null
+        ${err_content}=    Execute Command    runagent -m ${module_id} cat /tmp/sipp_uas_${port}_err.log 2>/dev/null
+        Fail    UAS process ${pid} on port ${port} died immediately. Log: ${log_content} Errors: ${err_content}
+    END
     Log    Started UAS ${scenario} on port ${port} with PID ${pid}
     RETURN    ${pid}
 
