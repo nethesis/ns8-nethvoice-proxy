@@ -80,7 +80,7 @@ Upload SIPp Scenarios
 
 Verify SIPp Available
     [Documentation]    Confirm SIPp is installed and working
-    ${output}    ${rc}=    Execute Command    runagent -m ${module_id} sh -c '$HOME/bin/sipp -v 2>&1 | head -1'    return_rc=True
+    ${output}    ${rc}=    Execute Command    runagent -m ${module_id} sh -c '\$HOME/bin/sipp -v 2>&1'    return_rc=True
     # SIPp -v returns exit code 99, so just check output contains "SIPp"
     Should Contain    ${output}    SIPp    SIPp not available on node
     Log    SIPp version: ${output}
