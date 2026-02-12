@@ -1,4 +1,4 @@
-FROM redis:8.4
+FROM redis:8.6
 
 LABEL maintainer="Giovanni Tommasini <giovanni.tommasini@evoseed.io>"
 
