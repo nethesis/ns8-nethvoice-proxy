@@ -9,8 +9,8 @@ Resource   ../sipp.resource
 Stop all SIPp UAS servers
     [Documentation]    Ensure all mock PBX UAS processes are terminated.
     Stop All UAS Servers
-    # Also kill any stray SIPp processes
-    Execute Command    pkill -f sipp 2>/dev/null || true    timeout=10s
+    # Also kill any stray SIPp processes in module context
+    Execute Command    runagent -m ${module_id} sh -c 'killall sipp 2>/dev/null || true'    timeout=10s
     Sleep    2s
 
 Remove e2e test routes

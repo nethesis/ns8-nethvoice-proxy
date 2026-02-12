@@ -42,12 +42,12 @@ Multiple calls are distributed across both PBX nodes
 Verify both UAS instances received calls
     [Documentation]    Check that both SIPp UAS instances processed calls (not all on one).
     # Check UAS-A stats
-    ${statA}    ${rcA}=    Execute Command    cat /tmp/sipp_uas_${LB_PORT_A}_stat.csv 2>/dev/null | tail -1    return_rc=True
+    ${statA}    ${rcA}=    Execute Command    runagent -m ${module_id} sh -c 'cat /tmp/sipp_uas_${LB_PORT_A}_stat.csv 2>/dev/null | tail -1'    return_rc=True
     # Check UAS-B stats
-    ${statB}    ${rcB}=    Execute Command    cat /tmp/sipp_uas_${LB_PORT_B}_stat.csv 2>/dev/null | tail -1    return_rc=True
+    ${statB}    ${rcB}=    Execute Command    runagent -m ${module_id} sh -c 'cat /tmp/sipp_uas_${LB_PORT_B}_stat.csv 2>/dev/null | tail -1'    return_rc=True
     Log    UAS-A stats: ${statA}
     Log    UAS-B stats: ${statB}
     # At minimum, both should have log files (indicating they received traffic)
-    ${logA}    ${rcLA}=    Execute Command    wc -l < /tmp/sipp_uas_${LB_PORT_A}.log 2>/dev/null    return_rc=True
-    ${logB}    ${rcLB}=    Execute Command    wc -l < /tmp/sipp_uas_${LB_PORT_B}.log 2>/dev/null    return_rc=True
+    ${logA}    ${rcLA}=    Execute Command    runagent -m ${module_id} sh -c 'wc -l < /tmp/sipp_uas_${LB_PORT_A}.log 2>/dev/null'    return_rc=True
+    ${logB}    ${rcLB}=    Execute Command    runagent -m ${module_id} sh -c 'wc -l < /tmp/sipp_uas_${LB_PORT_B}.log 2>/dev/null'    return_rc=True
     Log    UAS-A log lines: ${logA}, UAS-B log lines: ${logB}
