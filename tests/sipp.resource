@@ -94,7 +94,7 @@ Start UAS Server
     Execute Command    runagent -m ${module_id} sh -c 'fuser -k ${port}/udp 2>/dev/null; fuser -k ${port}/tcp 2>/dev/null; sleep 1'    timeout=10s
     ${pid_file}=    Set Variable    /tmp/sipp_uas_${port}.pid
     ${cmd}=    Set Variable
-    ...    runagent -m ${module_id} sh -c 'nohup $HOME/bin/sipp -sf ${SIPP_SCENARIOS_DIR}/sipp_scenarios/${scenario} -p ${port} -mi 127.0.0.1 -mp ${media_port} -rtp_echo -trace_stat -stf /tmp/sipp_uas_${port}_stat.csv -trace_err -error_file /tmp/sipp_uas_${port}_err.log -bg ${extra_args} > /tmp/sipp_uas_${port}.log 2>&1 & echo $!'
+    ...    runagent -m ${module_id} sh -c 'nohup $HOME/bin/sipp -sf ${SIPP_SCENARIOS_DIR}/${scenario} -p ${port} -mi 127.0.0.1 -mp ${media_port} -rtp_echo -trace_stat -stf /tmp/sipp_uas_${port}_stat.csv -trace_err -error_file /tmp/sipp_uas_${port}_err.log -bg ${extra_args} > /tmp/sipp_uas_${port}.log 2>&1 & echo $!'
     ${pid}    ${rc}=    Execute Command    ${cmd}    return_rc=True
     Should Be Equal As Integers    ${rc}    0    Failed to start UAS on port ${port}
     ${pid}=    Strip String    ${pid}
@@ -134,7 +134,7 @@ Run SIPp UAC
     ${err_file}=    Set Variable    /tmp/sipp_uac_${scenario}_err.log
     ${screen_file}=    Set Variable    /tmp/sipp_uac_${scenario}_screen.log
     ${cmd}=    Set Variable
-    ...    runagent -m ${module_id} sh -c '$HOME/bin/sipp ${target_ip}:${target_port} -sf ${SIPP_SCENARIOS_DIR}/sipp_scenarios/${scenario} -s ${service} -m ${calls} -r ${call_rate} -l ${concurrent} -d ${duration} -t ${transport} -mi 127.0.0.1 -mp ${SIPP_MEDIA_PORT_UAC} -trace_stat -stf ${stat_file} -trace_err -error_file ${err_file} -timeout ${SIPP_TIMEOUT} -timeout_error ${extra_args} 2>&1'
+    ...    runagent -m ${module_id} sh -c '$HOME/bin/sipp ${target_ip}:${target_port} -sf ${SIPP_SCENARIOS_DIR}/${scenario} -s ${service} -m ${calls} -r ${call_rate} -l ${concurrent} -d ${duration} -t ${transport} -mi 127.0.0.1 -mp ${SIPP_MEDIA_PORT_UAC} -trace_stat -stf ${stat_file} -trace_err -error_file ${err_file} -timeout ${SIPP_TIMEOUT} -timeout_error ${extra_args} 2>&1'
     ${stdout}    ${stderr}    ${rc}=    Execute Command    ${cmd}
     ...    return_stdout=True    return_stderr=True    return_rc=True    timeout=${${SIPP_TIMEOUT} + 30}s
     Log    SIPp UAC stdout: ${stdout}
