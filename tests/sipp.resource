@@ -40,9 +40,23 @@ Install SIPp On Node
     [Documentation]    Install SIPp on the NS8 node if not already present
     ${rc}=    Execute Command    which sipp    return_rc=True    return_stdout=False
     IF    ${rc} != 0
-        ${stdout}    ${rc}=    Execute Command
-        ...    dnf install -y epel-release && dnf install -y sipp || apt-get update && apt-get install -y sipp
-        ...    return_rc=True    timeout=120s
+        ${pkg_mgr}    ${rc}=    Execute Command
+        ...    sh -c 'if command -v dnf >/dev/null 2>&1; then echo dnf; elif command -v apt-get >/dev/null 2>&1; then echo apt; else echo none; fi'
+        ...    return_rc=True
+        ${pkg_mgr}=    Strip String    ${pkg_mgr}
+        IF    '${pkg_mgr}' == 'dnf'
+            ${rhel_ver}=    Execute Command    rpm -E %{rhel} 2>/dev/null || echo 9
+            ${rhel_ver}=    Strip String    ${rhel_ver}
+            ${stdout}    ${rc}=    Execute Command
+            ...    dnf install -y sipp || (dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-${rhel_ver}.noarch.rpm && dnf install -y sipp)
+            ...    return_rc=True    timeout=180s
+        ELSE IF    '${pkg_mgr}' == 'apt'
+            ${stdout}    ${rc}=    Execute Command
+            ...    apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y sipp
+            ...    return_rc=True    timeout=180s
+        ELSE
+            Fail    No supported package manager found to install SIPp
+        END
         Should Be Equal As Integers    ${rc}    0    Failed to install SIPp: ${stdout}
     END
 
