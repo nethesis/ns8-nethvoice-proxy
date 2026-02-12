@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (C) 2026 Nethesis S.r.l.
+  SPDX-License-Identifier: GPL-3.0-or-later
+
+  UAC scenario: send REGISTER request through the proxy.
+  Validates SIP registration handling.
+
+  Usage: sipp [proxy_ip]:5060 -sf uac_register.xml -s [user] -m 1
+-->
+<scenario name="UAC Register">
+
+  <!-- Send REGISTER -->
+  <send retrans="500">
+    <![CDATA[
+      REGISTER sip:[remote_ip]:[remote_port] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      Max-Forwards: 70
+      From: "SIPp Register" <sip:[service]@[remote_ip]>;tag=[pid]SIPpTag0[call_number]
+      To: <sip:[service]@[remote_ip]>
+      Call-ID: [call_id]
+      CSeq: 1 REGISTER
+      Contact: <sip:[service]@[local_ip]:[local_port];transport=[transport]>;expires=3600
+      Content-Length: 0
+
+    ]]>
+  </send>
+
+  <!-- Expect 200 OK -->
+  <recv response="200" rtd="true" crlf="true"/>
+
+</scenario>

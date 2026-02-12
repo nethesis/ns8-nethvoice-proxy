@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (C) 2026 Nethesis S.r.l.
+  SPDX-License-Identifier: GPL-3.0-or-later
+
+  UAS scenario: responds 486 Busy Here to incoming calls.
+  Used to test busy handling and failover scenarios.
+
+  Usage: sipp -sf uas_busy.xml -p 5080
+-->
+<scenario name="UAS Busy">
+
+  <!-- Wait for INVITE -->
+  <recv request="INVITE" crlf="true"/>
+
+  <!-- Send 486 Busy Here -->
+  <send>
+    <![CDATA[
+      SIP/2.0 486 Busy Here
+      [last_Via:]
+      [last_From:]
+      [last_To:];tag=[pid]SIPpTag0[call_number]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Content-Length: 0
+
+    ]]>
+  </send>
+
+  <!-- Wait for ACK (acknowledgement of 486) -->
+  <recv request="ACK" optional="false" rtd="true" crlf="true"/>
+
+</scenario>

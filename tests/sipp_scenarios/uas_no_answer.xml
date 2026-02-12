@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (C) 2026 Nethesis S.r.l.
+  SPDX-License-Identifier: GPL-3.0-or-later
+
+  UAS scenario: sends 180 Ringing but never answers the call.
+  Used to test timeout behavior and CANCEL handling.
+
+  Usage: sipp -sf uas_no_answer.xml -p 5080
+-->
+<scenario name="UAS No Answer">
+
+  <!-- Wait for INVITE -->
+  <recv request="INVITE" crlf="true"/>
+
+  <!-- Send 100 Trying -->
+  <send>
+    <![CDATA[
+      SIP/2.0 100 Trying
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Content-Length: 0
+
+    ]]>
+  </send>
+
+  <!-- Send 180 Ringing -->
+  <send>
+    <![CDATA[
+      SIP/2.0 180 Ringing
+      [last_Via:]
+      [last_From:]
+      [last_To:];tag=[pid]SIPpTag0[call_number]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:[local_ip]:[local_port];transport=[transport]>
+      Content-Length: 0
+
+    ]]>
+  </send>
+
+  <!-- Wait for CANCEL (caller gives up) -->
+  <recv request="CANCEL"/>
+
+  <!-- Send 200 OK for CANCEL -->
+  <send>
+    <![CDATA[
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_From:]
+      [last_To:]
+      [last_Call-ID:]
+      CSeq: [last_cseq_number] CANCEL
+      Content-Length: 0
+
+    ]]>
+  </send>
+
+  <!-- Send 487 Request Terminated for the original INVITE -->
+  <send>
+    <![CDATA[
+      SIP/2.0 487 Request Terminated
+      [last_Via:]
+      [last_From:]
+      [last_To:];tag=[pid]SIPpTag0[call_number]
+      [last_Call-ID:]
+      CSeq: [last_cseq_number] INVITE
+      Content-Length: 0
+
+    ]]>
+  </send>
+
+  <!-- Wait for ACK of 487 -->
+  <recv request="ACK" optional="false" crlf="true"/>
+
+</scenario>

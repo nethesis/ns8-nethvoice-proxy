@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (C) 2026 Nethesis S.r.l.
+  SPDX-License-Identifier: GPL-3.0-or-later
+
+  UAC scenario: send INVITE, wait for 180 Ringing, then CANCEL the call.
+  Validates proper CANCEL handling and 487 Request Terminated propagation.
+
+  Usage: sipp [proxy_ip]:5060 -sf uac_cancel_call.xml -s [called_user] -m 1
+-->
+<scenario name="UAC Cancel Call">
+
+  <!-- Send INVITE -->
+  <send retrans="500">
+    <![CDATA[
+      INVITE sip:[service]@[remote_ip]:[remote_port] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      Max-Forwards: 70
+      From: "SIPp Cancel" <sip:sipp-cancel@[local_ip]:[local_port]>;tag=[pid]SIPpTag0[call_number]
+      To: <sip:[service]@[remote_ip]:[remote_port]>
+      Call-ID: [call_id]
+      CSeq: 1 INVITE
+      Contact: <sip:sipp-cancel@[local_ip]:[local_port];transport=[transport]>
+      Content-Type: application/sdp
+      Content-Length: [len]
+
+      v=0
+      o=sipp 1 1 IN IP[local_ip_type] [local_ip]
+      s=SIPp Cancel Test
+      c=IN IP[local_ip_type] [local_ip]
+      t=0 0
+      m=audio [auto_media_port] RTP/AVP 8 0
+      a=rtpmap:8 PCMA/8000
+      a=rtpmap:0 PCMU/8000
+      a=ptime:20
+
+    ]]>
+  </send>
+
+  <!-- Expect 100 Trying (optional) -->
+  <recv response="100" optional="true"/>
+
+  <!-- Expect 180 Ringing -->
+  <recv response="180" optional="false" rtd="true"/>
+
+  <!-- Wait briefly then CANCEL -->
+  <pause milliseconds="500"/>
+
+  <!-- Send CANCEL -->
+  <send retrans="500">
+    <![CDATA[
+      CANCEL sip:[service]@[remote_ip]:[remote_port] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      Max-Forwards: 70
+      From: "SIPp Cancel" <sip:sipp-cancel@[local_ip]:[local_port]>;tag=[pid]SIPpTag0[call_number]
+      To: <sip:[service]@[remote_ip]:[remote_port]>
+      Call-ID: [call_id]
+      CSeq: 1 CANCEL
+      Content-Length: 0
+
+    ]]>
+  </send>
+
+  <!-- Expect 200 OK for CANCEL -->
+  <recv response="200" crlf="true"/>
+
+  <!-- Expect 487 Request Terminated for INVITE -->
+  <recv response="487"/>
+
+  <!-- Send ACK for 487 -->
+  <send>
+    <![CDATA[
+      ACK sip:[service]@[remote_ip]:[remote_port] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      Max-Forwards: 70
+      From: "SIPp Cancel" <sip:sipp-cancel@[local_ip]:[local_port]>;tag=[pid]SIPpTag0[call_number]
+      To: <sip:[service]@[remote_ip]:[remote_port]>
+      Call-ID: [call_id]
+      CSeq: 1 ACK
+      Content-Length: 0
+
+    ]]>
+  </send>
+
+</scenario>

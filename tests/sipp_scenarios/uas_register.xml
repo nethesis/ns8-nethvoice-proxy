@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (C) 2026 Nethesis S.r.l.
+  SPDX-License-Identifier: GPL-3.0-or-later
+
+  UAS scenario: accepts REGISTER requests with 200 OK.
+  Used to test trunk registration flows through the proxy.
+
+  Usage: sipp -sf uas_register.xml -p 5080
+-->
+<scenario name="UAS Register">
+
+  <!-- Wait for REGISTER -->
+  <recv request="REGISTER" crlf="true"/>
+
+  <!-- Send 200 OK -->
+  <send>
+    <![CDATA[
+      SIP/2.0 200 OK
+      [last_Via:]
+      [last_From:]
+      [last_To:];tag=[pid]SIPpTag0[call_number]
+      [last_Call-ID:]
+      [last_CSeq:]
+      Contact: <sip:[local_ip]:[local_port];transport=[transport]>;expires=3600
+      Content-Length: 0
+
+    ]]>
+  </send>
+
+</scenario>

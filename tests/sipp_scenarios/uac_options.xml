@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (C) 2026 Nethesis S.r.l.
+  SPDX-License-Identifier: GPL-3.0-or-later
+
+  UAC scenario: send OPTIONS keepalive request.
+  Validates the KEEPALIVE route in Kamailio responds with 200 OK.
+
+  Usage: sipp [proxy_ip]:5060 -sf uac_options.xml -m 1
+-->
+<scenario name="UAC Options">
+
+  <!-- Send OPTIONS -->
+  <send retrans="500">
+    <![CDATA[
+      OPTIONS sip:[remote_ip]:[remote_port] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      Max-Forwards: 70
+      From: "SIPp Options" <sip:sipp@[local_ip]:[local_port]>;tag=[pid]SIPpTag0[call_number]
+      To: <sip:[remote_ip]:[remote_port]>
+      Call-ID: [call_id]
+      CSeq: 1 OPTIONS
+      Contact: <sip:sipp@[local_ip]:[local_port];transport=[transport]>
+      Accept: application/sdp
+      Content-Length: 0
+
+    ]]>
+  </send>
+
+  <!-- Expect 200 OK -->
+  <recv response="200" rtd="true" crlf="true"/>
+
+</scenario>

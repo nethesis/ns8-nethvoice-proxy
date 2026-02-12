@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (C) 2026 Nethesis S.r.l.
+  SPDX-License-Identifier: GPL-3.0-or-later
+
+  UAC scenario: INVITE with multiple codec offer (G.729, PCMA, PCMU, GSM).
+  Validates codec negotiation and filtering through rtpengine.
+
+  Usage: sipp [proxy_ip]:5060 -sf uac_multi_codec.xml -s [called_user] -m 1 -d 3000
+-->
+<scenario name="UAC Multi Codec">
+
+  <!-- Send INVITE with broad codec offer -->
+  <send retrans="500">
+    <![CDATA[
+      INVITE sip:[service]@[remote_ip]:[remote_port] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      Max-Forwards: 70
+      From: "SIPp Codec" <sip:sipp-codec@[local_ip]:[local_port]>;tag=[pid]SIPpTag0[call_number]
+      To: <sip:[service]@[remote_ip]:[remote_port]>
+      Call-ID: [call_id]
+      CSeq: 1 INVITE
+      Contact: <sip:sipp-codec@[local_ip]:[local_port];transport=[transport]>
+      Content-Type: application/sdp
+      Content-Length: [len]
+
+      v=0
+      o=sipp 1 1 IN IP[local_ip_type] [local_ip]
+      s=SIPp Codec Test
+      c=IN IP[local_ip_type] [local_ip]
+      t=0 0
+      m=audio [auto_media_port] RTP/AVP 18 8 0 3
+      a=rtpmap:18 G729/8000
+      a=fmtp:18 annexb=no
+      a=rtpmap:8 PCMA/8000
+      a=rtpmap:0 PCMU/8000
+      a=rtpmap:3 GSM/8000
+      a=ptime:20
+      a=sendrecv
+
+    ]]>
+  </send>
+
+  <recv response="100" optional="true"/>
+  <recv response="180" optional="true"/>
+
+  <recv response="200" rtd="true" crlf="true">
+    <action>
+      <ereg regexp="(.*)" search_in="hdr" header="To:" assign_to="1"/>
+    </action>
+  </recv>
+
+  <send>
+    <![CDATA[
+      ACK sip:[service]@[remote_ip]:[remote_port] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      Max-Forwards: 70
+      From: "SIPp Codec" <sip:sipp-codec@[local_ip]:[local_port]>;tag=[pid]SIPpTag0[call_number]
+      [last_To:]
+      Call-ID: [call_id]
+      CSeq: 1 ACK
+      Content-Length: 0
+
+    ]]>
+  </send>
+
+  <pause milliseconds="[$d]"/>
+
+  <send retrans="500">
+    <![CDATA[
+      BYE sip:[service]@[remote_ip]:[remote_port] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      Max-Forwards: 70
+      From: "SIPp Codec" <sip:sipp-codec@[local_ip]:[local_port]>;tag=[pid]SIPpTag0[call_number]
+      [last_To:]
+      Call-ID: [call_id]
+      CSeq: 2 BYE
+      Content-Length: 0
+
+    ]]>
+  </send>
+
+  <recv response="200" crlf="true"/>
+
+  <ResponseTimeRepartition value="50, 100, 200, 500, 1000, 2000, 5000"/>
+  <CallLengthRepartition value="1000, 5000, 10000, 30000, 60000"/>
+
+</scenario>

@@ -83,6 +83,39 @@ Test the module using the `test-module.sh` script:
 
 The tests are made using [Robot Framework](https://robotframework.org/)
 
+### Test structure
+
+- `tests/00_*.robot` — Module add/remove lifecycle
+- `tests/01_*.robot` — Container health checks
+- `tests/10_actions/` — API action validation and integration tests
+- `tests/20_e2e_sipp/` — End-to-end SIP/RTP call tests using [SIPp](https://sipp.sourceforge.net/)
+
+### E2E SIP/RTP tests
+
+The `tests/20_e2e_sipp/` directory contains end-to-end tests that simulate real
+SIP calls through the Kamailio proxy and verify RTP media flows through rtpengine.
+
+**Prerequisites**: SIPp is automatically installed on the NS8 node during test setup.
+
+**Scenarios covered**:
+- Basic call signaling (INVITE/BYE/CANCEL/OPTIONS)
+- RTP media flow verification through rtpengine
+- Multi-PBX domain and trunk routing (2 simulated PBX endpoints)
+- Dispatcher load balancing and failover
+- Concurrent calls (5-10 simultaneous)
+- SRTP↔RTP transcoding
+- Codec negotiation (G.729, PCMA, PCMU, GSM)
+- TLS signaling (port 5061)
+- Topology hiding (TOPOS)
+- NAT traversal (rport/contact-alias)
+- In-dialog requests (re-INVITE hold/resume)
+
+**SIPp scenario files** are in `tests/sipp_scenarios/` and are uploaded to the
+node during test execution. To run only the E2E suite:
+
+    robot -v NODE_ADDR:<addr> -v IMAGE_URL:<url> -v SSH_KEYFILE:~/.ssh/id_rsa \
+        tests/20_e2e_sipp/
+
 ## Components
 
 ### Kamailio
