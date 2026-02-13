@@ -70,11 +70,15 @@ Upload SIPp Scenarios
     Log    Module home directory: ${module_home}
     # Create scenarios directory in module home
     Execute Command    runagent -m ${module_id} mkdir -p ${module_home}/sipp_scenarios
-    # Upload scenarios (SSHLibrary uploads to SSH session context, then we copy to module context)
+    # Upload scenarios via SFTP to a temp directory (files uploaded as root)
     Execute Command    mkdir -p /tmp/sipp_upload_tmp
     SSHLibrary.Put Directory    ${CURDIR}/sipp_scenarios    /tmp/sipp_upload_tmp    mode=0644
-    # Copy to module context
-    Execute Command    runagent -m ${module_id} sh -c 'cp -r /tmp/sipp_upload_tmp/sipp_scenarios/* ${module_home}/sipp_scenarios/'
+    # Copy from tmp to module home using root (via Execute Command, not runagent)
+    # This works because Execute Command runs as root via SSH
+    Execute Command    cp -r /tmp/sipp_upload_tmp/sipp_scenarios/* ${module_home}/sipp_scenarios/
+    # Make files readable by the module user
+    Execute Command    chown -R ${module_id}:${module_id} ${module_home}/sipp_scenarios/
+    Execute Command    chmod -R 0755 ${module_home}/sipp_scenarios/
     Execute Command    rm -rf /tmp/sipp_upload_tmp
     Log    SIPp scenarios uploaded to ${module_home}/sipp_scenarios
 
