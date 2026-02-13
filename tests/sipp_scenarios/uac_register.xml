@@ -14,13 +14,13 @@
   <send retrans="500">
     <![CDATA[
       REGISTER sip:[remote_ip]:[remote_port] SIP/2.0
-      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      Via: SIP/2.0/[transport] 127.0.0.1:[local_port];branch=[branch]
       Max-Forwards: 70
       From: "SIPp Register" <sip:[service]@[remote_ip]>;tag=[pid]SIPpTag0[call_number]
       To: <sip:[service]@[remote_ip]>
       Call-ID: [call_id]
       CSeq: 1 REGISTER
-      Contact: <sip:[service]@[local_ip]:[local_port];transport=[transport]>;expires=3600
+      Contact: <sip:[service]@127.0.0.1:[local_port];transport=[transport]>;expires=3600
       Content-Length: 0
 
     ]]>

@@ -14,20 +14,20 @@
   <send retrans="500">
     <![CDATA[
       INVITE sip:[service]@[remote_ip]:[remote_port] SIP/2.0
-      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      Via: SIP/2.0/[transport] 127.0.0.1:[local_port];branch=[branch]
       Max-Forwards: 70
-      From: "SIPp Cancel" <sip:sipp-cancel@[local_ip]:[local_port]>;tag=[pid]SIPpTag0[call_number]
+      From: "SIPp Cancel" <sip:sipp-cancel@127.0.0.1:[local_port]>;tag=[pid]SIPpTag0[call_number]
       To: <sip:[service]@[remote_ip]:[remote_port]>
       Call-ID: [call_id]
       CSeq: 1 INVITE
-      Contact: <sip:sipp-cancel@[local_ip]:[local_port];transport=[transport]>
+      Contact: <sip:sipp-cancel@127.0.0.1:[local_port];transport=[transport]>
       Content-Type: application/sdp
       Content-Length: [len]
 
       v=0
-      o=sipp 1 1 IN IP4 [local_ip]
+      o=sipp 1 1 IN IP4 127.0.0.1
       s=SIPp Cancel Test
-      c=IN IP4 [local_ip]
+      c=IN IP4 127.0.0.1
       t=0 0
       m=audio [auto_media_port] RTP/AVP 8 0
       a=rtpmap:8 PCMA/8000
@@ -50,9 +50,9 @@
   <send retrans="500">
     <![CDATA[
       CANCEL sip:[service]@[remote_ip]:[remote_port] SIP/2.0
-      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      Via: SIP/2.0/[transport] 127.0.0.1:[local_port];branch=[branch]
       Max-Forwards: 70
-      From: "SIPp Cancel" <sip:sipp-cancel@[local_ip]:[local_port]>;tag=[pid]SIPpTag0[call_number]
+      From: "SIPp Cancel" <sip:sipp-cancel@127.0.0.1:[local_port]>;tag=[pid]SIPpTag0[call_number]
       To: <sip:[service]@[remote_ip]:[remote_port]>
       Call-ID: [call_id]
       CSeq: 1 CANCEL
@@ -71,9 +71,9 @@
   <send>
     <![CDATA[
       ACK sip:[service]@[remote_ip]:[remote_port] SIP/2.0
-      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      Via: SIP/2.0/[transport] 127.0.0.1:[local_port];branch=[branch]
       Max-Forwards: 70
-      From: "SIPp Cancel" <sip:sipp-cancel@[local_ip]:[local_port]>;tag=[pid]SIPpTag0[call_number]
+      From: "SIPp Cancel" <sip:sipp-cancel@127.0.0.1:[local_port]>;tag=[pid]SIPpTag0[call_number]
       To: <sip:[service]@[remote_ip]:[remote_port]>
       Call-ID: [call_id]
       CSeq: 1 ACK

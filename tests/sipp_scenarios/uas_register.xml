@@ -22,7 +22,7 @@
       [last_To:];tag=[pid]SIPpTag0[call_number]
       [last_Call-ID:]
       [last_CSeq:]
-      Contact: <sip:[local_ip]:[local_port];transport=[transport]>;expires=3600
+      Contact: <sip:127.0.0.1:[local_port];transport=[transport]>;expires=3600
       Content-Length: 0
 
     ]]>

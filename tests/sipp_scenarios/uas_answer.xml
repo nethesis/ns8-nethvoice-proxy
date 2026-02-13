@@ -6,7 +6,7 @@
   UAS scenario: answers calls, plays media for a configurable duration, then waits for BYE.
   Used to simulate an Asterisk/PBX endpoint behind the proxy.
 
-  Usage: sipp -sf uas_answer.xml -p 5080 -mi [local_ip] -mp 30000 -rtp_echo
+  Usage: sipp -sf uas_answer.xml -p 5080 -mi 127.0.0.1 -mp 30000 -rtp_echo
 -->
 <scenario name="UAS Answer">
 
@@ -40,7 +40,7 @@
       [last_To:];tag=[pid]SIPpTag0[call_number]
       [last_Call-ID:]
       [last_CSeq:]
-      Contact: <sip:[local_ip]:[local_port];transport=[transport]>
+      Contact: <sip:127.0.0.1:[local_port];transport=[transport]>
       Content-Length: 0
 
     ]]>
@@ -57,14 +57,14 @@
       [last_To:];tag=[pid]SIPpTag0[call_number]
       [last_Call-ID:]
       [last_CSeq:]
-      Contact: <sip:[local_ip]:[local_port];transport=[transport]>
+      Contact: <sip:127.0.0.1:[local_port];transport=[transport]>
       Content-Type: application/sdp
       Content-Length: [len]
 
       v=0
-      o=sipp 1 1 IN IP4 [local_ip]
+      o=sipp 1 1 IN IP4 127.0.0.1
       s=SIPp UAS
-      c=IN IP4 [local_ip]
+      c=IN IP4 127.0.0.1
       t=0 0
       m=audio [auto_media_port] RTP/AVP 8 0
       a=rtpmap:8 PCMA/8000
