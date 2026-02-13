@@ -27,9 +27,9 @@
       Content-Length: [len]
 
       v=0
-      o=sipp 1 1 IN IP[local_ip_type] [local_ip]
+      o=sipp 1 1 IN IP4 [local_ip]
       s=SIPp Media Call
-      c=IN IP[local_ip_type] [local_ip]
+      c=IN IP4 [local_ip]
       t=0 0
       m=audio [auto_media_port] RTP/AVP 8 0
       a=rtpmap:8 PCMA/8000
