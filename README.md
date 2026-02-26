@@ -58,6 +58,42 @@ Example:
 
     api-cli run module/nethvoice-proxy1/configure-module --data '{"fqdn": "example.com", "addresses": { "address": "192.168.1.1", "public_address": "1.2.3.4" }}'
 
+## NAT scenario: local networks support
+
+In on-premise installations where NethServer 8 is behind NAT
+(`public_address` differs from `address`), Kamailio normally advertises
+the public IP in SDP for all clients. Local clients (phones on the same
+LAN) must then reach NethVoice through the public IP, which requires
+hairpin NAT firewall rules — complex to configure and often unfeasible.
+
+By providing the optional `local_networks` parameter the proxy avoids the
+need for hairpin NAT by automatically:
+
+1. Adding Kamailio listeners on ports **6060** (SIP/TCP/UDP) and **6061**
+   (SIPS/TLS) bound to the private IP.
+2. Creating firewall port-forwarding rules that redirect traffic arriving
+   on 5060/5061 **from local network sources** to 6060/6061.
+3. Configuring Kamailio to select `PRIVATE_IP:6060` as the outbound socket
+   for destinations inside local networks, so the **private IP is
+   advertised in SDP** for local clients — eliminating hairpin NAT.
+
+Remote clients are unaffected and continue to use ports 5060/5061 with
+the public IP in SDP.
+
+The network directly attached to `address` is detected automatically from
+the routing table. Additional subnets can be declared explicitly via
+`local_networks`.
+
+Example:
+
+    api-cli run module/nethvoice-proxy1/configure-module --data \
+      '{"fqdn": "proxy.example.com",
+        "addresses": {"address": "192.168.1.1", "public_address": "1.2.3.4"},
+        "local_networks": ["192.168.1.0/24", "10.0.0.0/8"]}'
+
+The `local_networks` field accepts an array of CIDR-notation IPv4 subnets.
+Port-forwarding rules are applied and removed automatically when the
+configuration is updated or the module is destroyed.
 
 ## Debug
 
