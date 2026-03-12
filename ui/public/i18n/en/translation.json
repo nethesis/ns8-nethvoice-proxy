@@ -2,7 +2,7 @@
   "common": {
     "required": "Required",
     "work_in_progress": "Work in progress",
-    "processing": "Processing...",
+    "processing": "Processing…",
     "optional": "Optional",
     "cancel": "Cancel",
     "save": "Save",
