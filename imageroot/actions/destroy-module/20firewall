@@ -23,14 +23,12 @@ def create_port_forward_rules(local_networks_list):
             rules.append(f'rule family=ipv4 source address={network} forward-port port=5061 protocol=tcp to-port=6061')
     return rules
 
-# Clean up any existing port forwarding rich rules (only if behind NAT)
-behind_nat = os.environ.get("BEHIND_NAT") == "true"
-public_ip = os.environ.get("PUBLIC_IP")
+# Clean up any existing port forwarding rich rules.
+# LOCALNETWORKS is the marker that NAT-specific rich rules were created.
 prev_localnetworks = os.environ.get("LOCALNETWORKS")
-prev_private_ip = os.environ.get("PRIVATE_IP")
 
-# Only remove rich-rules if there was a public address (behind NAT scenario)
-if behind_nat and public_ip and prev_localnetworks and prev_private_ip:
+# Remove rich rules whenever the local networks were configured.
+if prev_localnetworks:
     prev_networks = [n for n in prev_localnetworks.split(",") if n]
     previous_rules = create_port_forward_rules(prev_networks)
     if previous_rules:
@@ -38,4 +36,4 @@ if behind_nat and public_ip and prev_localnetworks and prev_private_ip:
         if not result:
             print("Warning: Failed to remove some rich rules", file=sys.stderr)
 
-agent.remove_public_service(os.environ['MODULE_ID'])
+agent.assert_exp(agent.remove_public_service(os.environ['MODULE_ID']))
