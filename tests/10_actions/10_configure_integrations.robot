@@ -23,10 +23,11 @@ Set a FQDN without let's encrypt and address an without NAT
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}  0
     Should Contain    ${firewall_ports}    5060-5061/tcp
-    Should Contain    ${firewall_ports}    5060-5061/udp
+    Should Contain    ${firewall_ports}    5060/udp
     Should Contain    ${firewall_ports}    10000-20000/udp
+    Should Not Contain    ${firewall_ports}    5061/udp
+    Should Not Contain    ${firewall_ports}    6060/udp
     Should Not Contain    ${firewall_ports}    6060-6061/tcp
-    Should Not Contain    ${firewall_ports}    6060-6061/udp
 
 Set a FQDN without let's encrypt and an address with NAT
     Run task    module/${module_id}/configure-module
@@ -48,7 +49,9 @@ Set a FQDN without let's encrypt and an address with NAT
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}  0
     Should Contain    ${firewall_ports}    5060-5061/tcp
-    Should Contain    ${firewall_ports}    5060-5061/udp
+    Should Contain    ${firewall_ports}    5060/udp
     Should Contain    ${firewall_ports}    10000-20000/udp
     Should Contain    ${firewall_ports}    6060-6061/tcp
-    Should Contain    ${firewall_ports}    6060-6061/udp
+    Should Contain    ${firewall_ports}    6060/udp
+    Should Not Contain    ${firewall_ports}    5061/udp
+    Should Not Contain    ${firewall_ports}    6061/udp

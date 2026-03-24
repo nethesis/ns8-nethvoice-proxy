@@ -13,13 +13,13 @@ import os
 
 BASE_PUBLIC_PORTS = [
     "5060-5061/tcp",
-    "5060-5061/udp",
+    "5060/udp",
     "10000-20000/udp",
 ]
 
 NAT_PUBLIC_PORTS = [
     "6060-6061/tcp",
-    "6060-6061/udp",
+    "6060/udp",
 ]
 
 data = json.load(sys.stdin)
@@ -110,7 +110,7 @@ if "addresses" in data:
                 if not result:
                     print("Warning: Failed to add some rich rules", file=sys.stderr)
 
-        set_public_firewall_ports(True)
+        set_public_firewall_ports(bool(local_networks))
 
     agent.set_env("DEFAULT_CONTACT", address["address"] + ":5060" if "public_address" not in address else address["public_address"] + ":5060")
 
