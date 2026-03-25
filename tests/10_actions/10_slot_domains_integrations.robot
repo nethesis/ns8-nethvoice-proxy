@@ -3,6 +3,7 @@ Library    SSHLibrary
 Library    Collections
 Library    String
 Resource   ../api.resource
+Suite Setup    Wait For Kamailio
 
 *** Test Cases ***
 List allocated slot port ranges
@@ -14,7 +15,7 @@ List allocated slot port ranges
     Should Be Equal As Numbers    ${response["tls_port_end"]}    6075
 
 Default firewall service exposes slot ranges
-    ${ports} =    Execute Command    firewall-cmd --service=${module_id} --get-ports
+    ${ports} =    Execute Command    firewall-cmd --permanent --service=${module_id} --get-ports
     Should Contain    ${ports}    5071-5075/tcp
     Should Contain    ${ports}    5071-5075/udp
     Should Contain    ${ports}    6071-6075/tcp
@@ -70,3 +71,13 @@ Remove remaining slot-managed domain
     ...    {"domain":"sip.vianova2.example"}
     ${response} =  Run task    module/${module_id}/list-slot-domains    {}
     Should Be Empty    ${response}
+
+*** Keywords ***
+Wait For Kamailio
+    Wait Until Keyword Succeeds    5 min    10 sec    Kamailio should be responding
+
+Kamailio should be responding
+    ${output}  ${rc} =    Execute Command    runagent -m ${module_id} podman exec kamailio kamcmd core.uptime
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}  0
+    Should Contain    ${output}    uptime

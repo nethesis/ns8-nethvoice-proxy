@@ -14,16 +14,10 @@ Check rtpengine control socket is accessible
     Should Be Equal As Integers    ${rc}  0
 
 Check kamailio container is running
-    ${output}  ${rc} =    Execute Command    runagent -m ${module_id} podman ps --filter name=kamailio --format "{{.Status}}"
-    ...    return_rc=True
-    Should Be Equal As Integers    ${rc}  0
-    Should Contain    ${output}    Up
+    Wait Until Keyword Succeeds    5 min    10 sec    Kamailio container should be running
 
 Check kamailio is responding
-    ${output}  ${rc} =    Execute Command    runagent -m ${module_id} podman exec kamailio kamcmd core.uptime
-    ...    return_rc=True
-    Should Be Equal As Integers    ${rc}  0
-    Should Contain    ${output}    uptime
+    Wait Until Keyword Succeeds    5 min    10 sec    Kamailio should be responding
 
 Check postgres container is running
     ${output}  ${rc} =    Execute Command    runagent -m ${module_id} podman ps --filter name=postgres --format "{{.Status}}"
@@ -48,3 +42,16 @@ Check redis is responding
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}  0
     Should Contain    ${output}    PONG
+
+*** Keywords ***
+Kamailio container should be running
+    ${output}  ${rc} =    Execute Command    runagent -m ${module_id} podman ps --filter name=kamailio --format "{{.Status}}"
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}  0
+    Should Contain    ${output}    Up
+
+Kamailio should be responding
+    ${output}  ${rc} =    Execute Command    runagent -m ${module_id} podman exec kamailio kamcmd core.uptime
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}  0
+    Should Contain    ${output}    uptime
