@@ -6,7 +6,7 @@
 #
 
 import os
-import re
+import time
 
 import utils
 
@@ -99,33 +99,30 @@ def split_slot_key(key_name):
 
 def live_slot_assignments():
     assignments = []
-    current = {}
+    now = int(time.time())
 
-    for raw_line in utils.kamcmd_output('htable.dump', 'slotassign').splitlines():
-        line = raw_line.strip()
-        if not line:
+    for assignment in psql_json(
+        """
+        SELECT
+            slot_assignments.key_name,
+            slot_assignments.key_value AS slot,
+            slot_assignments.expires
+        FROM slot_assignments
+        ORDER BY slot_assignments.key_name;
+        """
+    ) or []:
+        expires = int(assignment.get("expires") or 0)
+        if expires <= 0:
             continue
 
-        name_match = re.search(r'\b(?:name|key)\s*[:=]\s*([^\s,}]+)', line)
-        value_match = re.search(r'\bvalue\s*[:=]\s*([^\s,}]+)', line)
-        ttl_match = re.search(r'\bexpires?\s*[:=]\s*([0-9]+)', line)
+        ttl = expires - now if expires > now else expires
+        if ttl <= 0:
+            continue
 
-        if name_match and current.get("key_name") and current.get("slot"):
-            assignments.append(current)
-            current = {}
-
-        if name_match:
-            current["key_name"] = name_match.group(1).strip('"')
-        if value_match:
-            current["slot"] = value_match.group(1).strip('"')
-        if ttl_match:
-            current["ttl"] = int(ttl_match.group(1))
-
-        if line == "}" and current.get("key_name") and current.get("slot"):
-            assignments.append(current)
-            current = {}
-
-    if current.get("key_name") and current.get("slot"):
-        assignments.append(current)
+        assignments.append({
+            "key_name": assignment["key_name"],
+            "slot": assignment["slot"],
+            "ttl": ttl,
+        })
 
     return assignments

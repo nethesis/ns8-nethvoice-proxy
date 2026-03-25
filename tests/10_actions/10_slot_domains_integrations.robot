@@ -42,8 +42,7 @@ List configured slot-managed domains
     Should Be Empty    ${response[1]["assignments"]}
 
 List active slot assignments with ttl
-    Execute Command    runagent -m ${module_id} podman exec -i postgres psql -v ON_ERROR_STOP=1 -U postgres kamailio -c "INSERT INTO slot_assignments (key_name, key_type, value_type, key_value, expires) VALUES ('alice::sip.vianova1.example', 0, 0, 'slot1', 0) ON CONFLICT (key_name) DO UPDATE SET key_value = EXCLUDED.key_value, expires = EXCLUDED.expires"
-    Execute Command    runagent -m ${module_id} podman exec kamailio kamcmd htable.setxs slotassign alice::sip.vianova1.example slot1 3600
+    Execute Command    runagent -m ${module_id} podman exec -i postgres psql -v ON_ERROR_STOP=1 -U postgres kamailio -c "INSERT INTO slot_assignments (key_name, key_type, value_type, key_value, expires) VALUES ('alice::sip.vianova1.example', 0, 0, 'slot1', 3600) ON CONFLICT (key_name) DO UPDATE SET key_value = EXCLUDED.key_value, expires = EXCLUDED.expires"
     Execute Command    runagent -m ${module_id} podman exec kamailio kamcmd htable.seti slotpool slot1 1
     ${response} =  Run task    module/${module_id}/list-slot-domains    {}
     ${assignment} =    Set Variable    ${response[0]["assignments"][0]}
