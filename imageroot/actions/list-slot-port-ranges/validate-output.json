@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "list-slot-port-ranges output",
+  "$id": "http://schema.nethserver.org/nethvoice-proxy/list-slot-port-ranges-output.json",
+  "description": "Retrieve the allocated SIP/TLS port ranges for slot-based trunk assignments",
+  "examples": [
+    {
+      "slot_count": 5,
+      "udp_tcp_port_start": 5071,
+      "udp_tcp_port_end": 5075,
+      "tls_port_start": 6071,
+      "tls_port_end": 6075
+    }
+  ],
+  "type": "object",
+  "required": [
+    "slot_count",
+    "udp_tcp_port_start",
+    "udp_tcp_port_end",
+    "tls_port_start",
+    "tls_port_end"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "slot_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "udp_tcp_port_start": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "udp_tcp_port_end": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tls_port_start": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "tls_port_end": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2025 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import sys
+
+import slot_provisioning
+
+
+data = json.load(sys.stdin)
+
+slot_provisioning.psql_exec(
+    """
+    INSERT INTO slot_domains (key_name, key_type, value_type, key_value, expires)
+    VALUES (:'domain', 0, 0, '1', 0)
+    ON CONFLICT (key_name) DO NOTHING;
+    """,
+    {"domain": data["domain"]},
+)
+
+slot_provisioning.reload_htable('slotdomains')
+
