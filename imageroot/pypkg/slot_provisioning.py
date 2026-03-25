@@ -103,12 +103,18 @@ def live_slot_assignments():
 
     for assignment in psql_json(
         """
-        SELECT
-            slot_assignments.key_name,
-            slot_assignments.key_value AS slot,
-            slot_assignments.expires
-        FROM slot_assignments
-        ORDER BY slot_assignments.key_name;
+        SELECT COALESCE(
+            json_agg(
+                json_build_object(
+                    'key_name', slot_assignments.key_name,
+                    'slot', slot_assignments.key_value,
+                    'expires', slot_assignments.expires
+                )
+                ORDER BY slot_assignments.key_name
+            ),
+            '[]'::json
+        )
+        FROM slot_assignments;
         """
     ) or []:
         expires = int(assignment.get("expires") or 0)
