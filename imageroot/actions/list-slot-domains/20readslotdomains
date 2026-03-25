@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2025 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import sys
+
+import slot_provisioning
+
+
+domains = slot_provisioning.psql_json(
+    "SELECT COALESCE(json_agg(slot_domains.key_name ORDER BY slot_domains.key_name), '[]'::json) FROM slot_domains;"
+) or []
+
+grouped_assignments = {}
+for assignment in slot_provisioning.live_slot_assignments():
+    username, domain = slot_provisioning.split_slot_key(assignment["key_name"])
+    grouped_assignments.setdefault(domain, []).append({
+        "username": username,
+        "slot": assignment["slot"],
+        "port": slot_provisioning.slot_port(assignment["slot"]),
+        "tls_port": slot_provisioning.slot_tls_port(assignment["slot"]),
+        "ttl": assignment.get("ttl", 0),
+    })
+
+result = []
+for domain in domains:
+    assignments = sorted(
+        grouped_assignments.get(domain, []),
+        key=lambda item: (item["username"], item["slot"]),
+    )
+    result.append({
+        "domain": domain,
+        "assignments": assignments,
+    })
+
+json.dump(result, fp=sys.stdout)

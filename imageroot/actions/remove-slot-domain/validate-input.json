@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "remove-slot-domain input",
+  "$id": "http://schema.nethserver.org/nethvoice-proxy/remove-slot-domain-input.json",
+  "description": "Remove a SIP destination domain that requires slot-based port assignment",
+  "examples": [
+    {
+      "domain": "sip.vianova.example"
+    }
+  ],
+  "type": "object",
+  "required": ["domain"],
+  "additionalProperties": false,
+  "properties": {
+    "domain": {
+      "type": "string",
+      "title": "SIP domain",
+      "format": "idn-hostname",
+      "minLength": 1
+    }
+  }
+}

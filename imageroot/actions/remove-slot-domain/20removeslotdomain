@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2025 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import sys
+
+import slot_provisioning
+
+
+data = json.load(sys.stdin)
+
+assignments = slot_provisioning.psql_json(
+    """
+    SELECT COALESCE(
+        json_agg(
+            json_build_object(
+                'key_name', slot_assignments.key_name,
+                'slot', slot_assignments.key_value
+            )
+            ORDER BY slot_assignments.key_name
+        ),
+        '[]'::json
+    )
+    FROM slot_assignments
+    WHERE split_part(slot_assignments.key_name, '::', 2) = :'domain';
+    """,
+    {"domain": data["domain"]},
+) or []
+
+slot_provisioning.psql_exec(
+    """
+    DELETE FROM slot_assignments
+    WHERE split_part(slot_assignments.key_name, '::', 2) = :'domain';
+
+    DELETE FROM slot_domains
+    WHERE key_name = :'domain';
+    """,
+    {"domain": data["domain"]},
+)
+
+slot_provisioning.reload_htable('slotdomains')
+slot_provisioning.reload_htable('slotassign')
+
+for slot_name in sorted({assignment["slot"] for assignment in assignments}):
+    slot_provisioning.kamcmd('htable.seti', 'slotpool', slot_name, '0')

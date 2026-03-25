@@ -1,0 +1,67 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "list-slot-domains output",
+  "$id": "http://schema.nethserver.org/nethvoice-proxy/list-slot-domains-output.json",
+  "description": "Retrieve slot-managed domains and their active assignments",
+  "examples": [
+    [
+      {
+        "domain": "sip.vianova.example",
+        "assignments": [
+          {
+            "username": "alice",
+            "slot": "slot1",
+            "port": 5071,
+            "tls_port": 6071,
+            "ttl": 10790
+          }
+        ]
+      }
+    ],
+    []
+  ],
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["domain", "assignments"],
+    "additionalProperties": false,
+    "properties": {
+      "domain": {
+        "type": "string",
+        "title": "SIP domain",
+        "format": "idn-hostname",
+        "minLength": 1
+      },
+      "assignments": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["username", "slot", "port", "tls_port", "ttl"],
+          "additionalProperties": false,
+          "properties": {
+            "username": {
+              "type": "string",
+              "minLength": 1
+            },
+            "slot": {
+              "type": "string",
+              "pattern": "^slot[1-9][0-9]*$"
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "tls_port": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "ttl": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    }
+  }
+}

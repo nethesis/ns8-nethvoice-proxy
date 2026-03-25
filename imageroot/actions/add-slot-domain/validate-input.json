@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "add-slot-domain input",
+  "$id": "http://schema.nethserver.org/nethvoice-proxy/add-slot-domain.json",
+  "description": "Add a SIP destination domain that requires slot-based port assignment",
+  "examples": [
+    {
+      "domain": "sip.vianova.example"
+    }
+  ],
+  "type": "object",
+  "required": ["domain"],
+  "additionalProperties": false,
+  "properties": {
+    "domain": {
+      "type": "string",
+      "title": "SIP domain",
+      "format": "idn-hostname",
+      "minLength": 1
+    }
+  }
+}
