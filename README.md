@@ -95,6 +95,29 @@ The `local_networks` field accepts an array of CIDR-notation IPv4 subnets.
 Port-forwarding rules are applied and removed automatically when the
 configuration is updated or the module is destroyed.
 
+## Slot-managed provider domains
+
+The proxy exposes dedicated actions to manage SIP domains that require
+slot-based source port assignment, such as providers that identify
+trunks by the `(IP:port)` pair used during `REGISTER`.
+
+- `add-slot-domain` adds a destination domain to the slot-managed list.
+- `list-slot-domains` lists configured domains together with any active
+  slot assignments, including the assigned SIP/TLS ports and remaining
+  TTL.
+- `remove-slot-domain` removes a domain and frees all of its assigned
+  slots.
+- `list-slot-port-ranges` returns the reserved SIP/TLS slot ranges.
+
+By default the module reserves `5` slots starting at port `5071`, so the
+default ranges are `5071-5075` for SIP/TCP+UDP and `6071-6075` for TLS.
+
+Example:
+
+    api-cli run module/nethvoice-proxy1/add-slot-domain --data '{"domain": "sip.vianova.example"}'
+
+    api-cli run module/nethvoice-proxy1/list-slot-domains --data '{}'
+
 ## Debug
 
 To enable Kamailio debug at runtime, launch
