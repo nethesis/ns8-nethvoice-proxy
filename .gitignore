@@ -2,3 +2,6 @@ modules/postgres/volume/
 .DS_Store
 *.env
 .vscode/settings.json
+CLAUDE.md
+docs/
+.specstory/
