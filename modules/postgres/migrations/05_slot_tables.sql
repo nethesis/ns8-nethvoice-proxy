@@ -1,5 +1,5 @@
 -- Slot-based port binding for multi-trunk support (Vianova)
--- These tables follow the Kamailio htable schema for dbmode=1 compatibility
+-- These tables follow the Kamailio htable schema and are used with htable/slotassign (configured with dbmode=2; schema remains compatible with dbmode=1)
 
 -- Table for special domains requiring slot-based port assignment
 -- Used by htable "slotdomains"
