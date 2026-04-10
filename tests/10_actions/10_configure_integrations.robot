@@ -19,6 +19,15 @@ Set a FQDN without let's encrypt and address an without NAT
     ${response} =  Run task    module/${module_id}/list-service-providers
     ...    {"service": "sip", "transport": "udp", "filter": {"module_id": "${module_id}"} }
     Should Be Equal    ${response[0]['address']}    ${local_ip}
+    ${firewall_ports}  ${rc} =    Execute Command    firewall-cmd --permanent --service=${module_id} --get-ports
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}  0
+    Should Contain    ${firewall_ports}    5060-5061/tcp
+    Should Contain    ${firewall_ports}    5060/udp
+    Should Contain    ${firewall_ports}    10000-20000/udp
+    Should Not Contain    ${firewall_ports}    5061/udp
+    Should Not Contain    ${firewall_ports}    6060/udp
+    Should Not Contain    ${firewall_ports}    6060-6061/tcp
 
 Set a FQDN without let's encrypt and an address with NAT
     Run task    module/${module_id}/configure-module
@@ -36,3 +45,13 @@ Set a FQDN without let's encrypt and an address with NAT
     ...    {"service": "sip", "transport": "udp", "filter": {"module_id": "${module_id}"} }
     Should Be Equal    ${response[0]['address']}    ${local_ip}
     Should Be Equal    ${response[0]['public_address']}    1.2.3.4
+    ${firewall_ports}  ${rc} =    Execute Command    firewall-cmd --permanent --service=${module_id} --get-ports
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}  0
+    Should Contain    ${firewall_ports}    5060-5061/tcp
+    Should Contain    ${firewall_ports}    5060/udp
+    Should Contain    ${firewall_ports}    10000-20000/udp
+    Should Contain    ${firewall_ports}    6060-6061/tcp
+    Should Contain    ${firewall_ports}    6060/udp
+    Should Not Contain    ${firewall_ports}    5061/udp
+    Should Not Contain    ${firewall_ports}    6061/udp
