@@ -6,6 +6,7 @@
 #
 
 import agent
+import firewall
 import os
 
 # Check if the previus version supoported the NAT scenario
@@ -23,6 +24,13 @@ if os.getenv("SERVICE_IP", None) is None:
     agent.set_env('SERVICE_NET', rdb.get('cluster/network'))
     # Clean up obsolete env variable
     agent.unset_env('KML_INTERNAL_NETWORK')
+
+# Backfill slot-based trunk env vars introduced after the original release.
+if os.getenv("TRUNK_SLOTS", None) is None:
+    agent.set_env("TRUNK_SLOTS", "0")
+
+if os.getenv("TRUNK_PORT_START", None) is None:
+    agent.set_env("TRUNK_PORT_START", str(firewall.DEFAULT_TRUNK_PORT_START))
 
 # test if the passwords.env is present and if 'POSTGRES_PASSWORD' is present
 if not os.path.exists("passwords.env") and os.getenv('POSTGRES_PASSWORD') is not None:
