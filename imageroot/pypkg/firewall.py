@@ -20,6 +20,7 @@ NAT_PUBLIC_PORTS = [
 ]
 
 DEFAULT_TRUNK_PORT_START = 5071
+SLOT_TLS_PORT_OFFSET = 1000
 
 
 def create_port_forward_rules(local_networks_list):
@@ -34,7 +35,7 @@ def create_port_forward_rules(local_networks_list):
 
 
 def get_slot_public_ports(slot_count, start_port):
-    """Return the UDP/TCP firewall ports required for slot-based trunks."""
+    """Return the firewall ports required for slot-based trunks."""
     if slot_count < 0:
         raise ValueError("TRUNK_SLOTS cannot be negative")
     if start_port < 1:
@@ -44,13 +45,17 @@ def get_slot_public_ports(slot_count, start_port):
         return []
 
     end_port = start_port + slot_count - 1
-    if end_port > 65535:
-        raise ValueError("TRUNK_SLOTS and TRUNK_PORT_START exceed the valid port range")
+    tls_start_port = start_port + SLOT_TLS_PORT_OFFSET
+    tls_end_port = end_port + SLOT_TLS_PORT_OFFSET
+    if tls_end_port > 65535:
+        raise ValueError("TRUNK_SLOTS and TRUNK_PORT_START exceed the valid slot listener range")
 
     port_range = str(start_port) if slot_count == 1 else f"{start_port}-{end_port}"
+    tls_port_range = str(tls_start_port) if slot_count == 1 else f"{tls_start_port}-{tls_end_port}"
     return [
         f"{port_range}/tcp",
         f"{port_range}/udp",
+        f"{tls_port_range}/tcp",
     ]
 
 

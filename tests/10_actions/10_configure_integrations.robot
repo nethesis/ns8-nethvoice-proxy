@@ -65,6 +65,8 @@ Slot ports survive repeated reconfiguration
     Should Be Equal As Integers    ${rc}  0
     Should Contain    ${firewall_ports}    5071-5073/tcp
     Should Contain    ${firewall_ports}    5071-5073/udp
+    Should Contain    ${firewall_ports}    6071-6073/tcp
+    Should Not Contain    ${firewall_ports}    6071-6073/udp
     Run task    module/${module_id}/configure-module
     ...    {"fqdn": "example.com", "lets_encrypt": false, "addresses": {"address": "${local_ip}", "public_address": "1.2.3.4"}, "local_networks": ["10.20.30.0/24"]}
     ${firewall_ports}  ${rc} =    Execute Command    firewall-cmd --permanent --service=${module_id} --get-ports
@@ -72,5 +74,7 @@ Slot ports survive repeated reconfiguration
     Should Be Equal As Integers    ${rc}  0
     Should Contain    ${firewall_ports}    5071-5073/tcp
     Should Contain    ${firewall_ports}    5071-5073/udp
+    Should Contain    ${firewall_ports}    6071-6073/tcp
+    Should Not Contain    ${firewall_ports}    6071-6073/udp
     Should Contain    ${firewall_ports}    6060-6061/tcp
     Should Contain    ${firewall_ports}    6060/udp
