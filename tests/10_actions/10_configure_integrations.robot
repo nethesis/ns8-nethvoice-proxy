@@ -55,3 +55,22 @@ Set a FQDN without let's encrypt and an address with NAT
     Should Contain    ${firewall_ports}    6060/udp
     Should Not Contain    ${firewall_ports}    5061/udp
     Should Not Contain    ${firewall_ports}    6061/udp
+
+Slot ports survive repeated reconfiguration
+    Run module command    python3 -c 'import agent; agent.set_env("TRUNK_SLOTS", "3"); agent.set_env("TRUNK_PORT_START", "5071")'
+    Run task    module/${module_id}/configure-module
+    ...    {"fqdn": "example.com", "lets_encrypt": false, "addresses": {"address": "${local_ip}"}}
+    ${firewall_ports}  ${rc} =    Execute Command    firewall-cmd --permanent --service=${module_id} --get-ports
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}  0
+    Should Contain    ${firewall_ports}    5071-5073/tcp
+    Should Contain    ${firewall_ports}    5071-5073/udp
+    Run task    module/${module_id}/configure-module
+    ...    {"fqdn": "example.com", "lets_encrypt": false, "addresses": {"address": "${local_ip}", "public_address": "1.2.3.4"}, "local_networks": ["10.20.30.0/24"]}
+    ${firewall_ports}  ${rc} =    Execute Command    firewall-cmd --permanent --service=${module_id} --get-ports
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}  0
+    Should Contain    ${firewall_ports}    5071-5073/tcp
+    Should Contain    ${firewall_ports}    5071-5073/udp
+    Should Contain    ${firewall_ports}    6060-6061/tcp
+    Should Contain    ${firewall_ports}    6060/udp
