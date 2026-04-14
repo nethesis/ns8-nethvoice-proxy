@@ -27,7 +27,7 @@ if os.getenv("SERVICE_IP", None) is None:
 
 # Backfill slot-based trunk env vars introduced after the original release.
 if os.getenv("TRUNK_SLOTS", None) is None:
-    agent.set_env("TRUNK_SLOTS", "0")
+    agent.set_env("TRUNK_SLOTS", "10")
 
 if os.getenv("TRUNK_PORT_START", None) is None:
     agent.set_env("TRUNK_PORT_START", str(firewall.DEFAULT_TRUNK_PORT_START))
