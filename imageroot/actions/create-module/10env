@@ -36,7 +36,7 @@ agent.set_env('PRIVATE_IP', '')
 agent.set_env('DEFAULT_CONTACT', '127.0.0.1:5060')
 agent.set_env('KML_DEFAULT_FQDN', str(random.randint(0, 32767)).zfill(5) + '.ns8.invalid')
 agent.set_env('BEHIND_NAT', "false")
-agent.set_env('TRUNK_SLOTS', '0')
+agent.set_env('TRUNK_SLOTS', '10')
 agent.set_env('TRUNK_PORT_START', '5071')
 
 rdb = agent.redis_connect(privileged=False)
