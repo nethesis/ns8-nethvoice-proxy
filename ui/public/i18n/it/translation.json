@@ -66,7 +66,7 @@
     "get-status": "Visualizza stato",
     "get-module-info": "Visualizza info modulo",
     "get-name": "Visualizza nome",
-    "list-backup-repositories": "Elenca repository di backup",
+    "list-backup-repositories": "Elenca i repository di backup",
     "list-backups": "Elenca backup",
     "list-installed-modules": "Elenca moduli installati",
     "Trunks_list_error": "Impossibile recuperare le regole di routing dei trunk",
