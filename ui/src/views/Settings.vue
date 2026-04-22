@@ -489,6 +489,7 @@ export default {
         interfaces.push({
           name: iface.name,
           label: label,
+          network: iface.addresses[0].network,
           value: interfacesAddress,
         });
       }
@@ -560,6 +561,11 @@ export default {
       // check if public_address exists and is different from local ip address
       if (this.address && this.address !== this.iface) {
         dataPayload.addresses.public_address = this.address;
+
+        const additionalLocalNetworks = this.getAdditionalLocalNetworks();
+        if (additionalLocalNetworks.length) {
+          dataPayload.local_networks = additionalLocalNetworks;
+        }
       }
 
       const res = await to(
@@ -640,6 +646,44 @@ export default {
     getStatusCompleted(taskContext, taskResult) {
       this.status = taskResult.output;
       this.loading.getStatus = false;
+    },
+    getInterfaceNetwork(address) {
+      if (!address || !this.interfaces || !this.interfaces.length) {
+        return "";
+      }
+
+      const selectedInterface = this.interfaces.find(
+        (iface) => iface.value === address
+      );
+      return selectedInterface && selectedInterface.network
+        ? selectedInterface.network
+        : "";
+    },
+    getAdditionalLocalNetworks() {
+      const localNetworks =
+        this.config && Array.isArray(this.config.local_networks)
+          ? this.config.local_networks
+          : [];
+
+      if (!localNetworks.length) {
+        return [];
+      }
+
+      const configuredInterfaceNetwork = this.getInterfaceNetwork(
+        this.config &&
+          this.config.addresses &&
+          this.config.addresses.address
+          ? this.config.addresses.address
+          : ""
+      );
+
+      if (!configuredInterfaceNetwork) {
+        return [...localNetworks];
+      }
+
+      return localNetworks.filter(
+        (network) => network !== configuredInterfaceNetwork
+      );
     },
     goToCertificates() {
       this.core.$router.push("/settings/tls-certificates");
