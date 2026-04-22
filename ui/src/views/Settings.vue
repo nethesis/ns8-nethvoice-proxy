@@ -669,12 +669,16 @@ export default {
         return [];
       }
 
-      const configuredInterfaceNetwork = this.getInterfaceNetwork(
-        this.config &&
-          this.config.addresses &&
-          this.config.addresses.address
+      const selectedInterfaceAddress =
+        this.iface ||
+        (this.config &&
+        this.config.addresses &&
+        this.config.addresses.address
           ? this.config.addresses.address
-          : ""
+          : "");
+
+      const configuredInterfaceNetwork = this.getInterfaceNetwork(
+        selectedInterfaceAddress
       );
 
       if (!configuredInterfaceNetwork) {
