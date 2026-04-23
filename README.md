@@ -113,11 +113,7 @@ To uninstall the instance:
 
 ## Testing
 
-Test the module using the `test-module.sh` script:
-
-    ./test-module.sh <NODE_ADDR> ghcr.io/nethesis/nethvoice-proxy:latest
-
-The tests are made using [Robot Framework](https://robotframework.org/)
+This module uses the NS8 standard testing infrastructure. For instructions on how to run the test suite locally, refer to the [Running tests locally](https://github.com/NethServer/ns8-github-actions/blob/v1/README.md#running-tests-locally).
 
 ## Components
 
