@@ -720,24 +720,23 @@ export default {
         return [];
       }
 
-      const selectedInterfaceAddress =
-        this.iface ||
-        (config &&
-        config.addresses &&
-        config.addresses.address
+      const configuredAddress =
+        config && config.addresses && config.addresses.address
           ? config.addresses.address
-          : "");
+          : "";
+      const networksToExclude = [
+        this.getInterfaceNetwork(this.iface),
+        this.getInterfaceNetwork(configuredAddress),
+      ].filter((network, index, networks) => {
+        return network && networks.indexOf(network) === index;
+      });
 
-      const configuredInterfaceNetwork = this.getInterfaceNetwork(
-        selectedInterfaceAddress
-      );
-
-      if (!configuredInterfaceNetwork) {
+      if (!networksToExclude.length) {
         return [...localNetworks];
       }
 
       return localNetworks.filter(
-        (network) => network !== configuredInterfaceNetwork
+        (network) => !networksToExclude.includes(network)
       );
     },
     goToCertificates() {
