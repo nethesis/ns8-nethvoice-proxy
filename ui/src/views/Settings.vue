@@ -665,20 +665,25 @@ export default {
     async fetchCurrentConfiguration() {
       const taskAction = "get-configuration";
       const eventId = this.getUuid();
+      const abortedEvent = `${taskAction}-aborted-${eventId}`;
+      const completedEvent = `${taskAction}-completed-${eventId}`;
 
       return new Promise((resolve, reject) => {
-        this.core.$root.$once(
-          `${taskAction}-aborted-${eventId}`,
-          (taskResult) => {
-            reject(taskResult);
-          }
-        );
-        this.core.$root.$once(
-          `${taskAction}-completed-${eventId}`,
-          (taskContext, taskResult) => {
-            resolve(taskResult.output);
-          }
-        );
+        const cleanup = () => {
+          this.core.$root.$off(abortedEvent, onAborted);
+          this.core.$root.$off(completedEvent, onCompleted);
+        };
+        const onAborted = (taskResult) => {
+          cleanup();
+          reject(taskResult);
+        };
+        const onCompleted = (taskContext, taskResult) => {
+          cleanup();
+          resolve(taskResult.output);
+        };
+
+        this.core.$root.$once(abortedEvent, onAborted);
+        this.core.$root.$once(completedEvent, onCompleted);
 
         this.createModuleTaskForApp(this.instanceName, {
           action: taskAction,
@@ -688,6 +693,7 @@ export default {
             eventId,
           },
         }).catch((err) => {
+          cleanup();
           reject(err);
         });
       });
