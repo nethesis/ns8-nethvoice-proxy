@@ -536,7 +536,6 @@ export default {
       if (this.address && this.address !== this.iface) {
         try {
           currentConfig = await this.fetchCurrentConfiguration();
-          this.config = currentConfig;
         } catch (error) {
           console.error("error fetching current configuration", error);
           this.error.configureModule = this.getErrorMessage(error);
