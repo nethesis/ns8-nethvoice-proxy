@@ -528,8 +528,22 @@ export default {
       }
 
       this.loading.configureModule = true;
+      this.error.configureModule = "";
       const taskAction = "configure-module";
       const eventId = this.getUuid();
+      let currentConfig = this.config;
+
+      if (this.address && this.address !== this.iface) {
+        try {
+          currentConfig = await this.fetchCurrentConfiguration();
+          this.config = currentConfig;
+        } catch (error) {
+          console.error("error fetching current configuration", error);
+          this.error.configureModule = this.getErrorMessage(error);
+          this.loading.configureModule = false;
+          return;
+        }
+      }
 
       // register to task error
       this.core.$root.$once(
@@ -562,7 +576,8 @@ export default {
       if (this.address && this.address !== this.iface) {
         dataPayload.addresses.public_address = this.address;
 
-        const additionalLocalNetworks = this.getAdditionalLocalNetworks();
+        const additionalLocalNetworks =
+          this.getAdditionalLocalNetworks(currentConfig);
         if (additionalLocalNetworks.length) {
           dataPayload.local_networks = additionalLocalNetworks;
         }
@@ -647,6 +662,41 @@ export default {
       this.status = taskResult.output;
       this.loading.getStatus = false;
     },
+    async fetchCurrentConfiguration() {
+      const taskAction = "get-configuration";
+      const eventId = this.getUuid();
+
+      return new Promise(async (resolve, reject) => {
+        this.core.$root.$once(
+          `${taskAction}-aborted-${eventId}`,
+          (taskResult) => {
+            reject(taskResult);
+          }
+        );
+        this.core.$root.$once(
+          `${taskAction}-completed-${eventId}`,
+          (taskContext, taskResult) => {
+            resolve(taskResult.output);
+          }
+        );
+
+        const res = await to(
+          this.createModuleTaskForApp(this.instanceName, {
+            action: taskAction,
+            extra: {
+              title: this.$t("action." + taskAction),
+              isNotificationHidden: true,
+              eventId,
+            },
+          })
+        );
+        const err = res[0];
+
+        if (err) {
+          reject(err);
+        }
+      });
+    },
     getInterfaceNetwork(address) {
       if (!address || !this.interfaces || !this.interfaces.length) {
         return "";
@@ -659,10 +709,10 @@ export default {
         ? selectedInterface.network
         : "";
     },
-    getAdditionalLocalNetworks() {
+    getAdditionalLocalNetworks(config = this.config) {
       const localNetworks =
-        this.config && Array.isArray(this.config.local_networks)
-          ? this.config.local_networks
+        config && Array.isArray(config.local_networks)
+          ? config.local_networks
           : [];
 
       if (!localNetworks.length) {
@@ -671,10 +721,10 @@ export default {
 
       const selectedInterfaceAddress =
         this.iface ||
-        (this.config &&
-        this.config.addresses &&
-        this.config.addresses.address
-          ? this.config.addresses.address
+        (config &&
+        config.addresses &&
+        config.addresses.address
+          ? config.addresses.address
           : "");
 
       const configuredInterfaceNetwork = this.getInterfaceNetwork(
