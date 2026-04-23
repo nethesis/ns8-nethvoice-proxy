@@ -666,7 +666,7 @@ export default {
       const taskAction = "get-configuration";
       const eventId = this.getUuid();
 
-      return new Promise(async (resolve, reject) => {
+      return new Promise((resolve, reject) => {
         this.core.$root.$once(
           `${taskAction}-aborted-${eventId}`,
           (taskResult) => {
@@ -680,21 +680,16 @@ export default {
           }
         );
 
-        const res = await to(
-          this.createModuleTaskForApp(this.instanceName, {
-            action: taskAction,
-            extra: {
-              title: this.$t("action." + taskAction),
-              isNotificationHidden: true,
-              eventId,
-            },
-          })
-        );
-        const err = res[0];
-
-        if (err) {
+        this.createModuleTaskForApp(this.instanceName, {
+          action: taskAction,
+          extra: {
+            title: this.$t("action." + taskAction),
+            isNotificationHidden: true,
+            eventId,
+          },
+        }).catch((err) => {
           reject(err);
-        }
+        });
       });
     },
     getInterfaceNetwork(address) {
