@@ -5,3 +5,4 @@ modules/postgres/volume/
 CLAUDE.md
 docs/
 .specstory/
+tests/outputs/
