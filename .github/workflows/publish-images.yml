@@ -13,7 +13,8 @@ permissions:
 jobs:
   publish-images:
     if: github.run_number > 1
-    uses: NethServer/ns8-github-actions/.github/workflows/publish-branch.yml@v1
+    # //// use v1
+    uses: NethServer/ns8-github-actions/.github/workflows/publish-branch.yml@fix-publish-images-imagetag
   module:
     needs: publish-images
     uses: NethServer/ns8-github-actions/.github/workflows/module-info.yml@v1
