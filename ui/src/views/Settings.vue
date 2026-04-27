@@ -489,6 +489,7 @@ export default {
         interfaces.push({
           name: iface.name,
           label: label,
+          network: iface.addresses[0].network,
           value: interfacesAddress,
         });
       }
@@ -527,8 +528,21 @@ export default {
       }
 
       this.loading.configureModule = true;
+      this.error.configureModule = "";
       const taskAction = "configure-module";
       const eventId = this.getUuid();
+      let currentConfig = this.config;
+
+      if (this.address && this.address !== this.iface) {
+        try {
+          currentConfig = await this.fetchCurrentConfiguration();
+        } catch (error) {
+          console.error("error fetching current configuration", error);
+          this.error.configureModule = this.getErrorMessage(error);
+          this.loading.configureModule = false;
+          return;
+        }
+      }
 
       // register to task error
       this.core.$root.$once(
@@ -560,6 +574,12 @@ export default {
       // check if public_address exists and is different from local ip address
       if (this.address && this.address !== this.iface) {
         dataPayload.addresses.public_address = this.address;
+
+        const additionalLocalNetworks =
+          this.getAdditionalLocalNetworks(currentConfig);
+        if (additionalLocalNetworks.length) {
+          dataPayload.local_networks = additionalLocalNetworks;
+        }
       }
 
       const res = await to(
@@ -640,6 +660,83 @@ export default {
     getStatusCompleted(taskContext, taskResult) {
       this.status = taskResult.output;
       this.loading.getStatus = false;
+    },
+    async fetchCurrentConfiguration() {
+      const taskAction = "get-configuration";
+      const eventId = this.getUuid();
+      const abortedEvent = `${taskAction}-aborted-${eventId}`;
+      const completedEvent = `${taskAction}-completed-${eventId}`;
+
+      return new Promise((resolve, reject) => {
+        const cleanup = () => {
+          this.core.$root.$off(abortedEvent, onAborted);
+          this.core.$root.$off(completedEvent, onCompleted);
+        };
+        const onAborted = (taskResult) => {
+          cleanup();
+          reject(taskResult);
+        };
+        const onCompleted = (taskContext, taskResult) => {
+          cleanup();
+          resolve(taskResult.output);
+        };
+
+        this.core.$root.$once(abortedEvent, onAborted);
+        this.core.$root.$once(completedEvent, onCompleted);
+
+        this.createModuleTaskForApp(this.instanceName, {
+          action: taskAction,
+          extra: {
+            title: this.$t("action." + taskAction),
+            isNotificationHidden: true,
+            eventId,
+          },
+        }).catch((err) => {
+          cleanup();
+          reject(err);
+        });
+      });
+    },
+    getInterfaceNetwork(address) {
+      if (!address || !this.interfaces || !this.interfaces.length) {
+        return "";
+      }
+
+      const selectedInterface = this.interfaces.find(
+        (iface) => iface.value === address
+      );
+      return selectedInterface && selectedInterface.network
+        ? selectedInterface.network
+        : "";
+    },
+    getAdditionalLocalNetworks(config = this.config) {
+      const localNetworks =
+        config && Array.isArray(config.local_networks)
+          ? config.local_networks
+          : [];
+
+      if (!localNetworks.length) {
+        return [];
+      }
+
+      const configuredAddress =
+        config && config.addresses && config.addresses.address
+          ? config.addresses.address
+          : "";
+      const networksToExclude = [
+        this.getInterfaceNetwork(this.iface),
+        this.getInterfaceNetwork(configuredAddress),
+      ].filter((network, index, networks) => {
+        return network && networks.indexOf(network) === index;
+      });
+
+      if (!networksToExclude.length) {
+        return [...localNetworks];
+      }
+
+      return localNetworks.filter(
+        (network) => !networksToExclude.includes(network)
+      );
     },
     goToCertificates() {
       this.core.$router.push("/settings/tls-certificates");
