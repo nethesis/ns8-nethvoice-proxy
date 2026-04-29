@@ -57,6 +57,31 @@ echo "listen=udp:${SERVICE_IP}:5060" >> /tmp/kamailio-local-additional.cfg
 echo "listen=tcp:${SERVICE_IP}:5060" >> /tmp/kamailio-local-additional.cfg
 echo "listen=tls:${SERVICE_IP}:5061" >> /tmp/kamailio-local-additional.cfg
 
+# Generate trunk port slots if TRUNK_SLOTS is set and > 0
+if [ -n "${TRUNK_SLOTS}" ] && [ "${TRUNK_SLOTS}" -gt 0 ]; then
+    TRUNK_PORT_START=${TRUNK_PORT_START:-5071}
+
+    echo "# Trunk Port Slots for Multi-Trunk Support" >> /tmp/kamailio-local-additional.cfg
+    echo "Generating ${TRUNK_SLOTS} trunk slots starting at port ${TRUNK_PORT_START}"
+
+    for i in $(seq 1 ${TRUNK_SLOTS}); do
+        SLOT_NAME="slot${i}"
+        SLOT_PORT=$((TRUNK_PORT_START + i - 1))
+        SLOT_TLS_PORT=$((SLOT_PORT + 1000))
+
+        if [ "${BEHIND_NAT}" == "true" ]; then
+            echo "listen=udp:${PRIVATE_IP}:${SLOT_PORT} advertise ${PUBLIC_IP}:${SLOT_PORT} name \"${SLOT_NAME}\"" >> /tmp/kamailio-local-additional.cfg
+            echo "listen=tcp:${PRIVATE_IP}:${SLOT_PORT} advertise ${PUBLIC_IP}:${SLOT_PORT} name \"${SLOT_NAME}\"" >> /tmp/kamailio-local-additional.cfg
+            echo "listen=tls:${PRIVATE_IP}:${SLOT_TLS_PORT} advertise ${PUBLIC_IP}:${SLOT_TLS_PORT} name \"${SLOT_NAME}_tls\"" >> /tmp/kamailio-local-additional.cfg
+        else
+            echo "listen=udp:${PUBLIC_IP}:${SLOT_PORT} name \"${SLOT_NAME}\"" >> /tmp/kamailio-local-additional.cfg
+            echo "listen=tcp:${PUBLIC_IP}:${SLOT_PORT} name \"${SLOT_NAME}\"" >> /tmp/kamailio-local-additional.cfg
+            echo "listen=tls:${PUBLIC_IP}:${SLOT_TLS_PORT} name \"${SLOT_NAME}_tls\"" >> /tmp/kamailio-local-additional.cfg
+        fi
+
+        echo "Generated slot: ${SLOT_NAME} on port ${SLOT_PORT} (UDP/TCP), ${SLOT_TLS_PORT} (TLS)"
+    done
+fi
 
 # rendering the template of kamailio-local.cfg and kamailio.cfg
 envsubst < /etc/kamailio/template.kamailio-local.cfg > /tmp/kamailio-local.cfg
