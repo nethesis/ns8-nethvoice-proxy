@@ -1,5 +1,7 @@
 module.exports = {
   publicPath: "./",
+  // added to fix the build of https://github.com/nethesis/ns8-nethvoice-proxy/pull/169
+  transpileDependencies: ["axios"],
   configureWebpack: {
     optimization: {
       splitChunks: {
