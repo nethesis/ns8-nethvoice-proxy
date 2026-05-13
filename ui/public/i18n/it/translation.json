@@ -46,7 +46,7 @@
     "error": "Errore",
     "404": "Risorsa non trovata",
     "validation_error": "Errore di validazione",
-    "network_error": "Errore di rete",
+    "network_error": "Errore di rete. Controlla la connessione e ricarica la pagina.",
     "cannot_retrieve_installed_modules": "Impossibile elencare moduli installati",
     "cannot_retrieve_module_info": "Impossibile recuperare info modulo",
     "network_timeout": "Timeout di rete",
