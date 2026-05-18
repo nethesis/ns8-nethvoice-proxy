@@ -492,7 +492,6 @@ export default {
         interfaces.push({
           name: iface.name,
           label: label,
-          network: iface.addresses[0].network,
           value: interfacesAddress,
         });
       }
@@ -577,11 +576,12 @@ export default {
       // check if public_address exists and is different from local ip address
       if (this.address && this.address !== this.iface) {
         dataPayload.addresses.public_address = this.address;
-
-        const additionalLocalNetworks =
-          this.getAdditionalLocalNetworks(currentConfig);
-        if (additionalLocalNetworks.length) {
-          dataPayload.local_networks = additionalLocalNetworks;
+        const localNetworks =
+          currentConfig && Array.isArray(currentConfig.local_networks)
+            ? [...currentConfig.local_networks]
+            : [];
+        if (localNetworks.length) {
+          dataPayload.local_networks = localNetworks;
         }
       }
 
@@ -692,38 +692,6 @@ export default {
           reject(err);
         });
       });
-    },
-    getInterfaceNetwork(address) {
-      if (!address || !this.interfaces || !this.interfaces.length) {
-        return "";
-      }
-
-      const selectedInterface = this.interfaces.find(
-        (iface) => iface.value === address
-      );
-      return selectedInterface && selectedInterface.network
-        ? selectedInterface.network
-        : "";
-    },
-    getAdditionalLocalNetworks(config = this.config) {
-      const localNetworks =
-        config && Array.isArray(config.local_networks)
-          ? config.local_networks
-          : [];
-
-      if (!localNetworks.length) {
-        return [];
-      }
-
-      const selectedInterfaceNetwork = this.getInterfaceNetwork(this.iface);
-
-      if (!selectedInterfaceNetwork) {
-        return [...localNetworks];
-      }
-
-      return localNetworks.filter(
-        (network) => network !== selectedInterfaceNetwork
-      );
     },
     goToCertificates() {
       this.core.$router.push("/settings/tls-certificates");
