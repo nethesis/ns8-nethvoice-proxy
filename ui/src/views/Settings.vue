@@ -307,16 +307,7 @@ export default {
         this.getConfigurationCompleted
       );
 
-      const res = await to(
-        this.createModuleTaskForApp(this.instanceName, {
-          action: taskAction,
-          extra: {
-            title: this.$t("action." + taskAction),
-            isNotificationHidden: true,
-            eventId,
-          },
-        })
-      );
+      const res = await to(this.createGetConfigurationTask(eventId));
       const err = res[0];
 
       if (err) {
@@ -349,6 +340,18 @@ export default {
 
       // focus first configuration field
       this.focusElement("fqdn");
+    },
+    createGetConfigurationTask(eventId) {
+      const taskAction = "get-configuration";
+
+      return this.createModuleTaskForApp(this.instanceName, {
+        action: taskAction,
+        extra: {
+          title: this.$t("action." + taskAction),
+          isNotificationHidden: true,
+          eventId,
+        },
+      });
     },
     validateConfigureModule() {
       this.clearErrors(this);
@@ -527,8 +530,21 @@ export default {
       }
 
       this.loading.configureModule = true;
+      this.error.configureModule = "";
       const taskAction = "configure-module";
       const eventId = this.getUuid();
+      let currentConfig = this.config;
+
+      if (this.address && this.address !== this.iface) {
+        try {
+          currentConfig = await this.fetchCurrentConfiguration();
+        } catch (error) {
+          console.warn(
+            "error fetching current configuration, using cached configuration",
+            error
+          );
+        }
+      }
 
       // register to task error
       this.core.$root.$once(
@@ -560,6 +576,13 @@ export default {
       // check if public_address exists and is different from local ip address
       if (this.address && this.address !== this.iface) {
         dataPayload.addresses.public_address = this.address;
+        const localNetworks =
+          currentConfig && Array.isArray(currentConfig.local_networks)
+            ? [...currentConfig.local_networks]
+            : [];
+        if (localNetworks.length) {
+          dataPayload.local_networks = localNetworks;
+        }
       }
 
       const res = await to(
@@ -640,6 +663,35 @@ export default {
     getStatusCompleted(taskContext, taskResult) {
       this.status = taskResult.output;
       this.loading.getStatus = false;
+    },
+    async fetchCurrentConfiguration() {
+      const taskAction = "get-configuration";
+      const eventId = this.getUuid();
+      const abortedEvent = `${taskAction}-aborted-${eventId}`;
+      const completedEvent = `${taskAction}-completed-${eventId}`;
+
+      return new Promise((resolve, reject) => {
+        const cleanup = () => {
+          this.core.$root.$off(abortedEvent, onAborted);
+          this.core.$root.$off(completedEvent, onCompleted);
+        };
+        const onAborted = (taskResult) => {
+          cleanup();
+          reject(taskResult);
+        };
+        const onCompleted = (taskContext, taskResult) => {
+          cleanup();
+          resolve(taskResult.output);
+        };
+
+        this.core.$root.$once(abortedEvent, onAborted);
+        this.core.$root.$once(completedEvent, onCompleted);
+
+        this.createGetConfigurationTask(eventId).catch((err) => {
+          cleanup();
+          reject(err);
+        });
+      });
     },
     goToCertificates() {
       this.core.$router.push("/settings/tls-certificates");
