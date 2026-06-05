@@ -930,9 +930,9 @@
     regenerator-runtime "^0.13.4"
 
 "@babel/runtime@^7.21.0":
-  version "7.28.6"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.28.6.tgz#d267a43cb1836dc4d182cce93ae75ba954ef6d2b"
-  integrity sha512-05WQkdpL9COIMz4LjTxGpPNCdlpyimKppYNoJ5Di5EUObifl8t4tuLuUBBZEpoLYOmfvIWrsp9fCl0HoPRVTdA==
+  version "7.29.7"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.29.7.tgz#12022450c45a4da6d8d8287b18a4ff2ddb23f768"
+  integrity sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw==
 
 "@babel/template@^7.0.0", "@babel/template@^7.14.5":
   version "7.14.5"
@@ -1114,9 +1114,9 @@
     glob-to-regexp "^0.3.0"
 
 "@nethserver/ns8-ui-lib@^1.10.1":
-  version "1.12.2"
-  resolved "https://registry.yarnpkg.com/@nethserver/ns8-ui-lib/-/ns8-ui-lib-1.12.2.tgz#f702872146ea88e94e3eabf69b49ee1cdfc70204"
-  integrity sha512-hjY+qCT3k8GrPzbpuz9549prR1Y3e9JtRMiVoEvOAcwyeoxKH1KJmvSU4q5AelyR0sVVL5Er4y/CC6N0/+l/1w==
+  version "1.12.3"
+  resolved "https://registry.yarnpkg.com/@nethserver/ns8-ui-lib/-/ns8-ui-lib-1.12.3.tgz#3b135deaa0afc1891574e7e54023ea58a137d572"
+  integrity sha512-s1SgRurwaGAEUWBE2cu4RtQDIp3zQUAz5EwQSU3ggeVbYLD2KNwrgOOt+S34qYluMkp6+1CbenNfGbDmrwNzDQ==
   dependencies:
     "@rollup/plugin-json" "^4.1.0"
     core-js "^3.15.2"
@@ -6802,9 +6802,9 @@ picomatch@^2.0.4, picomatch@^2.2.1, picomatch@^2.2.3:
   integrity sha1-8fBh3o9qS/AiiS4tEoI0+5gwKXI=
 
 picomatch@^2.2.2:
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.3.1.tgz#3ba3833733646d9d3e4995946c1365a67fb07a42"
-  integrity sha512-JU3teHTNjmE2VCGFzuY8EXzCDVwEqB2a8fsIvwaStHhAWJEeVd1o1QD80CU6+ZdEXXSLbSsuLwJjkCBWqRQUVA==
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/picomatch/-/picomatch-2.3.2.tgz#5a942915e26b372dc0f0e6753149a16e6b1c5601"
+  integrity sha512-V7+vQEJ06Z+c5tSye8S+nHUfI51xoXIXjHQ99cQtKUkQqqO1kO/KCJUfZXuB47h/YBlDhah2H3hdUGXn8ie0oA==
 
 picomatch@^4.0.3:
   version "4.0.4"
