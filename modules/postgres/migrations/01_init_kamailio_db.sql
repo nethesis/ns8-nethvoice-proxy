@@ -680,10 +680,10 @@ ALTER SEQUENCE public.grp_id_seq OWNED BY public.grp.id;
 
 CREATE TABLE public.htable (
     id integer NOT NULL,
-    key_name character varying(64) DEFAULT ''::character varying NOT NULL,
+    key_name character varying(256) DEFAULT ''::character varying NOT NULL,
     key_type integer DEFAULT 0 NOT NULL,
     value_type integer DEFAULT 0 NOT NULL,
-    key_value character varying(128) DEFAULT ''::character varying NOT NULL,
+    key_value character varying(512) DEFAULT ''::character varying NOT NULL,
     expires integer DEFAULT 0 NOT NULL
 );
 
@@ -2412,4 +2412,3 @@ SET row_security = off;
 --
 -- PostgreSQL database cluster dump complete
 --
-
