@@ -1,5 +1,5 @@
 [rtpengine]
-table = 0
+table = -1
 
 ${INTERFACE_SECTION}
 listen-ng = 127.0.0.1:19999
