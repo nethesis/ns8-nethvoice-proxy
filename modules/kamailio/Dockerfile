@@ -8,6 +8,8 @@ ENV TZ="Europe/Rome"
 ENV DEBIAN_FRONTEND="noninteractive"
 ENV KAMAILIO_VERSION="5.8.8"
 
+
+RUN apt-get update && apt-get upgrade --no-install-recommends --assume-yes && rm -rf /var/lib/apt/lists/*
 RUN apt-get update && apt-get install --no-install-recommends --assume-yes gnupg wget && rm -rf /var/lib/apt/lists/*
 RUN echo "deb http://deb.kamailio.org/kamailio58 noble main" > /etc/apt/sources.list.d/kamailio.list
 RUN wget -O- http://deb.kamailio.org/kamailiodebkey.gpg | apt-key add -
