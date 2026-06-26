@@ -45,9 +45,9 @@
     source-map "^0.5.0"
 
 "@babel/eslint-parser@^7.11.0":
-  version "7.28.6"
-  resolved "https://registry.yarnpkg.com/@babel/eslint-parser/-/eslint-parser-7.28.6.tgz#6a294a4add732ebe7ded8a8d2792dd03dd81dc3f"
-  integrity sha512-QGmsKi2PBO/MHSQk+AAgA9R6OHQr+VqnniFE0eMWZcVcfBZoA2dKn2hUsl3Csg/Plt9opRUWdY7//VXsrIlEiA==
+  version "7.29.7"
+  resolved "https://registry.yarnpkg.com/@babel/eslint-parser/-/eslint-parser-7.29.7.tgz#272cc7531972ff45bc0db96c45349cb7304d21e1"
+  integrity sha512-zxt+UJTOMKvUt3yOg+D58MLuz334pHp93qifMFcjIIO+9hN6t+ufw2gi7vDPMpxvfnHRR+3VVXvIjineCcgyXw==
   dependencies:
     "@nicolo-ribaudo/eslint-scope-5-internals" "5.1.1-v1"
     eslint-visitor-keys "^2.1.0"
@@ -1114,9 +1114,9 @@
     glob-to-regexp "^0.3.0"
 
 "@nethserver/ns8-ui-lib@^1.10.1":
-  version "1.12.3"
-  resolved "https://registry.yarnpkg.com/@nethserver/ns8-ui-lib/-/ns8-ui-lib-1.12.3.tgz#3b135deaa0afc1891574e7e54023ea58a137d572"
-  integrity sha512-s1SgRurwaGAEUWBE2cu4RtQDIp3zQUAz5EwQSU3ggeVbYLD2KNwrgOOt+S34qYluMkp6+1CbenNfGbDmrwNzDQ==
+  version "1.12.4"
+  resolved "https://registry.yarnpkg.com/@nethserver/ns8-ui-lib/-/ns8-ui-lib-1.12.4.tgz#8342890fdb6e3e589fb62297b0ffda939fc3ade9"
+  integrity sha512-lGlndnoKh/DHf/iSQgwiusRrnRCJC6H40MKTRzr9YRaX35zignTpKE55FfgBp9uhjtTbOMZlyYdq1rXqdw1hfA==
   dependencies:
     "@rollup/plugin-json" "^4.1.0"
     core-js "^3.15.2"
