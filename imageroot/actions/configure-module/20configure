@@ -6,45 +6,19 @@
 #
 
 import json
-import sys
 import agent
-import subprocess
 import os
-
-BASE_PUBLIC_PORTS = [
-    "5060-5061/tcp",
-    "5060/udp",
-    "10000-20000/udp",
-]
-
-NAT_PUBLIC_PORTS = [
-    "6060-6061/tcp",
-    "6060/udp",
-]
+import firewall
+import sys
 
 data = json.load(sys.stdin)
 
 local_networks = set()
 
-# Function to create rich rules for port forwarding
-def create_port_forward_rules(local_networks_list):
-    """Create rich rules for each local network"""
-    rules = []
-    for network in local_networks_list:
-        if network:  # Skip empty networks
-            # Port forward 5060 UDP to 6060
-            rules.append(f'rule family=ipv4 source address={network} forward-port port=5060 protocol=udp to-port=6060')
-            # Port forward 5060 TCP to 6060
-            rules.append(f'rule family=ipv4 source address={network} forward-port port=5060 protocol=tcp to-port=6060')
-            # Port forward 5061 TCP to 6061
-            rules.append(f'rule family=ipv4 source address={network} forward-port port=5061 protocol=tcp to-port=6061')
-    return rules
-
 def set_public_firewall_ports(behind_nat):
-    ports = BASE_PUBLIC_PORTS + NAT_PUBLIC_PORTS if behind_nat else BASE_PUBLIC_PORTS
     agent.assert_exp(agent.add_public_service(
         os.environ["MODULE_ID"],
-        ports,
+        firewall.get_public_service_ports(behind_nat),
         replace_ports=True,
     ))
 
@@ -61,7 +35,7 @@ if "addresses" in data:
         prev_private_ip = os.environ.get("PRIVATE_IP")
         if prev_localnetworks and prev_private_ip:
             prev_networks = [n for n in prev_localnetworks.split(",") if n]
-            previous_rules = create_port_forward_rules(prev_networks)
+            previous_rules = firewall.create_port_forward_rules(prev_networks)
             if previous_rules:
                 result = agent.remove_rich_rules(previous_rules)
                 if not result:
@@ -90,7 +64,7 @@ if "addresses" in data:
         prev_private_ip = os.environ.get("PRIVATE_IP")
         if prev_localnetworks and prev_private_ip:
             prev_networks = [n for n in prev_localnetworks.split(",") if n]
-            previous_rules = create_port_forward_rules(prev_networks)
+            previous_rules = firewall.create_port_forward_rules(prev_networks)
             if previous_rules:
                 agent.remove_rich_rules(previous_rules)
 
@@ -104,7 +78,7 @@ if "addresses" in data:
 
         # Create and apply new port forwarding rules for each local network
         if local_networks:
-            new_rules = create_port_forward_rules(list(local_networks))
+            new_rules = firewall.create_port_forward_rules(list(local_networks))
             if new_rules:
                 result = agent.add_rich_rules(new_rules)
                 if not result:
