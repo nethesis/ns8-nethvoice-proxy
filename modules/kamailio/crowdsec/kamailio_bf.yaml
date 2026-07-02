@@ -1,0 +1,12 @@
+type: leaky
+name: nethesis/kamailio_bf
+description: "Detect SIP login bruteforce on kamailio (nethvoice-proxy)"
+filter: "evt.Meta.log_type == 'kamailio_auth_fail'"
+groupby: "evt.Meta.source_ip"
+capacity: 5
+leakspeed: "10s"
+blackhole: 1m
+labels:
+  service: sip
+  type: bruteforce
+  remediation: true
