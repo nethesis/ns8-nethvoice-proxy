@@ -13,12 +13,14 @@ Kamailio failure route logs failed SIP authentication
     Should Contain    ${output}    SECURITY-AUTHFAIL
     Should Contain    ${output}    event=auth_failure
 
-Kamailio failure route uses dialog source IP, not reply source IP
-    [Documentation]    The auth-failure log must use $dlg_var(source_ip)
-    ...                (the real client), never $si, which in this route
-    ...                context is the Asterisk backend IP.
+Kamailio failure route uses the saved AVP source IP, not reply source IP
+    [Documentation]    The auth-failure log must use $avp(src_ip) (the real
+    ...                client, saved as a transaction-scoped AVP since
+    ...                $dlg_var only persists for dialog-creating requests
+    ...                like INVITE, not REGISTER), never $si, which in this
+    ...                route context is the Asterisk backend IP.
     ${output}  ${rc} =    Execute Command
-    ...    runagent -m ${module_id} podman exec kamailio grep -c 'src_ip=\\$dlg_var(source_ip)' /etc/kamailio/kamailio.cfg
+    ...    runagent -m ${module_id} podman exec kamailio grep -c 'src_ip=\\$avp(src_ip)' /etc/kamailio/kamailio.cfg
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}    0
     Should Be Equal As Integers    ${output}    1
