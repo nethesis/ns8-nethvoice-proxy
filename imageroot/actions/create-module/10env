@@ -9,6 +9,8 @@ import agent
 import uuid
 import random
 
+SYSTEMD_EXPORTER_UNIT_EXCLUDE_DEFAULT = '.*[.](device|mount|scope|slice|swap|target)$'
+
 module_id = os.environ["MODULE_ID"]
 tcp_ports = os.environ["TCP_PORTS"].split(',')
 
@@ -26,6 +28,10 @@ agent.set_env('POSTGRES_PORT', tcp_ports[0])
 agent.set_env('POSTGRES_DB', 'kamailio')
 agent.set_env('REDIS_HOST', '127.0.0.1')
 agent.set_env('REDIS_PORT', tcp_ports[1])
+agent.set_env('NETHVOICE_PROXY_SYSTEMD_EXPORTER_PORT', tcp_ports[2])
+agent.set_env('SYSTEMD_EXPORTER_PROMETHEUS_PATH', f'/{uuid.uuid4()}')
+agent.set_env('SYSTEMD_EXPORTER_UNIT_INCLUDE', '.*')
+agent.set_env('SYSTEMD_EXPORTER_UNIT_EXCLUDE', SYSTEMD_EXPORTER_UNIT_EXCLUDE_DEFAULT)
 agent.set_env('KML_SERVER_HEADER', f"NethServer 8 {module_id}")
 agent.set_env('KML_UA_HEADER', f"NethServer 8 {module_id}")
 agent.set_env('KML_SIP_URL', '127.0.0.1')
