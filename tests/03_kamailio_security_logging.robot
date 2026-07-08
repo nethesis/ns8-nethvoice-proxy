@@ -61,6 +61,16 @@ Kamailio failure route skips loopback source IPs
     Should Be Equal As Integers    ${rc6}    0
     Should Be Equal As Integers    ${output6}    1
 
+Kamailio failure route skips outbound trunk direction
+    [Documentation]    The guard only logs auth failures for inbound traffic
+    ...                ($avp(direction) or $dlg_var(direction) == 'in'), so
+    ...                outbound trunk requests are never flagged as attacks.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -c '\\$avp(direction) == "in" || \\$dlg_var(direction) == "in"' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    1
+
 Kamailio failure route sanitizes attacker-controlled log fields
     [Documentation]    The To-URI username and Call-ID are attacker-controlled
     ...                and must be charset-validated before being written to
