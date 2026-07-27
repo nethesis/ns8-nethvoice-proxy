@@ -1,12 +1,20 @@
 module.exports = {
+  css: {
+    loaderOptions: {
+      sass: {
+        sassOptions: {
+          silenceDeprecations: ["import", "global-builtin", "color-functions", "if-function", "legacy-js-api"],
+        },
+      },
+    },
+  },
   publicPath: "./",
   // added to fix the build of https://github.com/nethesis/ns8-nethvoice-proxy/pull/169
   transpileDependencies: ["axios"],
   configureWebpack: {
     optimization: {
       splitChunks: {
-        minSize: 10000,
-        maxSize: 250000,
+        maxSize: 500000,
       },
     },
   },
