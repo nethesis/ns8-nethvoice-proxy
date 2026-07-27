@@ -6,6 +6,7 @@ Suite Teardown    Run Keyword And Ignore Error    Close Browser
 
 Take screenshots
     [Tags]    ui
+    Import Library    Browser
     Open Browser To Cluster Admin    ${NODE_ADDR}
     Open App Status Page    ${NODE_ADDR}    ${module_id}
     Sleep    5s
