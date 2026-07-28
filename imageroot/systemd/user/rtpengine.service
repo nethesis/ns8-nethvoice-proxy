@@ -3,8 +3,8 @@ Description=RTPengine
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
-EnvironmentFile=%S/state/environment
-WorkingDirectory=%S/state
+EnvironmentFile=%E/state/environment
+WorkingDirectory=%E/state
 Restart=always
 ExecStartPre=/bin/rm -f %t/rtpengine.pid %t/rtpengine.ctr-id
 ExecStart=/usr/bin/podman run \

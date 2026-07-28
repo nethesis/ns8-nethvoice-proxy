@@ -3,8 +3,8 @@ Description=Get TLS certificate from Traefik
 
 [Service]
 Type=oneshot
-EnvironmentFile=%S/state/environment
-WorkingDirectory=%S/state
+EnvironmentFile=%E/state/environment
+WorkingDirectory=%E/state
 SyslogIdentifier=%N
 ExecStart=-mkdir -vp kamailio-certificate/cert_files/
 ExecStart=-runagent generate_tls_config ${KML_DEFAULT_FQDN}
