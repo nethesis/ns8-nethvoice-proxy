@@ -64,14 +64,14 @@ buildah run \
     --workingdir=/usr/src/ui \
     --env="NODE_OPTIONS=--openssl-legacy-provider" \
     nodebuilder-nethvoice-proxy \
-    sh -c "yarn install && yarn build"
+    sh -c "corepack enable && yarn install && yarn build"
 
 # Add imageroot directory to the container image
 buildah add "${container}" imageroot /imageroot
 buildah add "${container}" ui/dist /ui
 # Setup the entrypoint, ask to reserve one TCP port with the label and set a rootless container
 buildah config --entrypoint=/ \
-    --label="org.nethserver.min-core=3.17.0-0" \
+    --label="org.nethserver.min-core=3.20.1" \
     --label="org.nethserver.max-per-node=1" \
     --label="org.nethserver.rootfull=0" \
     --label="org.nethserver.authorizations=node:fwadm traefik@any:certadm" \
