@@ -12,3 +12,9 @@ Run task
         ${response} =    Set Variable    ${stdout}
     END
     RETURN    ${response}
+
+Run module command
+    [Arguments]    ${command}    ${rc_expected}=0
+    ${stdout}    ${stderr}    ${rc} =     Execute Command    runagent -m ${module_id} ${command}    return_stdout=True    return_stderr=True    return_rc=True
+    Should Be Equal As Integers    ${rc_expected}    ${rc}    Run module command failed!${\n}${stderr}
+    RETURN    ${stdout}
