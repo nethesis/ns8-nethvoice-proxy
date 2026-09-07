@@ -7,4 +7,5 @@
 
 set -e
 
-systemctl --user try-restart postgres redis
+systemctl --user daemon-reload
+systemctl --user try-restart postgres redis systemd-exporter
