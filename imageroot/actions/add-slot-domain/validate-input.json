@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "add-slot-domain input",
+  "$id": "http://schema.nethserver.org/nethvoice-proxy/add-slot-domain-input.json",
+  "description": "Add or update a slot-enabled SIP domain",
+  "examples": [
+    {
+      "domain": "voip.vianova.it"
+    }
+  ],
+  "type": "object",
+  "required": ["domain"],
+  "additionalProperties": false,
+  "properties": {
+    "domain": {
+      "type": "string",
+      "title": "SIP domain",
+      "format": "idn-hostname",
+      "minLength": 1,
+      "examples": ["voip.vianova.it"]
+    }
+  }
+}
