@@ -19,5 +19,16 @@ routeadm_actions=(
 )
 redis-exec SADD "${AGENT_ID}/roles/routeadm" "${routeadm_actions[@]}"
 
+#
+# Allow other modules to call our trunk actions by requiring the "trunkadm" role
+#
+trunkadm_actions=(
+    add-trunk
+    get-trunk
+    remove-trunk
+    list-trunks
+)
+redis-exec SADD "${AGENT_ID}/roles/trunkadm" "${trunkadm_actions[@]}"
+
 # Allow the module to call its own actions
 redis-exec SADD "${AGENT_ID}/roles/selfadm" "*"
