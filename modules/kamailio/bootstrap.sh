@@ -27,8 +27,9 @@ touch /tmp/kamailio-local-additional.cfg
 
 # now I need to handle external interface that could be behind a NAT or not
 if [ "${BEHIND_NAT}" == "true" ]; then
+    echo "#!define WITH_LAN_SOCKETS" > /tmp/kamailio-local-additional.cfg
     # now I have to add the listen with the advertise address in the kamailio-local-additional.cfg
-    echo "listen=udp:${PRIVATE_IP}:5060 advertise ${PUBLIC_IP}:5060" > /tmp/kamailio-local-additional.cfg
+    echo "listen=udp:${PRIVATE_IP}:5060 advertise ${PUBLIC_IP}:5060" >> /tmp/kamailio-local-additional.cfg
     # doind the same for TCP
     echo "listen=tcp:${PRIVATE_IP}:5060 advertise ${PUBLIC_IP}:5060" >> /tmp/kamailio-local-additional.cfg
     # doing the same for TLS

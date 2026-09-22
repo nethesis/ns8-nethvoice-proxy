@@ -1,0 +1,24 @@
+name: Test SIP routing
+
+on:
+  pull_request:
+    paths:
+      - 'modules/kamailio/**'
+      - 'tests/run-sip-routing-tests.sh'
+      - 'tests/test_sip_socket_routing.py'
+      - '.github/workflows/test-sip-routing.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sip-routing:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test SIP sockets and TOPOS contacts
+        env:
+          KAMAILIO_TEST_ENGINE: docker
+        run: sh tests/run-sip-routing-tests.sh
