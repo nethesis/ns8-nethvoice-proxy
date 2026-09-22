@@ -56,7 +56,31 @@ sets `FL_RR_ADDED` across parallel branches. Keep these headers consistent with
 the `rr` module's `enable_full_lr` and `append_fromtag` settings, including
 `r2=on` on both entries when the two sides differ and `nat=yes` where required.
 
-## Local SIP regression tests
+## RTP interface selection
+
+`SET_RTP_DIRECTION` in [`kamailio.cfg`](config/kamailio.cfg) selects the media
+interfaces separately for each side of the current SIP transaction. Requests
+use their source IP and next-hop URI. Replies use their source IP and the source
+IP of the matching request (`$T_req($si)`), so an UPDATE or re-INVITE from the
+opposite endpoint does not reuse a previous transaction's direction.
+
+Service and loopback addresses select `internal`. LAN addresses select `local`
+only when bootstrap created the NAT listeners, and other addresses select
+`external`. This matches the interfaces rendered by
+[`rtpengine/bootstrap.sh`](../rtpengine/bootstrap.sh), including deployments
+without NAT where `local` does not exist. An incoming LAN offer to the PBX uses
+`direction=local direction=internal`, and its answer uses the opposite pair.
+
+The existing RTP/SRTP compatibility policy uses the current transaction's
+direction and stores its transcoding mode in an AVP. A 488 response can trigger
+one RTP fallback attempt. UPDATE leaves the negotiated per-leg transport to
+RTPEngine instead of applying the initial INVITE policy to a changed Contact.
+SDP processing covers INVITE, UPDATE, PRACK and ACK,
+including delayed offers. BYE, initial CANCEL and failed initial INVITEs release
+their media sessions even without SDP. A failed or cancelled re-INVITE does not
+delete the established dialog's media session.
+
+## Local SIP and RTP regression tests
 
 From the repository root, with Podman and OpenSSL installed, run:
 
@@ -65,17 +89,33 @@ sh tests/run-sip-routing-tests.sh
 ```
 
 For Docker, use `KAMAILIO_TEST_ENGINE=docker`. The runner defaults to the released
-proxy image `ghcr.io/nethesis/nethvoice-proxy-kamailio:1.7.1` (Kamailio 5.8.8) and
-Redis 7. `KAMAILIO_TEST_IMAGE` and `KAMAILIO_TEST_REDIS_IMAGE` override the images.
+proxy images `ghcr.io/nethesis/nethvoice-proxy-kamailio:1.7.1` (Kamailio 5.8.8),
+`ghcr.io/nethesis/nethvoice-proxy-rtpengine:1.7.1` (RTPEngine 11.2.2.0), and Redis
+7. `KAMAILIO_TEST_IMAGE`, `KAMAILIO_TEST_RTPENGINE_IMAGE` and
+`KAMAILIO_TEST_REDIS_IMAGE` override the images.
 
 The runner creates a private network namespace with no published ports or
 external network, mounts the current configuration read-only, and removes its
 containers and temporary TLS certificate on exit. It runs the production
-relay, branch, NAT, dialog-URI and local-request routes with TOPOS/Redis. The full
-bootstrap configuration is also parsed with and without NAT.
+relay, branch, NAT, dialog-URI and local-request routes with TOPOS/Redis. RTP tests
+also load the real reply and failure handlers. Two RTPEngine daemons use the
+production bootstrap interface definitions, separate control/media ports and
+zero deletion delay to check cleanup promptly. The full Kamailio bootstrap
+configuration is also parsed with and without NAT.
 
 The tests check wire source sockets, Via and Contact addresses, ACK delivery,
 BYE/200 completion from both ends, TCP/TLS connection reuse, destination-URI
 transport precedence, locally generated OPTIONS, failover and parallel branches.
-The LAN case deliberately enters 5060 without DNAT. These tests do not modify
-conntrack and do not exercise firewalld, Asterisk authentication or RTP/audio.
+The LAN case deliberately enters 5060 without DNAT. RTP tests assert SDP origin
+and connection addresses and transmit identifiable PCMA payloads through the
+relay in both directions. They cover early media, delayed offers in ACK/PRACK,
+reverse UPDATE/re-INVITE, hold/resume, media after rejected re-INVITEs and session
+cleanup through the NG API. SRTP tests check fallback, retry behavior and
+negotiated transport across UPDATE using SDP, without transmitting encrypted
+audio.
+
+These tests do not modify conntrack or exercise firewalld and Asterisk
+authentication. For the simulated WAN peer, the test maps the public address in
+SDP to RTPEngine's private bind address inside the isolated namespace. Kernel
+NAT, physical gateways, encrypted media and codec conversion between different
+audio formats still require separate integration tests.

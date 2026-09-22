@@ -2,7 +2,8 @@
 
 Uses Kamailio 5.8 and TOPOS/Redis, the production relay/branch/local-request
 routes and sip-routing.cfg. Peers are sockets on isolated loopback addresses.
-The PBX, authentication and RTP processing are deliberately outside this test.
+The PBX and authentication are outside the fixture. RTP tests extend it with
+the real media routes and RTPEngine.
 """
 
 import os
@@ -45,8 +46,8 @@ def uri(contact):
     return re.search(r"<([^>]+)>", contact).group(1)
 
 
-def response(request, contact=None):
-    lines = ["SIP/2.0 200 OK"]
+def response(request, contact=None, body="", code="200 OK"):
+    lines = ["SIP/2.0 " + code]
     lines.extend("Via: " + value for value in headers(request, "Via"))
     lines.extend("Record-Route: " + value for value in headers(request, "Record-Route"))
     to = header(request, "To")
@@ -57,7 +58,9 @@ def response(request, contact=None):
                   "CSeq: " + header(request, "CSeq")])
     if contact:
         lines.append("Contact: <{}>".format(contact))
-    return "\r\n".join(lines) + "\r\nContent-Length: 0\r\n\r\n"
+    if body:
+        lines.append("Content-Type: application/sdp")
+    return "\r\n".join(lines) + "\r\nContent-Length: {}\r\n\r\n{}".format(len(body.encode()), body)
 
 
 class Peer:
@@ -142,8 +145,10 @@ def production_block(source, prefix, name):
 
 
 @unittest.skipUnless(os.environ.get("SIP_TEST_ISOLATED") == "1", "Use tests/run-sip-routing-tests.sh")
-class SipRoutingTests(unittest.TestCase):
+class KamailioRoutingTestCase(unittest.TestCase):
     behind_nat = True
+    rtp_enabled = False
+    local_networks = None
 
     @classmethod
     def setUpClass(cls):
@@ -174,19 +179,25 @@ require_certificate = no
             cls.addClassCleanup(peer.close)
         source = (CONFIG / "kamailio.cfg").read_text()
         definitions = "\n".join(re.findall(r"^#!define .*$", source, re.M))
-        blocks = "\n".join(production_block(source, kind, name) for kind, name in (
+        route_names = [
             ("route", "RELAY"), ("branch_route", "MANAGE_BRANCH"),
             ("route", "NATMANAGE"), ("route", "DLGURI"),
-            ("event_route", "tm:local-request"), ("event_route", "topos:msg-sending")))
+            ("event_route", "tm:local-request"), ("event_route", "topos:msg-sending")]
+        if cls.rtp_enabled:
+            route_names.extend([("route", "SET_RTP_DIRECTION"), ("route", "RTP_FAILURE"),
+                                ("onreply_route", "MANAGE_REPLY"), ("failure_route", "MANAGE_FAILURE")])
+        blocks = "\n".join(production_block(source, kind, name) for kind, name in route_names)
         config = """#!KAMAILIO
 {definitions}
 {lan_define}
 #!define WITH_NAT
+{rtp_define}
 #!define PUBLIC_IP "{public}"
 #!define PRIVATE_IP "{private}"
 #!define SERVICE_IP "{service}"
 #!define LOCALNETWORKS "{local_networks}"
 #!define INTERNAL_NETWORK "127.20.0.0/24"
+#!define DEFAULT_REPLY_CODE 480
 debug=2
 log_stderror=yes
 children=1
@@ -213,6 +224,7 @@ loadmodule "topos_redis.so"
 loadmodule "keepalive.so"
 loadmodule "nathelper.so"
 loadmodule "kex.so"
+{rtp_modules}
 modparam("tls", "config", "{tls_config}")
 modparam("pv", "shvset", "debug=i:0")
 modparam("rr", "enable_full_lr", 1)
@@ -223,14 +235,29 @@ modparam("topos", "storage", "redis")
 modparam("topos_redis", "serverid", "srv1")
 modparam("keepalive", "ping_interval", 1)
 modparam("nathelper", "received_avp", "$avp(RECEIVED)")
+{rtp_parameters}
 {probe_config}
 {listeners}
 request_route {{
     force_rport();
     if ($rU == "health") {{ sl_send_reply("200", "OK"); exit; }}
+#!ifdef WITH_RTPENGINE
+    dlg_manage();
+    if (!is_method("UPDATE")) {{
+        $avp(direction) = "in";
+        if (is_in_subnet($si, INTERNAL_NETWORK) || $si == "127.0.0.1") $avp(direction) = "out";
+        $dlg_var(direction) = $avp(direction);
+        $dlg_var(source_ip) = $si;
+    }}
+    if (is_method("CANCEL")) {{
+        if (t_check_trans()) route(RELAY);
+        exit;
+    }}
+#!endif
     if (has_totag()) {{
         if (!loose_route()) {{ sl_send_reply("404", "Missing route"); exit; }}
         route(DLGURI);
+        if (is_method("ACK")) route(NATMANAGE);
     }} else if (is_method("INVITE|SUBSCRIBE|PUBLISH|NOTIFY|UPDATE")) {{
         setflag(FLT_RECORD_ROUTE);
         setflag(FLT_NATS);
@@ -239,7 +266,10 @@ request_route {{
     if (!has_totag() && $hdr(X-Test-Branch) != $null) append_branch("$hdr(X-Test-Branch)");
     route(RELAY);
 }}
-onreply_route[MANAGE_REPLY] {{ return; }}
+{reply_route}
+#!ifdef WITH_RTPENGINE
+route[DISPATCHER_FAILURE] {{ return; }}
+#!else
 failure_route[MANAGE_FAILURE] {{
     if (t_check_status("503") && $hdr(X-Test-Failover) != $null && $avp(failed_over) != 1) {{
         $avp(failed_over) = 1;
@@ -247,11 +277,20 @@ failure_route[MANAGE_FAILURE] {{
         route(RELAY);
     }}
 }}
+#!endif
 {blocks}
 include_file "{routing}"
 """.format(definitions=definitions, lan_define="#!define WITH_LAN_SOCKETS" if cls.behind_nat else "",
            public=PUBLIC, private=PROXY if cls.behind_nat else "", service=SERVICE, tls_config=tls_config,
-           local_networks="127.10.0.0/24,127.20.0.0/24" if cls.behind_nat else "",
+           rtp_define="#!define WITH_RTPENGINE" if cls.rtp_enabled else "",
+           rtp_modules='loadmodule "rtpengine.so"\nloadmodule "sdpops.so"' if cls.rtp_enabled else "",
+           rtp_parameters=('modparam("rtpengine", "rtpengine_sock", "udp:127.0.0.1:{}")\n'
+                           'modparam("dialog", "profiles_with_value", "remote_sig")\n'
+                           'modparam("pv", "shvset", "rtpengine=s:t")').format(
+                               19999 if cls.behind_nat else 29999) if cls.rtp_enabled else "",
+           reply_route="" if cls.rtp_enabled else "onreply_route[MANAGE_REPLY] { return; }",
+           local_networks=cls.local_networks if cls.local_networks is not None else (
+               "127.10.0.0/24,127.20.0.0/24" if cls.behind_nat else ""),
            probe_config="\n".join('modparam("keepalive", "destination", "{}")'.format(peer.contact) for peer in cls.probes.values()),
            listeners=cls.listeners(), blocks=blocks, routing=CONFIG / "sip-routing.cfg")
         cls.config = cls.directory / "kamailio.cfg"
@@ -311,17 +350,20 @@ include_file "{routing}"
         self.addCleanup(peer.close)
         return peer
 
-    def request(self, peer, method, target, call_id, sequence=1, to_tag="", extra="", from_value=None, to_value=None):
+    def request(self, peer, method, target, call_id, sequence=1, to_tag="", extra="", from_value=None, to_value=None, body=""):
+        if body:
+            extra += "Content-Type: application/sdp\r\n"
         return ("{method} {target} SIP/2.0\r\n"
                 "Via: SIP/2.0/{transport} {ip}:{port};rport;branch=z9hG4bK{branch}\r\n"
                 "From: {from_value}\r\nTo: {to_value}\r\n"
                 "Call-ID: {call_id}\r\nCSeq: {sequence} {method}\r\nMax-Forwards: 70\r\n"
-                "Contact: <{contact}>\r\n{extra}Content-Length: 0\r\n\r\n").format(
+                "Contact: <{contact}>\r\n{extra}Content-Length: {length}\r\n\r\n{body}").format(
                     method=method, target=target, transport=peer.transport.upper(), ip=peer.address[0],
                     port=peer.address[1], branch=uuid.uuid4().hex,
                     from_value=from_value or "<sip:caller@{}>;tag=caller".format(peer.address[0]),
                     to_value=to_value or "<sip:callee@{}>{}".format(PBX, to_tag),
-                    call_id=call_id, sequence=sequence, contact=peer.contact, extra=extra)
+                    call_id=call_id, sequence=sequence, contact=peer.contact, extra=extra,
+                    length=len(body.encode()), body=body)
 
     def dialog(self, caller_ip=LAN, caller_transport="udp", callee_ip=PBX, callee_transport="udp",
                redirected=False, destination=None, reverse_bye=False, failover=False):
@@ -397,6 +439,19 @@ include_file "{routing}"
         if transport != "udp":
             self.assertIn(";transport=" + transport, contact)
 
+    def tearDown(self):
+        # Keep failures diagnosable after the disposable test environment exits.
+        errors = getattr(self._outcome, "errors", None)
+        if errors is None:
+            errors = self._outcome.result.errors + self._outcome.result.failures
+        failed = any(test is self and error is not None for test, error in errors)
+        if failed:
+            self.log.flush()
+            self.log.seek(0)
+            print(self.log.read(), file=sys.stderr)
+
+
+class SipRoutingTests(KamailioRoutingTestCase):
     def test_00_locally_generated_options(self):
         for network, peer in self.probes.items():
             with self.subTest(network=network):
@@ -468,17 +523,6 @@ include_file "{routing}"
             peer.send(response(invite).replace("200 OK", "486 Busy Here", 1), address)
         busy, _ = caller.receive_final()
         self.assertTrue(busy.startswith("SIP/2.0 486"), busy)
-
-    def tearDown(self):
-        # Keep failures diagnosable after the disposable test environment exits.
-        errors = getattr(self._outcome, "errors", None)
-        if errors is None:
-            errors = self._outcome.result.errors + self._outcome.result.failures
-        failed = any(test is self and error is not None for test, error in errors)
-        if failed:
-            self.log.flush()
-            self.log.seek(0)
-            print(self.log.read(), file=sys.stderr)
 
     def test_redirected_lan_invite(self):
         if not self.behind_nat:

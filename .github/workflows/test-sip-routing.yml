@@ -1,11 +1,23 @@
-name: Test SIP routing
+name: Test SIP and RTP routing
 
 on:
+  push:
+    paths:
+      - 'modules/kamailio/**'
+      - 'modules/rtpengine/**'
+      - 'tests/run-sip-routing-tests.sh'
+      - 'tests/test_sip_socket_routing.py'
+      - 'tests/test_rtp_routing.py'
+      - 'tests/rtp_test_support.py'
+      - '.github/workflows/test-sip-routing.yml'
   pull_request:
     paths:
       - 'modules/kamailio/**'
+      - 'modules/rtpengine/**'
       - 'tests/run-sip-routing-tests.sh'
       - 'tests/test_sip_socket_routing.py'
+      - 'tests/test_rtp_routing.py'
+      - 'tests/rtp_test_support.py'
       - '.github/workflows/test-sip-routing.yml'
   workflow_dispatch:
 
@@ -18,7 +30,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Test SIP sockets and TOPOS contacts
+      - name: Test SIP sockets, TOPOS contacts and RTP media
         env:
           KAMAILIO_TEST_ENGINE: docker
         run: sh tests/run-sip-routing-tests.sh
