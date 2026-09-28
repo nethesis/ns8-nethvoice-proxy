@@ -51,7 +51,7 @@ def _read_node_address(node_id):
         node_address = _text(rdb.hget(f"node/{node_id}/vpn", "ip_address"))
 
     if not node_address:
-        print(agent.SD_ERROR + f"VPN address for node {node_id} is not available", file=sys.stderr)
+        print(agent.SD_ERR + f"VPN address for node {node_id} is not available", file=sys.stderr)
         sys.exit(2)
 
     return node_address
@@ -60,7 +60,7 @@ def _read_node_address(node_id):
 def _require_env(env, name):
     value = env.get(name)
     if not value:
-        print(agent.SD_ERROR + f"{name} is not set", file=sys.stderr)
+        print(agent.SD_ERR + f"{name} is not set", file=sys.stderr)
         sys.exit(2)
     return value
 
