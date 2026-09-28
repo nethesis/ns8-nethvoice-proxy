@@ -21,3 +21,4 @@ if "SYSTEMD_EXPORTER_PROMETHEUS_PATH" not in env:
     sys.exit(0)
 
 agent.run_helper("prometheus-targets", "update").check_returncode()
+agent.run_helper("prometheus-alert-rules", "update").check_returncode()

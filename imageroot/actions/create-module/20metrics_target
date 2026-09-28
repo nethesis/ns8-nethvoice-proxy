@@ -9,3 +9,4 @@ set -e
 exec 1>&2
 
 prometheus-targets update
+prometheus-alert-rules update
