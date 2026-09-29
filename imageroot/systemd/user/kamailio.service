@@ -22,6 +22,7 @@ ExecStart=/usr/bin/podman run \
     --env=SERVICE_NET \
     --env=BEHIND_NAT \
     --env=LOCALNETWORKS \
+    --env=KAMAILIO_LOG_LEVEL \
     --detach \
     --conmon-pidfile=%t/kmalio.pid \
     --cidfile=%t/kmalio.ctr-id \

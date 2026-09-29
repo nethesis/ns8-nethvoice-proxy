@@ -62,6 +62,14 @@
         }
       }
     },
+    "kamailio_log_level": {
+      "title": "Kamailio log level",
+      "description": "Log level kamailio is started with: -3 critical only, -2 error, -1 error and warning, 0 notice, 1 default, 2 info, 3 debug",
+      "type": "integer",
+      "minimum": -3,
+      "maximum": 3,
+      "default": 1
+    },
     "local_networks": {
       "title": "Local networks",
       "type": "array",
