@@ -37,4 +37,6 @@ config["service_network"] = service_network
 
 config["local_networks"] = os.environ["LOCALNETWORKS"].split(",") if os.getenv("LOCALNETWORKS") else []
 
+config["kamailio_log_level"] = int(os.environ.get("KAMAILIO_LOG_LEVEL") or 1)
+
 json.dump(config, fp=sys.stdout)
