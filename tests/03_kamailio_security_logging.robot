@@ -87,6 +87,35 @@ Kamailio failure route sanitizes attacker-controlled log fields
     Should Be Equal As Integers    ${rcc}    0
     Should Be Equal As Integers    ${outputc}    1
 
+Kamailio failure route does not log a stale nonce challenge as auth failure
+    [Documentation]    A registration refresh answered with 401 and
+    ...                stale=true is a nonce renewal, not a wrong password:
+    ...                the request still carries Authorization, so without
+    ...                this guard every re-REGISTER after nonce expiry would
+    ...                feed CrowdSec an unjustified ban candidate (#661).
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -c '\\$var(authfail_stale) == 0' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    1
+
+Kamailio failure route reads the challenge from the reply, not the request
+    [Documentation]    WWW-Authenticate/Proxy-Authenticate live in the reply,
+    ...                so they can only be read through $T_rpl(...) (tmx),
+    ...                which is valid inside failure_route only. A plain
+    ...                $hdr() there would read the replayed request and always
+    ...                be empty.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -c '\\$T_rpl(\\$hdr(WWW-Authenticate))' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    1
+    ${outputp}  ${rcp} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -c '\\$T_rpl(\\$hdr(Proxy-Authenticate))' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rcp}    0
+    Should Be Equal As Integers    ${outputp}    1
+
 Kamailio does not run with ANSI color escapes enabled
     [Documentation]    The -e flag corrupts journald log lines with ANSI
     ...                escape codes, breaking CrowdSec's grok parser.
