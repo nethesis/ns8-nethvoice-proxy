@@ -2,7 +2,7 @@
 
 ## Environment variables
 
-- `KAMAILIO_LOG_LEVEL` Log level passed to kamailio as `--debug`. Overrides the `debug=` value of the configuration file. Range -3..3, default 1 (notice). Example: "1"
+- `KAMAILIO_LOG_LEVEL` Log level passed to kamailio as `--debug`. Overrides the `debug=` value of the configuration file. Range -3..3, default 0 (warning). Example: "0"
 - `KML_INTERNAL_NETWORK` Comma sepaated list of internal ip addresses. Example: "10.18.0.7,192.168.1.123" or "192.168.1.123"
 - `KML_SERVER_HEADER` DESC. Example: "NethServer 8 nethvoice-proxy1"
 - `KML_SIP_URL` DESC. Example: "127.0.0.1"
@@ -21,8 +21,12 @@
 
 ## Logging
 
-Log levels: `3` debug, `2` info, `1` notice (default), `0` warning, `-1` error,
+Log levels: `3` debug, `2` info, `1` notice, `0` warning (default), `-1` error,
 down to `-3`. The lower the value, the fewer messages are printed.
+
+The default is `0`: warnings and errors are printed, and the security lines of
+the script, such as the failed authentications and the blocked IP addresses,
+are logged at warning level so they are always visible.
 
 ### Persistent log level
 
@@ -30,13 +34,15 @@ Set `kamailio_log_level` with the `configure-module` action of the NS8 module.
 It writes `KAMAILIO_LOG_LEVEL` in the instance environment, and the container
 starts kamailio with `--debug=<value>`, which takes precedence over the
 `debug=` value in `kamailio.cfg`. A service restart is required. When the
-variable is not set, the value from the configuration file is used.
+variable is not set, the value from the configuration file is used, which is
+`debug=0` as well. Leaving `kamailio_log_level` out of the `configure-module`
+input keeps the level currently stored in the environment.
 
 ### Temporary log level, no restart
 
 ```
 kamcmd corex.debug 3      # raise, to troubleshoot a live issue
-kamcmd corex.debug 1      # back to the default
+kamcmd corex.debug 0      # back to the default
 ```
 
 The change is lost on restart. At level 3 a single REGISTER produces
@@ -67,7 +73,7 @@ kamcmd pv.shvSet debug int 1
 ```
 
 To turn the tracing off again use `kamcmd pv.shvSet debug int 0` and
-`kamcmd corex.debug 1`.
+`kamcmd corex.debug 0`.
 
 ### Always visible events
 
