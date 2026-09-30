@@ -114,8 +114,14 @@ if "addresses" in data:
 
     agent.set_env("DEFAULT_CONTACT", address["address"] + ":5060" if "public_address" not in address else address["public_address"] + ":5060")
 
-# Log level kamailio is started with; 1 is the Kamailio default.
-agent.set_env("KAMAILIO_LOG_LEVEL", str(data.get("kamailio_log_level", 1)))
+# Log level kamailio is started with. The field is optional: when it is not
+# part of the input, keep the value already stored in the environment, so that
+# a level set from the CLI is not reset by a save from the settings page.
+# 0 (warning) is the default of the module.
+if "kamailio_log_level" in data:
+    agent.set_env("KAMAILIO_LOG_LEVEL", str(data["kamailio_log_level"]))
+elif not os.environ.get("KAMAILIO_LOG_LEVEL"):
+    agent.set_env("KAMAILIO_LOG_LEVEL", "0")
 
 if "service_net" in data:
     service = data["service_net"]
