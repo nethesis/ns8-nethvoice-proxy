@@ -7,41 +7,27 @@
 
 import json
 import sys
-import os
-import subprocess
-# Try to parse the stdin as JSON.
-# If parsing fails, output everything to stderr
+
+from domain_routes import run_route_query
+
 data = json.load(sys.stdin)
 
-# Prepare the query with the new route configuration
-query = ""
+run_route_query(data['domain'], """
+WITH inserted AS (
+    INSERT INTO nethvoice_proxy_routes (target, route_type)
+    SELECT :'domain', 'domain' WHERE NOT EXISTS (SELECT FROM selected_route)
+    RETURNING *
+)
+INSERT INTO selected_route SELECT * FROM inserted;
 
-# Chek if a domain is registred
-with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
-        print(f'SELECT COALESCE(json_agg(nethvoice_proxy_routes.*), \'[]\'::json) FROM nethvoice_proxy_routes WHERE target=\'{data["domain"]}\' AND route_type=\'domain\';\n', file=psql.stdin)
-        proxy_route , _ = psql.communicate()
-        proxy_route = json.loads(proxy_route)
+INSERT INTO domain (domain, did)
+SELECT :'domain', :'domain' WHERE NOT EXISTS (SELECT FROM domain WHERE domain = :'domain');
+INSERT INTO dialplan (dpid, pr, match_op, match_exp, match_len, subst_exp, repl_exp, attrs)
+SELECT 1, 1, 0, :'domain', 0, '(.*)', setid::text, setid::text FROM selected_route
+WHERE NOT EXISTS (SELECT FROM dialplan WHERE dpid = 1 AND match_exp = :'domain');
 
-if not proxy_route:
-    # Add domain into nethvoice_proxy_routes table if not already exists
-    with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
-        print(f'WITH proxy_route AS (INSERT INTO nethvoice_proxy_routes (target, route_type) VALUES (\'{data["domain"]}\', \'domain\') RETURNING *) SELECT JSON_AGG(proxy_route.*) from proxy_route;\n', file=psql.stdin)
-        proxy_route, _ = psql.communicate()
-        proxy_route = json.loads(proxy_route)
-
-        # Create dialplan and domain for the rule
-        query += (
-                  f'INSERT INTO dialplan (dpid, pr, match_op, match_exp, match_len, subst_exp, repl_exp, attrs) VALUES (1,1,0,\'{data["domain"]}\',0,\'(.*)\',{proxy_route[0]["setid"]},{proxy_route[0]["setid"]});\n'
-                  f'INSERT INTO domain (domain, did) VALUES ( \'{data["domain"]}\', \'{data["domain"]}\');\n'
-                  )
-
-# Cleanup existing route configuration
-query += f'DELETE FROM dispatcher WHERE setid={proxy_route[0]["setid"]};\n'
-
-# Create new route configuration
-for addres in data["address"]:
-        query += f'INSERT INTO dispatcher (setid,  destination, description) VALUES ({proxy_route[0]["setid"]},\'{addres["uri"]}\',\'{addres["description"]}\');\n'
-
-# Write the route
-with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-qU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, text=True) as psql:
-        print(query,file=psql.stdin)
+DELETE FROM dispatcher WHERE setid = (SELECT setid FROM selected_route);
+INSERT INTO dispatcher (setid, destination, description)
+SELECT setid, address->>'uri', address->>'description'
+FROM selected_route, json_array_elements(:'addresses'::json) AS address;
+""", data['address'])
