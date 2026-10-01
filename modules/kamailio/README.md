@@ -78,6 +78,8 @@ To turn the tracing off again use `kamcmd pv.shvSet debug int 0` and
 ### Always visible events
 
 These are logged regardless of the tracing flag: failed SIP authentications
-(`[SECURITY-AUTHFAIL]`, consumed by CrowdSec), addresses blocked by pike,
-dispatcher failures, request timeouts without a reply and malformed SIP
-requests.
+(`[SECURITY-AUTHFAIL]`), scanner user agents (`[SECURITY-SCANNER]`) and SQL
+injection attempts (`[SECURITY-SQLI]`), all three meant to be consumed by
+CrowdSec, plus addresses blocked by pike, dispatcher failures and request
+timeouts without a reply. Malformed SIP requests are logged at debug level:
+plenty of devices send them and they are not actionable by themselves.
