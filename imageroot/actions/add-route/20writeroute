@@ -20,8 +20,13 @@ WITH inserted AS (
 )
 INSERT INTO selected_route SELECT * FROM inserted;
 
+-- Preserve the dispatcher set when normalizing a legacy route.
+UPDATE nethvoice_proxy_routes SET target = :'domain'
+WHERE id = (SELECT id FROM selected_route);
+UPDATE domain SET domain = :'domain', did = :'domain' WHERE lower(domain) = :'domain';
 INSERT INTO domain (domain, did)
 SELECT :'domain', :'domain' WHERE NOT EXISTS (SELECT FROM domain WHERE domain = :'domain');
+UPDATE dialplan SET match_exp = :'domain' WHERE dpid = 1 AND lower(match_exp) = :'domain';
 INSERT INTO dialplan (dpid, pr, match_op, match_exp, match_len, subst_exp, repl_exp, attrs)
 SELECT 1, 1, 0, :'domain', 0, '(.*)', setid::text, setid::text FROM selected_route
 WHERE NOT EXISTS (SELECT FROM dialplan WHERE dpid = 1 AND match_exp = :'domain');

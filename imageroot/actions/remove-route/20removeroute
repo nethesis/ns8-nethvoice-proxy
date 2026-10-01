@@ -13,10 +13,8 @@ from domain_routes import run_route_query
 data = json.load(sys.stdin)
 
 run_route_query(data['domain'], """
-DELETE FROM domain WHERE domain = :'domain' AND did = :'domain';
-DELETE FROM dialplan WHERE dpid = 1 AND match_exp = :'domain'
-AND repl_exp = (SELECT setid::text FROM selected_route)
-AND attrs = (SELECT setid::text FROM selected_route);
+DELETE FROM domain WHERE lower(domain) = :'domain';
+DELETE FROM dialplan WHERE dpid = 1 AND lower(match_exp) = :'domain';
 DELETE FROM dispatcher WHERE setid = (SELECT setid FROM selected_route);
 DELETE FROM nethvoice_proxy_routes WHERE id = (SELECT id FROM selected_route);
 """)
