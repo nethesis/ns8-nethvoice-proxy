@@ -7,25 +7,16 @@
 
 import json
 import sys
-import os
-import subprocess
-# Try to parse the stdin as JSON.
-# If parsing fails, output everything to stderr
+
+from domain_routes import run_route_query
+
 data = json.load(sys.stdin)
 
-# Chek if a domain is registred
-with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
-        print(f'SELECT COALESCE(json_agg(nethvoice_proxy_routes.*), \'[]\'::json) FROM nethvoice_proxy_routes WHERE target=\'{data["domain"]}\' AND route_type=\'domain\';\n', file=psql.stdin)
-        proxy_route , _ = psql.communicate()
-        proxy_route = json.loads(proxy_route)
-
-if proxy_route:
-    query = (
-            f'DELETE FROM nethvoice_proxy_routes WHERE target=\'{data["domain"]}\' AND setid={proxy_route[0]["setid"]} AND route_type=\'domain\';\n'
-            f'DELETE FROM domain WHERE domain=\'{data["domain"]}\' AND did=\'{data["domain"]}\';\n'
-            f'DELETE FROM dialplan WHERE match_exp=\'{data["domain"]}\' AND repl_exp=\'{proxy_route[0]["setid"]}\' AND attrs=\'{proxy_route[0]["setid"]}\';\n'
-            f'DELETE FROM dispatcher WHERE setid={proxy_route[0]["setid"]};\n'
-            )
-    # Remove the route
-    with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-qU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, text=True) as psql:
-        print(query,file=psql.stdin)
+run_route_query(data['domain'], """
+DELETE FROM domain WHERE domain = :'domain' AND did = :'domain';
+DELETE FROM dialplan WHERE dpid = 1 AND match_exp = :'domain'
+AND repl_exp = (SELECT setid::text FROM selected_route)
+AND attrs = (SELECT setid::text FROM selected_route);
+DELETE FROM dispatcher WHERE setid = (SELECT setid FROM selected_route);
+DELETE FROM nethvoice_proxy_routes WHERE id = (SELECT id FROM selected_route);
+""")
