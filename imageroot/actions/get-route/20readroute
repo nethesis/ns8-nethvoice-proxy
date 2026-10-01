@@ -7,26 +7,18 @@
 
 import json
 import sys
-import os
-import subprocess
-# Try to parse the stdin as JSON.
-# If parsing fails, output everything to stderr
+
+from domain_routes import run_route_query
+
 data = json.load(sys.stdin)
 
-route = {}
+route = run_route_query(data['domain'], """
+SELECT CASE WHEN EXISTS (SELECT FROM selected_route) THEN
+    json_build_object('address', (
+        SELECT coalesce(json_agg(json_build_object('uri', destination, 'description', description)), '[]'::json)
+        FROM dispatcher WHERE setid = (SELECT setid FROM selected_route)
+    ))
+ELSE '{}'::json END;
+""", read_only=True)
 
-# Chek if a domain is registred
-with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
-        print(f'SELECT COALESCE(json_agg(nethvoice_proxy_routes.*), \'[]\'::json) FROM nethvoice_proxy_routes WHERE target=\'{data["domain"]}\' AND route_type=\'domain\';\n', file=psql.stdin)
-        proxy_route , _ = psql.communicate()
-        proxy_route = json.loads(proxy_route)
-
-if proxy_route:
-    with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
-        print(f'SELECT json_agg(dispatcher.*) FROM dispatcher WHERE setid=\'{proxy_route[0]["setid"]}\';\n', file=psql.stdin)
-        address, _ = psql.communicate()
-        address = json.loads(address)
-
-    route["address"] = [ { "uri": addres["destination"], "description": addres["description"] }  for addres in address ]
-
-json.dump(route, fp=sys.stdout)
+json.dump(json.loads(route), fp=sys.stdout)
