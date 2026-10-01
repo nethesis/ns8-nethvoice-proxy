@@ -18,7 +18,34 @@ BEGIN;
 LOCK TABLE nethvoice_proxy_routes, domain, dialplan, dispatcher IN {lock_mode} MODE;
 CREATE TEMP TABLE selected_route ON COMMIT DROP AS
     SELECT * FROM nethvoice_proxy_routes
-    WHERE route_type = 'domain' AND target = :'domain';
+    WHERE route_type = 'domain' AND lower(target) = :'domain';
+CREATE TEMP TABLE requested_domain ON COMMIT DROP AS SELECT :'domain'::text AS name;
+DO $$
+DECLARE
+    requested text := (SELECT name FROM requested_domain);
+BEGIN
+    IF (SELECT count(*) FROM selected_route) > 1
+       OR (SELECT count(*) FROM domain WHERE lower(domain) = requested) > 1
+       OR (SELECT count(*) FROM dialplan WHERE dpid = 1 AND lower(match_exp) = requested) > 1
+    THEN
+        RAISE EXCEPTION 'Ambiguous SIP domain records for %', requested;
+    END IF;
+
+    -- A related record must belong to this route before it can be changed.
+    IF EXISTS (
+        SELECT FROM domain WHERE lower(domain) = requested
+        AND (lower(did) IS DISTINCT FROM requested OR NOT EXISTS (SELECT FROM selected_route))
+    ) OR EXISTS (
+        SELECT FROM dialplan WHERE dpid = 1 AND lower(match_exp) = requested
+        AND (match_op <> 0 OR NOT EXISTS (
+            SELECT FROM selected_route
+            WHERE repl_exp = setid::text AND attrs = setid::text
+        ))
+    ) THEN
+        RAISE EXCEPTION 'Inconsistent SIP domain records for %', requested;
+    END IF;
+END
+$$;
 {query}
 COMMIT;
 """
@@ -26,7 +53,7 @@ COMMIT;
     result = subprocess.run(
         [
             'podman', 'exec', '-i', 'postgres', 'psql', '-X', '-qAt',
-            '-v', 'ON_ERROR_STOP=1', '-v', f'domain={domain}',
+            '-v', 'ON_ERROR_STOP=1', '-v', f'domain={domain.lower()}',
             '-v', f'addresses={json.dumps(addresses)}',
             '-U', os.environ['POSTGRES_USER'], os.environ['POSTGRES_DB'],
         ],
