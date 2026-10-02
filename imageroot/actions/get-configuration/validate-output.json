@@ -62,6 +62,14 @@
         }
       }
     },
+    "kamailio_log_level": {
+      "title": "Kamailio log level",
+      "description": "Log level kamailio is started with: 3 debug, 2 info, 1 notice, 0 warning (default), -1 error, down to -3. The lower the value, the fewer messages are printed.",
+      "type": "integer",
+      "minimum": -3,
+      "maximum": 3,
+      "default": 0
+    },
     "local_networks": {
       "title": "Local networks",
       "type": "array",

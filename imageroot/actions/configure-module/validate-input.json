@@ -7,6 +7,11 @@
     { "fqdn": "proxy.example.com", "addresses": { "address": "1.2.3.4" } },
     {
       "fqdn": "proxy.example.com",
+      "addresses": { "address": "1.2.3.4" },
+      "kamailio_log_level": 3
+    },
+    {
+      "fqdn": "proxy.example.com",
       "lets_encrypt": true,
       "addresses": { "address": "192.168.1.1", "public_address": "1.2.3.4" }
     },
@@ -66,6 +71,13 @@
           "type": "string"
         }
       }
+    },
+    "kamailio_log_level": {
+      "title": "Kamailio log level",
+      "description": "Log level kamailio is started with: 3 debug, 2 info, 1 notice, 0 warning (default), -1 error, down to -3. The lower the value, the fewer messages are printed.",
+      "type": "integer",
+      "minimum": -3,
+      "maximum": 3
     },
     "local_networks": {
       "title": "Local networks",

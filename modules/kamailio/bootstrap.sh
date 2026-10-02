@@ -67,6 +67,15 @@ cat /tmp/kamailio-local-additional.cfg >> /tmp/kamailio-local.cfg
 export PATH_KAMAILIO_CFG=/etc/kamailio/kamailio.cfg
 kamailio=$(which kamailio)
 
+# Log level kamailio is started with. Accepted values are the Kamailio ones,
+# from -3 (only critical) to 3 (debug); 1 is the default. When
+# KAMAILIO_LOG_LEVEL is not set, no --debug option is passed and the level
+# written in the configuration file is kept, as it was before.
+KAMAILIO_DEBUG_OPT=()
+if [ -n "${KAMAILIO_LOG_LEVEL}" ]; then
+    KAMAILIO_DEBUG_OPT=("--debug=${KAMAILIO_LOG_LEVEL}")
+fi
+
 # Test the syntax.
 $kamailio -f $PATH_KAMAILIO_CFG -c
 echo 'Kamailio will be called using the following environment variables:'
@@ -74,14 +83,15 @@ echo -n '$DUMP_CORE is: ' ; echo "${DUMP_CORE}"
 echo -n '$SHM_MEM is: ' ; echo "${SHM_MEM}"
 echo -n '$PKG_MEM is: ' ; echo "${PKG_MEM}"
 echo -n '$ENVIRONMENT is: ' ; echo "${ENVIRONMENT}"
+echo -n '$KAMAILIO_LOG_LEVEL is: ' ; echo "${KAMAILIO_LOG_LEVEL}"
 
 # Run kamailio
 if [ -f "/tmp/dev" ] || [ "${ENV}" == "dev" ]; then
     echo "Dev mode!"
-    $kamailio -f $PATH_KAMAILIO_CFG -m "${SHM_MEM}" -M "${PKG_MEM}" -DD -E
+    $kamailio -f $PATH_KAMAILIO_CFG -m "${SHM_MEM}" -M "${PKG_MEM}" "${KAMAILIO_DEBUG_OPT[@]}" -DD -E
 else
     #Allow kamailio to handle SIGTERM from podman stop
-    exec $kamailio -f $PATH_KAMAILIO_CFG -m "${SHM_MEM}" -M "${PKG_MEM}" -DD -E
+    exec $kamailio -f $PATH_KAMAILIO_CFG -m "${SHM_MEM}" -M "${PKG_MEM}" "${KAMAILIO_DEBUG_OPT[@]}" -DD -E
 fi
 
 while [ -f "/tmp/dev" ] || [ "${ENV}" == "dev" ]
