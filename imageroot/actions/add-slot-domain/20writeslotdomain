@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2025 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import os
+import subprocess
+import sys
+
+data = json.load(sys.stdin)
+
+query = (
+    "INSERT INTO slot_domains (key_name, key_value, key_type, value_type, expires) "
+    f"VALUES ('{data['domain']}', '1', 0, 0, 0) "
+    "ON CONFLICT (key_name) DO UPDATE "
+    "SET key_value = EXCLUDED.key_value, "
+    "key_type = EXCLUDED.key_type, "
+    "value_type = EXCLUDED.value_type, "
+    "expires = EXCLUDED.expires;\n"
+)
+
+with subprocess.Popen(
+    ['podman', 'exec', '-i', 'postgres', 'psql', '-qU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]],
+    stdin=subprocess.PIPE,
+    text=True,
+) as psql:
+    print(query, file=psql.stdin)
