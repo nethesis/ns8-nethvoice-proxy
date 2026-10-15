@@ -18,6 +18,7 @@
 - `RTP_PORT_MIN` Kamailio RTP port range start. Example: "10000"
 - `RTP_PORT_MAX` Kamailio RTP port range end. Example: "20000"
 - `SIP_PORT` Kamailio SIP port. Example: "5060"
+- `TOPOH_MASK_KEY` Key used to mask the Call-ID toward the trunks. Generated per instance in `passwords.env` by the NS8 module; when missing, `bootstrap.sh` uses a random key. Example: "3f2a9c0e7b1d4e6f8a5c2b9d0e1f3a4b"
 
 ## Logging
 
@@ -83,3 +84,30 @@ injection attempts (`[SECURITY-SQLI]`), all three meant to be consumed by
 CrowdSec, plus addresses blocked by pike, dispatcher failures and request
 timeouts without a reply. Malformed SIP requests are logged at debug level:
 plenty of devices send them and they are not actionable by themselves.
+
+## Loopback trunks
+
+Some stateless providers reflect an outgoing INVITE back to the proxy when
+the called number belongs to the same customer. The caller side and the
+callee side of the call then become two local dialogs that share the
+From-tag of the initial INVITE.
+
+- topos masks the Call-ID toward the trunks (`mask_callid`), so the reflected
+  INVITE does not collide with the outgoing dialog and its rtpengine session.
+  topos uses the topoh API for the mask: topoh is loaded with `use_mode` 1,
+  as a library only, and its key is `TOPOH_MASK_KEY`.
+- Every outgoing INVITE is kept for 30 seconds in the `loopback_pending`
+  table. When the reflected INVITE arrives, the two dialogs are linked in the
+  `loopback` table.
+- In-dialog requests of a linked call (BYE, UPDATE, INFO, PRACK, MESSAGE,
+  REFER) go straight to the other side, instead of through the provider. On
+  BYE the proxy also closes the leg toward the provider, from the socket the
+  setup used, and answers 200 OK to the BYE the provider reflects back.
+
+Two events are logged at notice level (`KAMAILIO_LOG_LEVEL` 1 or higher):
+`event=loopback_detected` and `event=provider_bye_absorbed`, both tagged
+`[LOOPBACK]`. The other lines are printed only with the debug flag.
+
+Known limit: tools that read the traffic, such as sngrep, see the two legs of
+a loopback call with different Call-IDs, masked toward the provider and clear
+toward Asterisk, and show them as separate, incomplete dialogs.
