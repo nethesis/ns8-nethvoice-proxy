@@ -37,6 +37,9 @@ Read live dispatcher
     ...    runagent -m ${module_id} podman exec kamailio kamcmd dispatcher.list
     ...    return_stdout=True    return_stderr=True    return_rc=True
     Should Be Equal As Integers    ${rc}    0    ${stderr}
+    IF    $stdout.strip() == "error: 500 - No Destination Sets"
+        RETURN    ${EMPTY}
+    END
     Should Not Contain    ${stdout}    error:
     RETURN    ${stdout}
 
