@@ -7,7 +7,4 @@
 
 # If the control reaches this step, reload kamailio modules.
 
-cat << EOF | podman exec -i kamailio kamcmd > /dev/null
-dialplan.reload
-dispatcher.reload
-EOF
+exec "${AGENT_INSTALL_DIR}/bin/reload-routing" dialplan.reload dispatcher.reload
