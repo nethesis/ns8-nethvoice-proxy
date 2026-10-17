@@ -100,21 +100,30 @@ From-tag of the initial INVITE.
   table. When the reflected INVITE arrives, the two dialogs are linked in the
   `loopback` table.
 - In-dialog requests of a linked call (BYE, UPDATE, INFO, PRACK, MESSAGE,
-  REFER) go straight to the other side, instead of through the provider. On
-  BYE the proxy also closes the leg toward the provider, from the socket the
-  setup used, and answers 200 OK to the BYE the provider reflects back.
+  REFER) go straight to the other side, instead of through the provider.
   Only the Call-ID and the Request-URI are rewritten: the provider relays the
   INVITE and its replies without touching the tags, so From-tag and To-tag are
   already those of the other dialog.
+- On BYE, whichever side hangs up, the proxy also closes the leg toward the
+  provider with a BYE of its own, as UAC of that leg: the masked Call-ID,
+  From and To of the setup with its tags, a CSeq above the last one of the
+  caller side, the provider Contact as Request-URI and its Record-Route as
+  Route, from the socket the setup used. It is sent with `t_uac_send()`, so
+  it is retransmitted until the provider answers, and it skips topos: it
+  carries no internal address. The proxy answers 200 OK to the BYE the
+  provider reflects back, and lets the dialogs that saw no BYE expire.
 - topos rebuilds the end-to-end ACK of a trunk that record-routes with the
   Record-Route as Request-URI. The proxy rebuilds that ACK from the Contact
   and the Record-Route of the 2xx, only when the top Record-Route is not the
   proxy itself: the ACK toward an extension, or toward a trunk that does not
   record-route, follows the normal relay.
 
-Two events are logged at notice level (`KAMAILIO_LOG_LEVEL` 1 or higher):
-`event=loopback_detected` and `event=provider_bye_absorbed`, both tagged
-`[LOOPBACK]`. The other lines are printed only with the debug flag.
+Three events are logged at notice level (`KAMAILIO_LOG_LEVEL` 1 or higher):
+`event=loopback_detected`, `event=provider_bye_sent` and
+`event=provider_bye_absorbed`, all tagged `[LOOPBACK]`. When the data of the
+setup are missing the BYE toward the provider is not sent and
+`event=provider_bye_skipped` is logged at warning level. The other lines are
+printed only with the debug flag.
 
 Known limit: tools that read the traffic, such as sngrep, see the two legs of
 a loopback call with different Call-IDs, masked toward the provider and clear

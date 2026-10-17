@@ -41,6 +41,43 @@ Kamailio loopback BYE toward the provider uses the socket of the setup
     Should Be Equal As Integers    ${rc}    0
     Should Be Equal As Integers    ${output}    1
 
+Kamailio loopback BYE toward the provider is a new request of the proxy
+    [Documentation]    The BYE that closes the trunk-out leg is built with
+    ...                t_uac_send() from the From, To, To-tag and CSeq of
+    ...                the setup, not forwarded from the BYE of the other
+    ...                side: that one has the tags and the CSeq of the other
+    ...                dialog, and its Request-URI makes topos rewrite the
+    ...                Call-ID. The provider answered 481 to both.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -c 't_uac_send("BYE"' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    1
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -cE 'trunk_out_(from|to|tt|cseq)_[$]ft[)] = ' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    4
+
+Kamailio loopback BYE toward the provider skips topos
+    [Documentation]    topos binds the BYE to the reflected dialog through
+    ...                its Request-URI token: the BYE marked in loopback_bye
+    ...                must leave as built.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -c 'is_method("BYE") && $sht(loopback_bye=>$ci) != $null' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    1
+
+Kamailio loopback code never tests a $var against $null
+    [Documentation]    Assigning $null to a $var stores 0, so a $var is never
+    ...                equal to $null: the loopback code resets its $var to
+    ...                "" and tests them against "" or a pattern.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -cE '[$]var[(](lb|out|absorb|uas|target)_[a-z_]+[)] [!=]= [$]null' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${output}    0
+
 Kamailio keeps outgoing calls only briefly for loopback detection
     [Documentation]    Every outgoing INVITE is stored in loopback_pending,
     ...                which expires in seconds; only a detected loopback
