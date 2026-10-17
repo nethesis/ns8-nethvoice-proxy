@@ -237,3 +237,13 @@ Kamailio absorbs the ACK of a negative reply before the dialog module
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}    0
     Should Be Equal As Integers    ${output}    1
+
+Kamailio keeps strict router handling for its own Record-Route
+    [Documentation]    Loose routing only applies to a Request-URI that is
+    ...                a Contact of the proxy: a Request-URI with ftag is
+    ...                the Record-Route of the proxy from a strict router.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio sed -n '/^route\\[LOOSE_ROUTE\\]/,/^}/p' /etc/kamailio/kamailio.cfg | grep -cE 'ftag|loose_route\\(\\)'
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    2

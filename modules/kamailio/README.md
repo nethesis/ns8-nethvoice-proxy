@@ -148,7 +148,9 @@ From-tag of the initial INVITE.
   requests without strict router handling (`loose_route_mode("1")`): with
   `loose_route()` a re-INVITE of either Asterisk went to the own
   Record-Route with the provider Record-Route as Request-URI, timed out with
-  408 and the call dropped.
+  408 and the call dropped. A Request-URI with the `ftag` parameter is the
+  Record-Route of the proxy put there by a real strict router (RFC 2543):
+  that request keeps `loose_route()`, with the strict router handling.
 - The route set used by the rebuilt ACK and by the BYE toward the provider
   is the one of RFC 3261 for the UAC: every Record-Route entry of the 2xx
   that is not the proxy, in reverse order, so a provider with more than one
