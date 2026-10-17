@@ -109,8 +109,9 @@ From-tag of the initial INVITE.
   From and To of the setup with its tags, a CSeq above the last one of the
   caller side, the provider Contact as Request-URI and its Record-Route as
   Route, from the socket the setup used. It is sent with `t_uac_send()`, so
-  it is retransmitted until the provider answers, and it skips topos: it
-  carries no internal address. The proxy answers 200 OK to the BYE the
+  tm retransmits it for up to `FR_TIMEOUT_BYE` (3 seconds, through the tm
+  settings instance `tm[1]`: `t_set_fr()` does not apply to it) and then
+  gives up, and it skips topos: it carries no internal address. The proxy answers 200 OK to the BYE the
   provider reflects back, and lets the dialogs that saw no BYE expire.
 - topos rebuilds the end-to-end ACK of a trunk that record-routes with the
   Record-Route as Request-URI. The proxy rebuilds that ACK from the Contact
@@ -132,7 +133,9 @@ Three events are logged at notice level (`KAMAILIO_LOG_LEVEL` 1 or higher):
 `event=loopback_detected`, `event=provider_bye_sent` and
 `event=provider_bye_absorbed`, all tagged `[LOOPBACK]`. When the data of the
 setup are missing the BYE toward the provider is not sent and
-`event=provider_bye_skipped` is logged at warning level. The other lines are
+`event=provider_bye_skipped` is logged at warning level; when tm cannot send
+it (no socket, bad Request-URI) `event=provider_bye_failed` is logged at
+warning level. A provider that never answers that BYE leaves no log line. The other lines are
 printed only with the debug flag.
 
 Known limit: tools that read the traffic, such as sngrep, see the two legs of
