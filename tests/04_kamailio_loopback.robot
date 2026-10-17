@@ -226,3 +226,14 @@ Kamailio gives the reflected leg Call-ID also to a provider CANCEL
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}    0
     Should Not Contain    ${output}    CANCEL
+
+Kamailio absorbs the ACK of a negative reply before the dialog module
+    [Documentation]    The ACK of the 401 challenge and the INVITE with
+    ...                credentials arrive back to back: if the ACK reaches
+    ...                dlg_manage() after the new dialog exists, the dialog
+    ...                module logs "bogus event 6 in state 1" as CRITICAL.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio sed -n '/route(HEALTHCHECK);/,/dlg_manage();/p' /etc/kamailio/kamailio.cfg | grep -c 't_check_trans();'
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    1
