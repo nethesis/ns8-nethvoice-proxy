@@ -194,3 +194,14 @@ Kamailio refuses SDP in the loopback rewrite
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}    0
     Should Contain    ${output}    sl_send_reply("488", "Not Acceptable Here");
+
+Kamailio renumbers the CSeq of the loopback rewrite
+    [Documentation]    Asterisk answers 500 Invalid CSeq to a request below
+    ...                the highest CSeq it got on that dialog, e.g. after an
+    ...                UPDATE of the provider. The rewrite keeps a CSeq above
+    ...                it and the replies get the CSeq of the sender back.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -c -e 'event=cseq_renumbered' -e '^onreply_route {' -e 'loopback_rq=>size=8;autoexpire=60;' -e 'loopback_rpl=>size=8;autoexpire=60;' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    4

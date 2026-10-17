@@ -103,7 +103,12 @@ From-tag of the initial INVITE.
   REFER) go straight to the other side, instead of through the provider.
   The Call-ID and the Request-URI are rewritten: the provider relays the
   INVITE and its replies without touching the tags, so From-tag and To-tag are
-  already those of the other dialog.
+  already those of the other dialog. The CSeq is kept while it is above the
+  highest one already delivered to the other side (the requests the provider
+  sent it, the earlier rewritten ones), otherwise it becomes the next one:
+  Asterisk answers `500 Invalid CSeq` to a lower one. A retransmission gets
+  the same CSeq as the first copy. The replies go back to the sender with its
+  Call-ID and CSeq (`onreply_route`).
 - A rewritten request that carries SDP (an UPDATE with an offer, for
   instance) is answered `488 Not Acceptable Here` by the proxy and the
   session goes on with the media it has. The media of each side goes through
@@ -154,10 +159,10 @@ From-tag of the initial INVITE.
   the re-INVITE, UPDATE or PRACK with SDP the provider sends on the
   reflected leg.
 
-Four events are logged at notice level (`KAMAILIO_LOG_LEVEL` 1 or higher):
+Five events are logged at notice level (`KAMAILIO_LOG_LEVEL` 1 or higher):
 `event=loopback_detected`, `event=provider_bye_sent`,
-`event=provider_bye_absorbed` and `event=sdp_refused` (the 488 above), all
-tagged `[LOOPBACK]`. When the data of the
+`event=provider_bye_absorbed`, `event=sdp_refused` (the 488 above) and
+`event=cseq_renumbered`, all tagged `[LOOPBACK]`. When the data of the
 setup are missing the BYE toward the provider is not sent and
 `event=provider_bye_skipped` is logged at warning level; when tm cannot send
 it (no socket, bad Request-URI) `event=provider_bye_failed` is logged at
@@ -169,7 +174,7 @@ a loopback call with different Call-IDs, masked toward the provider and clear
 toward Asterisk, and show them as separate, incomplete dialogs.
 
 Known limit: the replies the proxy sends on its own to the callee side (the
-200 OK to its BYE, the 488 above) carry the
+200 OK to its BYE, the 488 above) and the replies given back to it carry the
 Call-ID of the reflected leg as the proxy sees it, not the one topos built
 for Asterisk: topos does not handle stateless replies. Asterisk matches them
 by the Via branch.
