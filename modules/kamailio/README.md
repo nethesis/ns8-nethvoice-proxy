@@ -107,7 +107,7 @@ From-tag of the initial INVITE.
 - On BYE, whichever side hangs up, the proxy also closes the leg toward the
   provider with a BYE of its own, as UAC of that leg: the masked Call-ID,
   From and To of the setup with its tags, a CSeq above the last one of the
-  caller side, the provider Contact as Request-URI and its Record-Route as
+  caller side, the provider Contact as Request-URI and its route set as
   Route, from the socket the setup used. It is sent with `t_uac_send()`, so
   tm retransmits it for up to `FR_TIMEOUT_BYE` (3 seconds, through the tm
   settings instance `tm[1]`: `t_set_fr()` does not apply to it) and then
@@ -118,9 +118,13 @@ From-tag of the initial INVITE.
   warning of the dialog module.
 - topos rebuilds the end-to-end ACK of a trunk that record-routes with the
   Record-Route as Request-URI. The proxy rebuilds that ACK from the Contact
-  and the Record-Route of the 2xx, only when the top Record-Route is not the
-  proxy itself: the ACK toward an extension, or toward a trunk that does not
-  record-route, follows the normal relay.
+  of the 2xx and its route set, only when the trunk record-routes: the ACK
+  toward an extension, or toward a trunk that does not record-route, follows
+  the normal relay.
+- The route set used by the rebuilt ACK and by the BYE toward the provider
+  is the one of RFC 3261 for the UAC: every Record-Route entry of the 2xx
+  that is not the proxy, in reverse order, so a provider with more than one
+  record-routing hop gets them all, the nearest first.
 - The media of a loopback call goes out and comes back through the public
   address of the node: the provider relays the SDP unchanged, so the
   rtpengine session of one leg sends RTP to the public port of the other.
