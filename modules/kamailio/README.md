@@ -117,6 +117,16 @@ From-tag of the initial INVITE.
   and the Record-Route of the 2xx, only when the top Record-Route is not the
   proxy itself: the ACK toward an extension, or toward a trunk that does not
   record-route, follows the normal relay.
+- The media of a loopback call goes out and comes back through the public
+  address of the node: the provider relays the SDP unchanged, so the
+  rtpengine session of one leg sends RTP to the public port of the other.
+  Behind NAT this needs hairpin NAT on the router; without it no audio
+  reaches either side.
+- When the trunk uses SRTP, the reflected SDP is the offer rtpengine made
+  for the trunk-out leg, with both SDES and DTLS. The proxy removes the DTLS
+  attributes from it (and keeps the offers of the reflected leg on SDES), so
+  rtpengine answers with SDES: answered with DTLS, the caller audio was
+  dropped as SRTP errors and the callee heard nothing.
 
 Three events are logged at notice level (`KAMAILIO_LOG_LEVEL` 1 or higher):
 `event=loopback_detected`, `event=provider_bye_sent` and
