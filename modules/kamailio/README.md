@@ -104,6 +104,14 @@ From-tag of the initial INVITE.
   The Call-ID and the Request-URI are rewritten: the provider relays the
   INVITE and its replies without touching the tags, so From-tag and To-tag are
   already those of the other dialog.
+- A rewritten request that carries SDP (an UPDATE with an offer, for
+  instance) is answered `488 Not Acceptable Here` by the proxy and the
+  session goes on with the media it has. The media of each side goes through
+  its own rtpengine session and the two sessions meet on the public address
+  of the node with SRTP: relayed as it is, the SDP would bring the SRTP
+  offer and the external port of rtpengine to the other Asterisk. Asterisk
+  changes the media with a re-INVITE, which goes through the provider and
+  both sessions.
 - The provider sends the in-dialog requests of both legs with the masked
   Call-ID of the trunk-out leg, and topos unmasks it to the Call-ID of the
   caller side. A request with the From-tag of the initial INVITE belongs to
@@ -146,9 +154,10 @@ From-tag of the initial INVITE.
   the re-INVITE, UPDATE or PRACK with SDP the provider sends on the
   reflected leg.
 
-Three events are logged at notice level (`KAMAILIO_LOG_LEVEL` 1 or higher):
-`event=loopback_detected`, `event=provider_bye_sent` and
-`event=provider_bye_absorbed`, all tagged `[LOOPBACK]`. When the data of the
+Four events are logged at notice level (`KAMAILIO_LOG_LEVEL` 1 or higher):
+`event=loopback_detected`, `event=provider_bye_sent`,
+`event=provider_bye_absorbed` and `event=sdp_refused` (the 488 above), all
+tagged `[LOOPBACK]`. When the data of the
 setup are missing the BYE toward the provider is not sent and
 `event=provider_bye_skipped` is logged at warning level; when tm cannot send
 it (no socket, bad Request-URI) `event=provider_bye_failed` is logged at
@@ -158,3 +167,9 @@ printed only with the debug flag.
 Known limit: tools that read the traffic, such as sngrep, see the two legs of
 a loopback call with different Call-IDs, masked toward the provider and clear
 toward Asterisk, and show them as separate, incomplete dialogs.
+
+Known limit: the replies the proxy sends on its own to the callee side (the
+200 OK to its BYE, the 488 above) carry the
+Call-ID of the reflected leg as the proxy sees it, not the one topos built
+for Asterisk: topos does not handle stateless replies. Asterisk matches them
+by the Via branch.

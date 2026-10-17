@@ -184,3 +184,13 @@ Kamailio gives the reflected leg its Call-ID back before the dialog module
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}    0
     Should Be Equal As Integers    ${output}    1
+
+Kamailio refuses SDP in the loopback rewrite
+    [Documentation]    Relayed as it is, the SDP of one side would bring the
+    ...                SRTP offer and the external rtpengine port to the
+    ...                other Asterisk: the rewrite answers 488 instead.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -A1 'event=sdp_refused' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Contain    ${output}    sl_send_reply("488", "Not Acceptable Here");
