@@ -111,8 +111,11 @@ From-tag of the initial INVITE.
   Route, from the socket the setup used. It is sent with `t_uac_send()`, so
   tm retransmits it for up to `FR_TIMEOUT_BYE` (3 seconds, through the tm
   settings instance `tm[1]`: `t_set_fr()` does not apply to it) and then
-  gives up, and it skips topos: it carries no internal address. The proxy answers 200 OK to the BYE the
-  provider reflects back, and lets the dialogs that saw no BYE expire.
+  gives up, and it skips topos: it carries no internal address. The proxy
+  answers 200 OK to the BYE the provider reflects back and lets the dialog
+  module see it, which closes the reflected dialog; a dialog that sees no
+  BYE at all expires 2 seconds after the hangup, with the `dlg timeout`
+  warning of the dialog module.
 - topos rebuilds the end-to-end ACK of a trunk that record-routes with the
   Record-Route as Request-URI. The proxy rebuilds that ACK from the Contact
   and the Record-Route of the 2xx, only when the top Record-Route is not the
