@@ -151,6 +151,12 @@ From-tag of the initial INVITE.
   408 and the call dropped. A Request-URI with the `ftag` parameter is the
   Record-Route of the proxy put there by a real strict router (RFC 2543):
   that request keeps `loose_route()`, with the strict router handling.
+- A reply the provider relays back carries the Contact the proxy gave to
+  the other leg. The NAT handling adds no `;alias=` to a Contact of the
+  proxy: with it the remote target of the callee side differed from the one
+  the provider relayed, and a provider that checks it refused the ACK of a
+  re-INVITE of the callee side with 481 (the 200 OK was retransmitted until
+  Asterisk gave up).
 - The route set used by the rebuilt ACK and by the BYE toward the provider
   is the one of RFC 3261 for the UAC: every Record-Route entry of the 2xx
   that is not the proxy, in reverse order, so a provider with more than one
@@ -177,6 +183,14 @@ setup are missing the BYE toward the provider is not sent and
 it (no socket, bad Request-URI) `event=provider_bye_failed` is logged at
 warning level. A provider that never answers that BYE leaves no log line. The other lines are
 printed only with the debug flag.
+
+Known limit: a SIP ALG between the provider and the node (a NAT helper that
+rewrites Via, Contact and Request-URI) turns the Contact of the proxy that the
+provider relays back into the private address of the node. The re-INVITE of
+the callee side then goes to the provider with that address as
+Request-URI, and the provider refuses it (481) or cannot route it. Disable
+the SIP ALG on the router in front of the node and on the path to the
+provider.
 
 Known limit: tools that read the traffic, such as sngrep, see the two legs of
 a loopback call with different Call-IDs, masked toward the provider and clear

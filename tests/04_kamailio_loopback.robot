@@ -247,3 +247,15 @@ Kamailio keeps strict router handling for its own Record-Route
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}    0
     Should Be Equal As Integers    ${output}    2
+
+Kamailio does not alias a Contact of its own in a reply
+    [Documentation]    On a loopback call the provider relays back the
+    ...                Contact the proxy gave to the other leg: with an alias
+    ...                the remote target differs from the one the provider
+    ...                knows and the ACK of a re-INVITE of the callee side
+    ...                is refused with 481.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -B1 '^ *set_contact_alias();' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Contain    ${output}    !is_myself("$(ct{nameaddr.uri})")
