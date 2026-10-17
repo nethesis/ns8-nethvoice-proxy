@@ -142,6 +142,13 @@ From-tag of the initial INVITE.
   of the 2xx and its route set, only when the trunk record-routes: the ACK
   toward an extension, or toward a trunk that does not record-route, follows
   the normal relay.
+- The remote target of both legs is a Contact of the proxy that the
+  provider relayed, so topos gives an in-dialog request of Asterisk a
+  Request-URI that is the proxy itself. The proxy loose-routes in-dialog
+  requests without strict router handling (`loose_route_mode("1")`): with
+  `loose_route()` a re-INVITE of either Asterisk went to the own
+  Record-Route with the provider Record-Route as Request-URI, timed out with
+  408 and the call dropped.
 - The route set used by the rebuilt ACK and by the BYE toward the provider
   is the one of RFC 3261 for the UAC: every Record-Route entry of the 2xx
   that is not the proxy, in reverse order, so a provider with more than one
@@ -173,8 +180,13 @@ Known limit: tools that read the traffic, such as sngrep, see the two legs of
 a loopback call with different Call-IDs, masked toward the provider and clear
 toward Asterisk, and show them as separate, incomplete dialogs.
 
-Known limit: the replies the proxy sends on its own to the callee side (the
-200 OK to its BYE, the 488 above) and the replies given back to it carry the
-Call-ID of the reflected leg as the proxy sees it, not the one topos built
-for Asterisk: topos does not handle stateless replies. Asterisk matches them
-by the Via branch.
+Known limit: some replies reach the callee side with the Call-ID of the
+reflected leg as the proxy sees it (the masked Call-ID of the trunk-out leg),
+not the one topos built for Asterisk. topos masks the Call-ID toward the
+callee only in the replies it tracks: not in the replies the proxy sends on
+its own (the 200 OK to its BYE, the 488 above), not in the replies to a
+MESSAGE (the 202 given back to a rewritten MESSAGE), and a reply that comes
+back from the provider, such as the 200 OK to a re-INVITE of the callee, is
+unmasked by topos on the way in and masked only once on the way out.
+Asterisk matches the replies by the Via branch: the transactions complete
+and the call goes on.
