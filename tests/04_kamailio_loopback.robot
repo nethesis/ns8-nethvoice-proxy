@@ -50,3 +50,15 @@ Kamailio keeps outgoing calls only briefly for loopback detection
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}    0
     Should Be Equal As Integers    ${output}    1
+
+Kamailio loopback rewrite keeps the dialog tags
+    [Documentation]    The cross-dialog rewrite changes only Call-ID and
+    ...                Request-URI. A To rewrite with uac_replace_to is
+    ...                declined by uac in sequential requests (restore_dlg)
+    ...                and, from the callee side, would set the To-tag to the
+    ...                tag of the sender.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -c 'uac_replace_to' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${output}    0
+

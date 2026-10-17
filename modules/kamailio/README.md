@@ -103,6 +103,9 @@ From-tag of the initial INVITE.
   REFER) go straight to the other side, instead of through the provider. On
   BYE the proxy also closes the leg toward the provider, from the socket the
   setup used, and answers 200 OK to the BYE the provider reflects back.
+  Only the Call-ID and the Request-URI are rewritten: the provider relays the
+  INVITE and its replies without touching the tags, so From-tag and To-tag are
+  already those of the other dialog.
 
 Two events are logged at notice level (`KAMAILIO_LOG_LEVEL` 1 or higher):
 `event=loopback_detected` and `event=provider_bye_absorbed`, both tagged
