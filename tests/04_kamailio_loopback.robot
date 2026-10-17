@@ -167,3 +167,20 @@ Kamailio closes the reflected dialog with the reflected BYE
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}    0
     Should Contain    ${output}    loose_route();
+
+Kamailio gives the reflected leg its Call-ID back before the dialog module
+    [Documentation]    topos unmasks the Call-ID of every request of the
+    ...                provider to the one of the caller side: a re-INVITE or
+    ...                an UPDATE on the reflected leg took the dialog and the
+    ...                rtpengine session of the caller side and kept DTLS.
+    ...                route[LOOPBACK_REFLECTED] runs before dlg_manage().
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -A3 'route(LOOPBACK_REFLECTED);' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Contain    ${output}    dlg_manage();
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -c 'isflagset(FLT_LB_REFLECTED) && is_method("INVITE|UPDATE|PRACK")' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    1

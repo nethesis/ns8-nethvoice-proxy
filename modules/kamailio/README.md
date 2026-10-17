@@ -101,9 +101,17 @@ From-tag of the initial INVITE.
   `loopback` table.
 - In-dialog requests of a linked call (BYE, UPDATE, INFO, PRACK, MESSAGE,
   REFER) go straight to the other side, instead of through the provider.
-  Only the Call-ID and the Request-URI are rewritten: the provider relays the
+  The Call-ID and the Request-URI are rewritten: the provider relays the
   INVITE and its replies without touching the tags, so From-tag and To-tag are
   already those of the other dialog.
+- The provider sends the in-dialog requests of both legs with the masked
+  Call-ID of the trunk-out leg, and topos unmasks it to the Call-ID of the
+  caller side. A request with the From-tag of the initial INVITE belongs to
+  the reflected leg (a re-INVITE or an UPDATE the provider sends toward the
+  callee, the ACK of the reflected INVITE): the proxy gives it back the
+  Call-ID of that leg before the dialog module sees it, so it follows the
+  normal relay with the dialog and the rtpengine session of that leg. A BYE
+  keeps the cross-dialog handling described above.
 - On BYE, whichever side hangs up, the proxy also closes the leg toward the
   provider with a BYE of its own, as UAC of that leg: the masked Call-ID,
   From and To of the setup with its tags, a CSeq above the last one of the
@@ -134,7 +142,9 @@ From-tag of the initial INVITE.
   for the trunk-out leg, with both SDES and DTLS. The proxy removes the DTLS
   attributes from it (and keeps the offers of the reflected leg on SDES), so
   rtpengine answers with SDES: answered with DTLS, the caller audio was
-  dropped as SRTP errors and the callee heard nothing.
+  dropped as SRTP errors and the callee heard nothing. The same applies to
+  the re-INVITE, UPDATE or PRACK with SDP the provider sends on the
+  reflected leg.
 
 Three events are logged at notice level (`KAMAILIO_LOG_LEVEL` 1 or higher):
 `event=loopback_detected`, `event=provider_bye_sent` and
