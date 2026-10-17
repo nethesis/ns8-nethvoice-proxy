@@ -160,13 +160,13 @@ Kamailio uses the whole route set of the trunk
 
 Kamailio closes the reflected dialog with the reflected BYE
     [Documentation]    The BYE the provider reflects back goes through
-    ...                loose_route() before the 200 OK, so the reflected
+    ...                route[LOOSE_ROUTE] before the 200 OK, so the reflected
     ...                dialog is closed and does not expire with a warning.
     ${output}  ${rc} =    Execute Command
     ...    runagent -m ${module_id} podman exec kamailio grep -A6 'event=provider_bye_absorbed' /etc/kamailio/kamailio.cfg
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}    0
-    Should Contain    ${output}    loose_route();
+    Should Contain    ${output}    route(LOOSE_ROUTE);
 
 Kamailio gives the reflected leg its Call-ID back before the dialog module
     [Documentation]    topos unmasks the Call-ID of every request of the
