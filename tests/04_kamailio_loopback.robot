@@ -205,3 +205,24 @@ Kamailio renumbers the CSeq of the loopback rewrite
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}    0
     Should Be Equal As Integers    ${output}    4
+
+Kamailio loose-routes in-dialog requests without strict router handling
+    [Documentation]    On a loopback call the remote target is a Contact of
+    ...                the proxy: loose_route() took the previous hop for a
+    ...                strict router and sent a re-INVITE of Asterisk to the
+    ...                own Record-Route, 408 and the call dropped.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -c 'if (loose_route_mode("1")) {' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    1
+
+Kamailio gives the reflected leg Call-ID also to a provider CANCEL
+    [Documentation]    A CANCEL of a re-INVITE on the reflected leg must
+    ...                carry the Call-ID of that leg, or t_check_trans()
+    ...                does not find the transaction and the CANCEL is lost.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -B1 'route(LOOPBACK_REFLECTED);' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Not Contain    ${output}    CANCEL
