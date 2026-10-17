@@ -1,6 +1,7 @@
 *** Settings ***
 Library    SSHLibrary
 Resource    ./api.resource
+Resource    ./metrics_alerts.resource
 
 *** Test Cases ***
 Check if nethvoice-proxy is installed correctly
@@ -9,6 +10,9 @@ Check if nethvoice-proxy is installed correctly
     Should Be Equal As Integers    ${rc}  0
     &{output} =    Evaluate    ${output}
     Set Global Variable    ${module_id}    ${output.module_id}
+
+Check if targets and alert rules are published before FQDN configuration
+    Proxy Metrics Should Be Published
 
 Gather system information
     ${response}=    Run Task    module/${module_id}/get-available-interfaces   {}

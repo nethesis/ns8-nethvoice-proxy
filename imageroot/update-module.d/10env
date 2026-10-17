@@ -7,6 +7,9 @@
 
 import agent
 import os
+import uuid
+
+SYSTEMD_EXPORTER_UNIT_EXCLUDE_DEFAULT = '.*[.](device|mount|scope|slice|swap|target)$'
 
 # Check if the previus version supoported the NAT scenario
 # if not adjust the env variables
@@ -23,6 +26,20 @@ if os.getenv("SERVICE_IP", None) is None:
     agent.set_env('SERVICE_NET', rdb.get('cluster/network'))
     # Clean up obsolete env variable
     agent.unset_env('KML_INTERNAL_NETWORK')
+
+if os.getenv("NETHVOICE_PROXY_SYSTEMD_EXPORTER_PORT", None) is None:
+    allocated_ports = agent.allocate_ports(1, "tcp", keep_existing=True)
+    systemd_exporter_port = allocated_ports[0]
+    agent.set_env('NETHVOICE_PROXY_SYSTEMD_EXPORTER_PORT', str(systemd_exporter_port))
+
+if os.getenv("SYSTEMD_EXPORTER_PROMETHEUS_PATH", None) is None:
+    agent.set_env('SYSTEMD_EXPORTER_PROMETHEUS_PATH', f'/{uuid.uuid4()}')
+
+if os.getenv("SYSTEMD_EXPORTER_UNIT_INCLUDE", None) is None:
+    agent.set_env('SYSTEMD_EXPORTER_UNIT_INCLUDE', '.*')
+
+if os.getenv("SYSTEMD_EXPORTER_UNIT_EXCLUDE", None) is None:
+    agent.set_env('SYSTEMD_EXPORTER_UNIT_EXCLUDE', SYSTEMD_EXPORTER_UNIT_EXCLUDE_DEFAULT)
 
 # test if the passwords.env is present and if 'POSTGRES_PASSWORD' is present
 if not os.path.exists("passwords.env") and os.getenv('POSTGRES_PASSWORD') is not None:
