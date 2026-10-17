@@ -110,3 +110,60 @@ Kamailio rebuilds the ACK only toward an upstream Record-Route
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}    0
     Should Be Equal As Integers    ${output}    1
+
+Kamailio answers the reflected loopback SDP with SDES
+    [Documentation]    The reflected SDP is the SRTP offer rtpengine made for
+    ...                the trunk-out leg, with SDES and DTLS. Answered with
+    ...                DTLS, the reflected leg dropped the caller audio as
+    ...                SRTP errors: the DTLS attributes are removed and the
+    ...                reflected leg keeps DTLS=off.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -c 'sdp_remove_line_by_prefix("a=fingerprint")' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    1
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -c ' DTLS=off' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    1
+
+Kamailio gives the dialog context back to the loopback BYE
+    [Documentation]    dlg_get() in route[LOOPBACK_CLOSE_TRUNK] moves the
+    ...                dialog context; the BYE is forwarded statelessly and
+    ...                the dialog module releases a reference of the context
+    ...                dialog: it must be the dialog of the BYE again.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -c 'dlg_get("$var(lb_own_ci)", "$var(lb_own_ft)", "$var(lb_own_tt)")' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    1
+
+Kamailio retransmits the loopback BYE for FR_TIMEOUT_BYE
+    [Documentation]    t_uac_send() ignores t_set_fr(): the BYE uses the tm
+    ...                settings instance 1, selected around t_uac_send().
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -c -e 'tm\\[1\\].fr_timer = FR_TIMEOUT_BYE' -e 'cfg_select("tm", 1)' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    2
+
+Kamailio uses the whole route set of the trunk
+    [Documentation]    The rebuilt ACK and the loopback BYE carry every
+    ...                Record-Route entry of the 2xx that is not the proxy,
+    ...                in reverse order, not only the first header.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -c 'route(UAC_ROUTE_SET)' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    2
+
+Kamailio closes the reflected dialog with the reflected BYE
+    [Documentation]    The BYE the provider reflects back goes through
+    ...                loose_route() before the 200 OK, so the reflected
+    ...                dialog is closed and does not expire with a warning.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -A6 'event=provider_bye_absorbed' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Contain    ${output}    loose_route();
