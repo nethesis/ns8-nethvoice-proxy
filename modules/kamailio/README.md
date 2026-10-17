@@ -106,6 +106,11 @@ From-tag of the initial INVITE.
   Only the Call-ID and the Request-URI are rewritten: the provider relays the
   INVITE and its replies without touching the tags, so From-tag and To-tag are
   already those of the other dialog.
+- topos rebuilds the end-to-end ACK of a trunk that record-routes with the
+  Record-Route as Request-URI. The proxy rebuilds that ACK from the Contact
+  and the Record-Route of the 2xx, only when the top Record-Route is not the
+  proxy itself: the ACK toward an extension, or toward a trunk that does not
+  record-route, follows the normal relay.
 
 Two events are logged at notice level (`KAMAILIO_LOG_LEVEL` 1 or higher):
 `event=loopback_detected` and `event=provider_bye_absorbed`, both tagged

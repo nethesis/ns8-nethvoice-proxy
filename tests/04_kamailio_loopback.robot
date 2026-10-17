@@ -62,3 +62,14 @@ Kamailio loopback rewrite keeps the dialog tags
     ...    return_rc=True
     Should Be Equal As Integers    ${output}    0
 
+Kamailio rebuilds the ACK only toward an upstream Record-Route
+    [Documentation]    The end-to-end ACK rebuild is for trunks that
+    ...                record-route. When the top Record-Route of the 2xx is
+    ...                the proxy itself (an extension behind NAT) the ACK
+    ...                must follow the normal relay, or it is sent back to
+    ...                the proxy and the extension never gets it.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio grep -c '!is_myself("$var(rr_uri)")' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Be Equal As Integers    ${output}    1
