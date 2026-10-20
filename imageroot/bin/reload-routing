@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2026 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+"""Reload Kamailio routing tables, checking RPC faults and rate limits."""
+
+import argparse
+import fcntl
+import os
+import re
+import subprocess
+import sys
+import time
+
+
+TIMEOUT = 45
+RPC_TIMEOUT = 10
+RETRY_DELAY = 5
+
+
+def remaining(deadline):
+    seconds = deadline - time.monotonic()
+    if seconds <= 0:
+        raise RuntimeError("Timed out waiting for Kamailio routing reload")
+    return seconds
+
+
+def reload_table(command, deadline):
+    while True:
+        result = subprocess.run(
+            ["podman", "exec", "kamailio", "kamcmd", command],
+            capture_output=True,
+            text=True,
+            timeout=min(RPC_TIMEOUT, remaining(deadline)),
+        )
+        # kamcmd can print an RPC fault to stdout and still exit successfully.
+        reply = (result.stdout + "\n" + result.stderr).strip()
+        fault = re.search(r"^\s*error\s*:", reply, re.IGNORECASE | re.MULTILINE)
+        if result.returncode == 0 and not fault:
+            return
+        if fault and "ongoing reload" in reply.lower():
+            print(f"Kamailio {command} rate limited; retrying", file=sys.stderr)
+            time.sleep(min(RETRY_DELAY, remaining(deadline)))
+            continue
+        raise RuntimeError(f"Kamailio {command} failed: {reply or 'no RPC response'}")
+
+
+def reload_routing(commands):
+    deadline = time.monotonic() + TIMEOUT
+    lock_path = os.path.join(os.environ["AGENT_STATE_DIR"], "routing-reload.lock")
+    # Every route/trunk action uses this lock. Bound lock waiting as well as RPCs.
+    with open(lock_path, "a") as lock:
+        while True:
+            try:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                time.sleep(min(0.1, remaining(deadline)))
+        for command in commands:
+            reload_table(command, deadline)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "commands", nargs="+",
+        choices=("domain.reload", "dialplan.reload", "dispatcher.reload"),
+    )
+    args = parser.parse_args()
+    try:
+        reload_routing(args.commands)
+    except (OSError, RuntimeError, subprocess.TimeoutExpired) as ex:
+        print(f"Cannot reload Kamailio routing: {ex}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
