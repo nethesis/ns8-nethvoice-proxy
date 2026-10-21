@@ -61,9 +61,12 @@ class RenderTest(unittest.TestCase):
         self.assertIn('nethvoice_proxy_trunk_registration_up{nethvoice="nethvoice1",trunk="100@sip.provider.it"} 0\n', text)
         self.assertIn('nethvoice_proxy_trunk_registration_status_code{nethvoice="nethvoice1",trunk="100@sip.provider.it"} 408\n', text)
 
-    def test_unknown_set_id(self):
-        text, _ = self.render({"9|100@sip.provider.it": 200}, {"1": "nethvoice1"})
-        self.assertIn('nethvoice="unknown",trunk="100@sip.provider.it"', text)
+    def test_set_id_of_a_removed_instance_is_skipped(self):
+        text, err = self.render({"9|100@sip.provider.it": 403, "1|200@sip.provider.it": 200}, {"1": "nethvoice1"})
+        self.assertNotIn("100@sip.provider.it", text)
+        self.assertNotIn("unknown", text)
+        self.assertIn('nethvoice="nethvoice1",trunk="200@sip.provider.it"', text)
+        self.assertEqual(err, "")
 
     def test_two_set_ids_of_the_same_instance_give_one_series(self):
         text, _ = self.render({"1|100@sip.provider.it": 200, "2|100@sip.provider.it": 200}, {"1": "nethvoice2", "2": "nethvoice2"})
@@ -79,11 +82,11 @@ class RenderTest(unittest.TestCase):
         self.assertIn('trunk="a\\"b@sip.provider.it"', text)
 
     def test_ip_trunk_options(self):
-        options = {"6|sip:77.239.128.13:5060": 408, "6|sip:198.51.100.7": 404}
+        options = {"6|77.239.128.13:5060": 408, "6|198.51.100.7:5060": 404}
         text = kamailio.render({}, {"6": "nethvoice173"}, options)
         self.assertIn('nethvoice_proxy_trunk_options_status_code{nethvoice="nethvoice173",trunk="77.239.128.13:5060"} 408\n', text)
         # Any answer means the provider is alive: the code is exported as it is
-        self.assertIn('nethvoice_proxy_trunk_options_status_code{nethvoice="nethvoice173",trunk="198.51.100.7"} 404\n', text)
+        self.assertIn('nethvoice_proxy_trunk_options_status_code{nethvoice="nethvoice173",trunk="198.51.100.7:5060"} 404\n', text)
         self.assertNotIn("nethvoice_proxy_trunk_registration_up{", text)
 
     def test_collect_reads_both_tables(self):
@@ -91,7 +94,7 @@ class RenderTest(unittest.TestCase):
 
         def entries(table):
             tables.append(table)
-            return {"6|sip:77.239.128.13:5060": 200} if table == "nvtrunkopt" else {}
+            return {"6|77.239.128.13:5060": 200} if table == "nvtrunkopt" else {}
 
         text = kamailio.collect(entries, lambda: {"6": "nethvoice173"})
         self.assertEqual(tables, ["nvtrunkreg", "nvtrunkopt"])

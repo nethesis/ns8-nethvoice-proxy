@@ -18,9 +18,11 @@ Used by the NethVoiceTrunkUnreachable alert (etc/metrics/alert-rules/proxy-telep
 Kamailio stores the last answer in the nvtrunkreg htable with key
 "<dispatcher set id>|<To user>@<To domain>" (kamailio.cfg, route
 NV_TRUNK_REG_REPLY), and in the nvtrunkopt htable with key
-"<dispatcher set id>|<To URI>" (route NV_TRUNK_OPT_TAG). The set id is mapped
-to the NethVoice module id with the dispatcher table, where the description
-is the NethVoice MODULE_ID. Only UDP is tracked: see route NV_TRUNK_REG_TAG.
+"<dispatcher set id>|<host>:<port>" of the To URI (route NV_TRUNK_OPT_TAG).
+The set id is mapped to the NethVoice module id with the dispatcher table,
+where the description is the NethVoice MODULE_ID: entries of a set id that is not in the table
+belong to a removed instance and are skipped. Only UDP is tracked: see route
+NV_TRUNK_REG_TAG.
 """
 
 import json
@@ -97,9 +99,10 @@ def codes_by_trunk(entries, instances, table):
         if not trunk or code is None:
             print("kamailio: unexpected %s entry %r skipped" % (table, key), file=sys.stderr)
             continue
-        if trunk.startswith("sip:"):
-            trunk = trunk[4:]
-        codes[(instances.get(setid, "unknown"), trunk)] = code
+        if setid not in instances:
+            # Instance removed: its entries stay in the htable until autoexpire
+            continue
+        codes[(instances[setid], trunk)] = code
     return codes
 
 
