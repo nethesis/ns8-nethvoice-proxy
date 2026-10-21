@@ -11,6 +11,7 @@ import socket
 import subprocess
 import sys
 import threading
+import time
 import unittest
 from contextlib import redirect_stderr
 from pathlib import Path
@@ -51,14 +52,11 @@ class RenderTest(unittest.TestCase):
 
     def test_registered_and_rejected(self):
         text, _ = self.render({"6|NvTestProxy@192.0.2.12": 403, "6|user@sip.example.com": 200}, {"6": "nethvoice2"})
-        self.assertIn('nethvoice_proxy_trunk_registration_up{nethvoice="nethvoice2",trunk="user@sip.example.com"} 1\n', text)
         self.assertIn('nethvoice_proxy_trunk_registration_status_code{nethvoice="nethvoice2",trunk="user@sip.example.com"} 200\n', text)
-        self.assertIn('nethvoice_proxy_trunk_registration_up{nethvoice="nethvoice2",trunk="NvTestProxy@192.0.2.12"} 0\n', text)
         self.assertIn('nethvoice_proxy_trunk_registration_status_code{nethvoice="nethvoice2",trunk="NvTestProxy@192.0.2.12"} 403\n', text)
 
     def test_timeout(self):
         text, _ = self.render({"1|100@sip.provider.it": "408"}, {"1": "nethvoice1"})
-        self.assertIn('nethvoice_proxy_trunk_registration_up{nethvoice="nethvoice1",trunk="100@sip.provider.it"} 0\n', text)
         self.assertIn('nethvoice_proxy_trunk_registration_status_code{nethvoice="nethvoice1",trunk="100@sip.provider.it"} 408\n', text)
 
     def test_set_id_of_a_removed_instance_is_skipped(self):
@@ -70,11 +68,11 @@ class RenderTest(unittest.TestCase):
 
     def test_two_set_ids_of_the_same_instance_give_one_series(self):
         text, _ = self.render({"1|100@sip.provider.it": 200, "2|100@sip.provider.it": 200}, {"1": "nethvoice2", "2": "nethvoice2"})
-        self.assertEqual(text.count("nethvoice_proxy_trunk_registration_up{"), 1)
+        self.assertEqual(text.count("nethvoice_proxy_trunk_registration_status_code{"), 1)
 
     def test_malformed_entries_are_skipped(self):
         text, err = self.render({"garbage": 200, "1|100@sip.provider.it": "abc"}, {"1": "nethvoice1"})
-        self.assertNotIn("nethvoice_proxy_trunk_registration_up{", text)
+        self.assertNotIn("nethvoice_proxy_trunk_registration_status_code{", text)
         self.assertIn("garbage", err)
 
     def test_label_values_are_escaped(self):
@@ -87,7 +85,7 @@ class RenderTest(unittest.TestCase):
         self.assertIn('nethvoice_proxy_trunk_options_status_code{nethvoice="nethvoice173",trunk="77.239.128.13:5060"} 408\n', text)
         # Any answer means the provider is alive: the code is exported as it is
         self.assertIn('nethvoice_proxy_trunk_options_status_code{nethvoice="nethvoice173",trunk="198.51.100.7:5060"} 404\n', text)
-        self.assertNotIn("nethvoice_proxy_trunk_registration_up{", text)
+        self.assertNotIn("nethvoice_proxy_trunk_registration_status_code{", text)
 
     def test_collect_reads_both_tables(self):
         tables = []
@@ -97,8 +95,28 @@ class RenderTest(unittest.TestCase):
             return {"6|77.239.128.13:5060": 200} if table == "nvtrunkopt" else {}
 
         text = kamailio.collect(entries, lambda: {"6": "nethvoice173"})
-        self.assertEqual(tables, ["nvtrunkreg", "nvtrunkopt"])
+        self.assertCountEqual(tables, ["nvtrunkreg", "nvtrunkopt"])
         self.assertIn('trunk_options_status_code{nethvoice="nethvoice173",trunk="77.239.128.13:5060"} 200\n', text)
+
+    def test_collect_reads_in_parallel(self):
+        def entries(table):
+            time.sleep(0.5)
+            return {}
+
+        def instances():
+            time.sleep(0.5)
+            return {}
+
+        started = time.monotonic()
+        kamailio.collect(entries, instances)
+        self.assertLess(time.monotonic() - started, 1.2)
+
+    def test_collect_fails_when_a_read_fails(self):
+        def instances():
+            raise CheckUnavailable("postgres down")
+
+        with self.assertRaises(CheckUnavailable):
+            kamailio.collect(lambda table: {}, instances)
 
     def test_reserved_labels_are_never_set(self):
         text, _ = self.render({"6|user@sip.example.com": 200}, {"6": "nethvoice2"})

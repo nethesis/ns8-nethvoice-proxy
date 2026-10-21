@@ -7,8 +7,6 @@
 
 Used by the NethVoiceTrunkUnreachable alert (etc/metrics/alert-rules/proxy-telephony.yml):
 
-- nethvoice_proxy_trunk_registration_up{nethvoice,trunk}: 1 if the provider
-  accepted the last registration (2xx), 0 otherwise
 - nethvoice_proxy_trunk_registration_status_code{nethvoice,trunk}: SIP code of
   the last answer, 408 when the provider did not answer
 - nethvoice_proxy_trunk_options_status_code{nethvoice,trunk}: SIP code of the
@@ -20,11 +18,12 @@ Kamailio stores the last answer in the nvtrunkreg htable with key
 NV_TRUNK_REG_REPLY), and in the nvtrunkopt htable with key
 "<dispatcher set id>|<host>:<port>" of the To URI (route NV_TRUNK_OPT_TAG).
 The set id is mapped to the NethVoice module id with the dispatcher table,
-where the description is the NethVoice MODULE_ID: entries of a set id that is not in the table
-belong to a removed instance and are skipped. Only UDP is tracked: see route
+where the description is the NethVoice MODULE_ID: entries of a set id that
+is not in the table belong to a removed instance and are skipped. Only UDP is tracked: see route
 NV_TRUNK_REG_TAG.
 """
 
+import concurrent.futures
 import json
 import subprocess
 import sys
@@ -111,20 +110,15 @@ def render(entries, instances, options=None):
 
     entries: nvtrunkreg htable, options: nvtrunkopt htable.
     """
-    up = []
     codes = []
     for (nethvoice, trunk), code in sorted(codes_by_trunk(entries, instances, REGISTRATIONS).items()):
         labels = 'nethvoice="%s",trunk="%s"' % (escape(nethvoice), escape(trunk))
-        up.append("nethvoice_proxy_trunk_registration_up{%s} %d" % (labels, 200 <= code < 300))
         codes.append("nethvoice_proxy_trunk_registration_status_code{%s} %d" % (labels, code))
     qualify = []
     for (nethvoice, trunk), code in sorted(codes_by_trunk(options or {}, instances, OPTIONS).items()):
         labels = 'nethvoice="%s",trunk="%s"' % (escape(nethvoice), escape(trunk))
         qualify.append("nethvoice_proxy_trunk_options_status_code{%s} %d" % (labels, code))
     lines = [
-        "# HELP nethvoice_proxy_trunk_registration_up 1 if the provider accepted the last trunk registration",
-        "# TYPE nethvoice_proxy_trunk_registration_up gauge",
-        *up,
         "# HELP nethvoice_proxy_trunk_registration_status_code SIP code of the last answer to the trunk registration, 408 without answer",
         "# TYPE nethvoice_proxy_trunk_registration_status_code gauge",
         *codes,
@@ -136,4 +130,10 @@ def render(entries, instances, options=None):
 
 
 def collect(entries=read_entries, instances=read_instances):
-    return render(entries(REGISTRATIONS), instances(), entries(OPTIONS))
+    # The reads do not depend on each other: in parallel, a slow Kamailio or
+    # postgres costs one TIMEOUT, not three
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+        registrations = pool.submit(entries, REGISTRATIONS)
+        options = pool.submit(entries, OPTIONS)
+        mapping = pool.submit(instances)
+        return render(registrations.result(), mapping.result(), options.result())

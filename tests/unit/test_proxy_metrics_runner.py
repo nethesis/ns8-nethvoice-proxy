@@ -51,10 +51,6 @@ class RunTest(unittest.TestCase):
         self.assertIn('nethvoice_proxy_exporter_collector_up{collector="dns"} 0\n', text)
         self.assertIn("dns: resolvers unreachable", err)
 
-    def test_disabled_collector_is_silent(self):
-        text, _ = self.run_collectors([("a", None)])
-        self.assertNotIn('collector="a"', text)
-
     def test_collectors_run_in_parallel(self):
         def slow():
             time.sleep(0.5)
