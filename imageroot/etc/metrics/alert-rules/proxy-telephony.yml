@@ -1,0 +1,51 @@
+#
+# Copyright (C) 2026 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# A SIP trunk that cannot register to its provider stops calls. NethVoice
+# publishes the same alert name for the trunks the proxy does not see; here
+# the trunk registrations relayed by the proxy, over UDP, and the OPTIONS
+# that Asterisk sends to IP trunks through the proxy (Asterisk counts the 408
+# of the proxy as an answer, so it cannot see a silent provider). The trunk
+# label is "<To user>@<To domain>" of the REGISTER, or the To URI of the
+# OPTIONS, the nethvoice label the NethVoice instance. Series come from export-metrics (pypkg/proxymetrics/kamailio.py)
+# every 5 minutes, so "for: 10m" means 3 failed checks in a row.
+groups:
+  - name: telephony
+    rules:
+      - alert: NethVoiceTrunkUnreachable
+        expr: nethvoice_proxy_trunk_registration_status_code >= 300 and nethvoice_proxy_trunk_registration_status_code != 408
+        for: 10m
+        labels:
+          severity: critical
+          alertgroup: telephony
+          reason: registration_rejected
+        annotations:
+          summary_en: "Trunk {{ $labels.trunk }} of {{ $labels.nethvoice }} is unreachable: registration rejected"
+          summary_it: "Il fascio {{ $labels.trunk }} di {{ $labels.nethvoice }} non è raggiungibile: registrazione rifiutata"
+          description_en: "The provider has rejected the registration of trunk {{ $labels.trunk }} (NethVoice {{ $labels.nethvoice }}, proxy {{ $labels.module_id }}) for more than 10 minutes: calls through this trunk fail. Last SIP code: {{ $value }}. Check the trunk credentials."
+          description_it: "Il provider rifiuta la registrazione del fascio {{ $labels.trunk }} (NethVoice {{ $labels.nethvoice }}, proxy {{ $labels.module_id }}) da più di 10 minuti: le chiamate su questo fascio falliscono. Ultimo codice SIP: {{ $value }}. Verificare le credenziali del fascio."
+      - alert: NethVoiceTrunkUnreachable
+        expr: nethvoice_proxy_trunk_registration_status_code == 408
+        for: 10m
+        labels:
+          severity: critical
+          alertgroup: telephony
+          reason: registration_timeout
+        annotations:
+          summary_en: "Trunk {{ $labels.trunk }} of {{ $labels.nethvoice }} is unreachable: no answer from the provider"
+          summary_it: "Il fascio {{ $labels.trunk }} di {{ $labels.nethvoice }} non è raggiungibile: il provider non risponde"
+          description_en: "The provider has not answered the registration of trunk {{ $labels.trunk }} (NethVoice {{ $labels.nethvoice }}, proxy {{ $labels.module_id }}) for more than 10 minutes: calls through this trunk fail. Check the provider address and the network path from the proxy."
+          description_it: "Il provider non risponde alla registrazione del fascio {{ $labels.trunk }} (NethVoice {{ $labels.nethvoice }}, proxy {{ $labels.module_id }}) da più di 10 minuti: le chiamate su questo fascio falliscono. Verificare l'indirizzo del provider e il percorso di rete dal proxy."
+      - alert: NethVoiceTrunkUnreachable
+        expr: nethvoice_proxy_trunk_options_status_code == 408
+        for: 10m
+        labels:
+          severity: critical
+          alertgroup: telephony
+          reason: qualify_timeout
+        annotations:
+          summary_en: "Trunk {{ $labels.trunk }} of {{ $labels.nethvoice }} is unreachable: no answer to OPTIONS"
+          summary_it: "Il fascio {{ $labels.trunk }} di {{ $labels.nethvoice }} non è raggiungibile: nessuna risposta agli OPTIONS"
+          description_en: "The provider of IP trunk {{ $labels.trunk }} (NethVoice {{ $labels.nethvoice }}, proxy {{ $labels.module_id }}) has not answered the OPTIONS checks for more than 10 minutes: calls through this trunk fail. Check the provider address and the network path from the proxy."
+          description_it: "Il provider del fascio IP {{ $labels.trunk }} (NethVoice {{ $labels.nethvoice }}, proxy {{ $labels.module_id }}) non risponde ai controlli OPTIONS da più di 10 minuti: le chiamate su questo fascio falliscono. Verificare l'indirizzo del provider e il percorso di rete dal proxy."

@@ -7,12 +7,14 @@ Alert rules are published
     ${output}    ${rc} =    Execute Command    runagent redis-exec HKEYS module/${module_id}/metrics_alert_rules    return_rc=True
     Should Be Equal As Integers    ${rc}    0
     Should Contain    ${output}    proxy-services
+    Should Contain    ${output}    proxy-telephony
 
 Service state is exported
     ${output}    ${rc} =    Execute Command    runagent -m ${module_id} export-metrics    return_rc=True
     Should Be Equal As Integers    ${rc}    0
     Should Contain    ${output}    nethvoice_proxy_service_up{service="kamailio"} 1
     Should Contain    ${output}    nethvoice_proxy_service_restarts_total{service="kamailio"}
+    Should Contain    ${output}    nethvoice_proxy_exporter_collector_up{collector="kamailio"} 1
     Should Not Contain    ${output}    module=
 
 Publishing changed rules sends the event
