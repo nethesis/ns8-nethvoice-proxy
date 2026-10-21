@@ -153,6 +153,12 @@ Limits:
 - When the provider stops for good after a fatal answer (for example 404), the
   last answer expires after 25 hours and the alert clears while the trunk is
   still broken.
+- The NethVoice instance of a trunk is read from the dispatcher table of
+  postgres at every export. While postgres is down or slow, the trunk metrics
+  are missing (`nethvoice_proxy_exporter_collector_up{collector="kamailio"}`
+  is 0) and a pending alert waits its 10 minutes again.
+- A trunk REGISTER whose To URI has no user part gets the `<null>@<domain>`
+  label.
 
 The metrics are exported every 5 minutes; check them with
 `runagent -m nethvoice-proxy1 export-metrics`. The alerts require core 3.24.0

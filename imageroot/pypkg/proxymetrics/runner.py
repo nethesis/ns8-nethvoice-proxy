@@ -31,7 +31,7 @@ def _collect(name, collect, results):
 
 
 def run(collectors, deadline=DEADLINE):
-    """collectors: [(name, function or None when disabled)]
+    """collectors: [(name, function)]
 
     The collectors run in parallel. A collector still running after deadline
     seconds is reported as failed and its thread is abandoned.
@@ -39,8 +39,6 @@ def run(collectors, deadline=DEADLINE):
     results = {}
     threads = []
     for name, collect in collectors:
-        if collect is None:
-            continue
         thread = threading.Thread(target=_collect, args=(name, collect, results), daemon=True)
         thread.start()
         threads.append((name, thread))
