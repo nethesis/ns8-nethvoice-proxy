@@ -7,9 +7,11 @@
 # the trunk registrations relayed by the proxy, over UDP, and the OPTIONS
 # that Asterisk sends to IP trunks through the proxy (Asterisk counts the 408
 # of the proxy as an answer, so it cannot see a silent provider). The trunk
-# label is "<To user>@<To domain>" of the REGISTER, or the To URI of the
-# OPTIONS, the nethvoice label the NethVoice instance. Series come from export-metrics (pypkg/proxymetrics/kamailio.py)
-# every 5 minutes, so "for: 10m" means 3 failed checks in a row.
+# label is "<To user>@<To domain>" of the REGISTER, or "<host>:<port>" of the
+# To URI of the OPTIONS (port 5060 when missing), the nethvoice label the
+# NethVoice instance. Series come from export-metrics
+# (pypkg/proxymetrics/kamailio.py) every 5 minutes, so "for: 10m" means 3
+# failed checks in a row.
 groups:
   - name: telephony
     rules:

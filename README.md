@@ -138,7 +138,15 @@ Limits:
 
 - Only the OPTIONS sent to a contact without user part (`sip:<host>:<port>`)
   are tracked, so phones are left out; an IP trunk whose contact has a user
-  part is not checked.
+  part is not checked. Devices registered through the proxy (kept in the
+  `nvdevices` htable for 25 hours) are left out too, even when their contact
+  has no user part. After a Kamailio restart a device is known again at its
+  next registration, which also drops the OPTIONS answers stored for its
+  address in the meantime; a de-registration forgets the device.
+- When a trunk is disabled or deleted in NethVoice, its last answer stays
+  until it expires (25 hours for registrations, 1 hour for OPTIONS), so a
+  failing trunk keeps the alert firing for that time.
+- The trunks of a removed NethVoice instance are not exported.
 - Only UDP trunk registrations and OPTIONS are checked. Over TCP and TLS
   Asterisk sends from a random port, so the proxy cannot tell which NethVoice
   instance the trunk belongs to.
