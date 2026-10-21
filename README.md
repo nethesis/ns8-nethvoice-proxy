@@ -129,6 +129,12 @@ Labels: `nethvoice` is the NethVoice instance, `trunk` is the To URI of the
 REGISTER (`<user>@<domain>`) or of the OPTIONS (`<host>:<port>`). NethVoice publishes the same alert for the
 trunks that do not use the proxy.
 
+The alert summary and description also show the trunk name, for example
+`Retel_GNR (203.0.113.5:5060)`. The name comes from the
+`nethvoice_trunk_proxy_info` series of the NethVoice instance; when it is
+missing (older NethVoice, NethVoice metrics not exported) only the `trunk`
+label is shown.
+
 Kamailio keeps the last answer in the `nvtrunkreg` htable for 25 hours, and
 the last OPTIONS answer in `nvtrunkopt` for 1 hour. Read them with:
 
