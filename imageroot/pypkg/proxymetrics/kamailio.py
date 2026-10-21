@@ -51,6 +51,14 @@ def rpc(method, params, url=RPC_URL):
     try:
         with opener.open(request, timeout=TIMEOUT) as response:
             answer = json.load(response)
+    except urllib.error.HTTPError as ex:
+        # Kamailio answers, with an HTTP error: report its message, e.g. "No such htable"
+        try:
+            message = json.load(ex).get("error", {}).get("message", "")
+        except (OSError, ValueError, AttributeError):
+            message = ""
+        ex.close()
+        raise CheckUnavailable("Kamailio JSON-RPC %s failed: %s" % (method, message or "HTTP %d" % ex.code)) from None
     except (OSError, ValueError) as ex:
         raise CheckUnavailable("Kamailio JSON-RPC not reachable: %s" % (getattr(ex, "reason", None) or ex)) from None
     if "error" in answer:

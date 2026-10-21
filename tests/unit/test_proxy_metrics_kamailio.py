@@ -133,14 +133,14 @@ class ReadInstancesTest(unittest.TestCase):
 
 
 class RpcTest(unittest.TestCase):
-    def serve(self, answer):
+    def serve(self, answer, status=200):
         received = []
 
         class Handler(http.server.BaseHTTPRequestHandler):
             def do_POST(self):
                 received.append(json.loads(self.rfile.read(int(self.headers["Content-Length"]))))
                 body = json.dumps(answer).encode()
-                self.send_response(200)
+                self.send_response(status)
                 self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
@@ -167,6 +167,19 @@ class RpcTest(unittest.TestCase):
         url, _ = self.serve({"jsonrpc": "2.0", "error": {"code": 500, "message": "No such htable"}, "id": 1})
         with self.assertRaises(CheckUnavailable):
             kamailio.rpc("htable.dump", ["nvtrunkreg"], url)
+
+    def test_http_error_reports_the_kamailio_message(self):
+        # Kamailio answers HTTP 500 when the table does not exist
+        url, _ = self.serve({"jsonrpc": "2.0", "error": {"code": 500, "message": "No such htable"}, "id": 1}, 500)
+        with self.assertRaises(CheckUnavailable) as ctx:
+            kamailio.rpc("htable.dump", ["nvtrunkopt"], url)
+        self.assertEqual(str(ctx.exception), "Kamailio JSON-RPC htable.dump failed: No such htable")
+
+    def test_http_error_without_body(self):
+        url, _ = self.serve("", 503)
+        with self.assertRaises(CheckUnavailable) as ctx:
+            kamailio.rpc("htable.dump", ["nvtrunkopt"], url)
+        self.assertEqual(str(ctx.exception), "Kamailio JSON-RPC htable.dump failed: HTTP 503")
 
     def test_kamailio_down_is_unavailable(self):
         sock = socket.socket()
