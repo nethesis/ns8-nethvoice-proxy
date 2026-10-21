@@ -114,8 +114,41 @@ postgres, redis and rtpengine. The `reason` label tells why it fires:
   10 minutes
 - `crash_loop`: systemd restarted it at least 3 times in a short time
 
-The service state is exported every 5 minutes. The alert requires core
-3.24.0 or later.
+The module also publishes `NethVoiceTrunkUnreachable` (critical) for the
+trunks it relays for each NethVoice instance. It fires when the last answer
+of the provider has been a failure for more than 10 minutes:
+
+- `registration_rejected`: the provider answers with an error (for example
+  403); the `$value` is the last SIP code
+- `registration_timeout`: the provider does not answer, or cannot be reached
+- `qualify_timeout`: the provider of an IP trunk (no registration) does not
+  answer the OPTIONS checks of Asterisk. Asterisk counts the 408 sent by the
+  proxy as an answer, so only the proxy can see a silent provider
+
+Labels: `nethvoice` is the NethVoice instance, `trunk` is the To URI of the
+REGISTER (`<user>@<domain>`) or of the OPTIONS (`<host>:<port>`). NethVoice publishes the same alert for the
+trunks that do not use the proxy.
+
+Kamailio keeps the last answer in the `nvtrunkreg` htable for 25 hours, and
+the last OPTIONS answer in `nvtrunkopt` for 1 hour. Read them with:
+
+    curl -s -d '{"jsonrpc":"2.0","method":"htable.dump","params":["nvtrunkreg"],"id":1}' http://127.0.0.1:5060/RPC
+
+Limits:
+
+- Only the OPTIONS sent to a contact without user part (`sip:<host>:<port>`)
+  are tracked, so phones are left out; an IP trunk whose contact has a user
+  part is not checked.
+- Only UDP trunk registrations and OPTIONS are checked. Over TCP and TLS
+  Asterisk sends from a random port, so the proxy cannot tell which NethVoice
+  instance the trunk belongs to.
+- When the provider stops for good after a fatal answer (for example 404), the
+  last answer expires after 25 hours and the alert clears while the trunk is
+  still broken.
+
+The metrics are exported every 5 minutes; check them with
+`runagent -m nethvoice-proxy1 export-metrics`. The alerts require core 3.24.0
+or later, and the metrics app 1.7.0-dev.1 or later.
 
 Known limit: moving or cloning the module stops kamailio and postgres on
 purpose, while they stay enabled. If the transfer takes more than 10 minutes,
