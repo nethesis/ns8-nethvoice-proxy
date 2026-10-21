@@ -1,0 +1,133 @@
+rule_files:
+  - ../../imageroot/etc/metrics/alert-rules/proxy-services.yml
+
+evaluation_interval: 1m
+
+tests:
+  # Unit stopped: "stopped" once the last 10 minutes are all 0
+  - interval: 1m
+    input_series:
+      - series: 'nethvoice_proxy_service_up{module_id="nethvoice-proxy1",node="1",service="kamailio"}'
+        values: '1x4 0x35'
+      - series: 'nethvoice_proxy_service_restarts_total{module_id="nethvoice-proxy1",node="1",service="kamailio"}'
+        values: '0x40'
+    alert_rule_test:
+      - eval_time: 13m
+        alertname: ServiceDown
+        exp_alerts: []
+      - eval_time: 15m
+        alertname: ServiceDown
+        exp_alerts:
+          - exp_labels: {severity: critical, alertgroup: services, reason: stopped, service: kamailio, module_id: nethvoice-proxy1, node: "1"}
+            exp_annotations:
+              summary_en: "Service kamailio is down"
+              summary_it: "Il servizio kamailio non è attivo"
+              description_en: "Service kamailio of module nethvoice-proxy1 on node 1 has been down for more than 10 minutes"
+              description_it: "Il servizio kamailio del modulo nethvoice-proxy1 sul nodo 1 non è attivo da più di 10 minuti"
+
+  # Series that appears already down at 9m: "stopped" only 10 minutes later
+  - interval: 1m
+    input_series:
+      - series: 'nethvoice_proxy_service_up{module_id="nethvoice-proxy1",node="1",service="redis"}'
+        values: '_x9 0x30'
+      - series: 'nethvoice_proxy_service_restarts_total{module_id="nethvoice-proxy1",node="1",service="redis"}'
+        values: '_x9 0x30'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ServiceDown
+        exp_alerts: []
+      - eval_time: 18m
+        alertname: ServiceDown
+        exp_alerts: []
+      - eval_time: 19m
+        alertname: ServiceDown
+        exp_alerts:
+          - exp_labels: {severity: critical, alertgroup: services, reason: stopped, service: redis, module_id: nethvoice-proxy1, node: "1"}
+            exp_annotations:
+              summary_en: "Service redis is down"
+              summary_it: "Il servizio redis non è attivo"
+              description_en: "Service redis of module nethvoice-proxy1 on node 1 has been down for more than 10 minutes"
+              description_it: "Il servizio redis del modulo nethvoice-proxy1 sul nodo 1 non è attivo da più di 10 minuti"
+
+  # Crash loop: 3 restarts in one export step, unit back up
+  - interval: 1m
+    input_series:
+      - series: 'nethvoice_proxy_service_up{module_id="nethvoice-proxy1",node="1",service="rtpengine"}'
+        values: '1x50'
+      - series: 'nethvoice_proxy_service_restarts_total{module_id="nethvoice-proxy1",node="1",service="rtpengine"}'
+        values: '0x9 3x40'
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: ServiceDown
+        exp_alerts:
+          - exp_labels: {severity: critical, alertgroup: services, reason: crash_loop, service: rtpengine, module_id: nethvoice-proxy1, node: "1"}
+            exp_annotations: &rtpengine_loop
+              summary_en: "Service rtpengine keeps restarting"
+              summary_it: "Il servizio rtpengine si riavvia continuamente"
+              description_en: "Service rtpengine of module nethvoice-proxy1 on node 1 restarted at least 3 times in the last 20 minutes"
+              description_it: "Il servizio rtpengine del modulo nethvoice-proxy1 sul nodo 1 si è riavviato almeno 3 volte negli ultimi 20 minuti"
+      - eval_time: 21m
+        alertname: ServiceDown
+        exp_alerts: []
+
+  # Start limit hit: crash_loop, then stopped, never both and never none
+  - interval: 1m
+    input_series:
+      - series: 'nethvoice_proxy_service_up{module_id="nethvoice-proxy1",node="1",service="rtpengine"}'
+        values: '1x29 0x35'
+      - series: 'nethvoice_proxy_service_restarts_total{module_id="nethvoice-proxy1",node="1",service="rtpengine"}'
+        values: '0x24 5x40'
+    alert_rule_test:
+      - eval_time: 26m
+        alertname: ServiceDown
+        exp_alerts:
+          - exp_labels: {severity: critical, alertgroup: services, reason: crash_loop, service: rtpengine, module_id: nethvoice-proxy1, node: "1"}
+            exp_annotations: *rtpengine_loop
+      - eval_time: 35m
+        alertname: ServiceDown
+        exp_alerts:
+          - exp_labels: {severity: critical, alertgroup: services, reason: crash_loop, service: rtpengine, module_id: nethvoice-proxy1, node: "1"}
+            exp_annotations: *rtpengine_loop
+      - eval_time: 38m
+        alertname: ServiceDown
+        exp_alerts:
+          - exp_labels: {severity: critical, alertgroup: services, reason: crash_loop, service: rtpengine, module_id: nethvoice-proxy1, node: "1"}
+            exp_annotations: *rtpengine_loop
+      - eval_time: 39m
+        alertname: ServiceDown
+        exp_alerts:
+          - exp_labels: {severity: critical, alertgroup: services, reason: stopped, service: rtpengine, module_id: nethvoice-proxy1, node: "1"}
+            exp_annotations: &rtpengine_stopped
+              summary_en: "Service rtpengine is down"
+              summary_it: "Il servizio rtpengine non è attivo"
+              description_en: "Service rtpengine of module nethvoice-proxy1 on node 1 has been down for more than 10 minutes"
+              description_it: "Il servizio rtpengine del modulo nethvoice-proxy1 sul nodo 1 non è attivo da più di 10 minuti"
+      - eval_time: 60m
+        alertname: ServiceDown
+        exp_alerts:
+          - exp_labels: {severity: critical, alertgroup: services, reason: stopped, service: rtpengine, module_id: nethvoice-proxy1, node: "1"}
+            exp_annotations: *rtpengine_stopped
+
+  # Slow restarts (one every 5 minutes) are not a crash loop
+  - interval: 5m
+    input_series:
+      - series: 'nethvoice_proxy_service_up{module_id="nethvoice-proxy1",node="1",service="kamailio"}'
+        values: '1x12'
+      - series: 'nethvoice_proxy_service_restarts_total{module_id="nethvoice-proxy1",node="1",service="kamailio"}'
+        values: '0+1x12'
+    alert_rule_test:
+      - eval_time: 50m
+        alertname: ServiceDown
+        exp_alerts: []
+
+  # A manual restart resets the counter: no alert
+  - interval: 1m
+    input_series:
+      - series: 'nethvoice_proxy_service_up{module_id="nethvoice-proxy1",node="1",service="kamailio"}'
+        values: '1x40'
+      - series: 'nethvoice_proxy_service_restarts_total{module_id="nethvoice-proxy1",node="1",service="kamailio"}'
+        values: '5x20 0x20'
+    alert_rule_test:
+      - eval_time: 25m
+        alertname: ServiceDown
+        exp_alerts: []

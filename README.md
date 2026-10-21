@@ -105,6 +105,23 @@ TLS tracing is enabled when NethServer 8 support session is started, to enable i
 
     kamcmd siptrace.status on 
 
+## Alerts
+
+The module publishes the `ServiceDown` alert for its services: kamailio,
+postgres, redis and rtpengine. The `reason` label tells why it fires:
+
+- `stopped`: the service failed, or is enabled and not running, for more than
+  10 minutes
+- `crash_loop`: systemd restarted it at least 3 times in a short time
+
+The service state is exported every 5 minutes. The alert requires core
+3.24.0 or later.
+
+Known limit: moving or cloning the module stops kamailio and postgres on
+purpose, while they stay enabled. If the transfer takes more than 10 minutes,
+`ServiceDown` with `reason=stopped` fires for them. The alert clears by itself
+when the services start again or the old instance is removed.
+
 ## Uninstall
 
 To uninstall the instance:
