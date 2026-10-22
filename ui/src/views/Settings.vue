@@ -300,6 +300,8 @@ export default {
       isLetsEncryptEnabled: false,
       isLetsEncryptCurrentlyEnabled: false,
       isAlertsEnabled: false,
+      // saved value, restored on the toggle when set-alerts fails
+      isAlertsEnabledSaved: false,
       validationErrorDetails: [],
       status: null,
       loading: {
@@ -394,6 +396,7 @@ export default {
       this.isLetsEncryptEnabled = config.lets_encrypt;
       this.isLetsEncryptCurrentlyEnabled = config.lets_encrypt;
       this.isAlertsEnabled = !!config.alerts_enabled;
+      this.isAlertsEnabledSaved = this.isAlertsEnabled;
 
       // this.iface is set on get-available-interfaces completion
 
@@ -795,6 +798,7 @@ export default {
       if (err) {
         console.error(`error creating task ${taskAction}`, err);
         this.error.setAlerts = this.getErrorMessage(err);
+        this.isAlertsEnabled = this.isAlertsEnabledSaved;
         this.loading.setAlerts = false;
         return;
       }
@@ -802,9 +806,11 @@ export default {
     setAlertsAborted(taskResult, taskContext) {
       console.error(`${taskContext.action} aborted`, taskResult);
       this.error.setAlerts = this.$t("error.generic_error");
+      this.isAlertsEnabled = this.isAlertsEnabledSaved;
       this.loading.setAlerts = false;
     },
     setAlertsCompleted() {
+      this.isAlertsEnabledSaved = this.isAlertsEnabled;
       this.loading.setAlerts = false;
     },
     goToCertificates() {
