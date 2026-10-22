@@ -133,7 +133,9 @@ of the provider has been a failure for more than 10 minutes:
 - `registration_timeout`: the provider does not answer, or cannot be reached
 - `qualify_timeout`: the provider of an IP trunk (no registration) does not
   answer the OPTIONS checks of Asterisk. Asterisk counts the 408 sent by the
-  proxy as an answer, so only the proxy can see a silent provider
+  proxy as an answer, so only the proxy can see a silent provider. Only a
+  provider that answered OPTIONS before is checked: some providers never
+  answer OPTIONS but take calls, they get no alert
 
 Labels: `nethvoice` is the NethVoice instance, `trunk` is the To URI of the
 REGISTER (`<user>@<domain>`) or of the OPTIONS (`<host>:<port>`). NethVoice publishes the same alert for the
@@ -146,7 +148,9 @@ missing (older NethVoice, NethVoice metrics not exported) only the `trunk`
 label is shown.
 
 Kamailio keeps the last answer in the `nvtrunkreg` htable for 25 hours, and
-the last OPTIONS answer in `nvtrunkopt` for 1 hour. Read them with:
+the last OPTIONS answer in `nvtrunkopt` for 1 hour. The key starts with the
+address of the Asterisk that sent the request (`<ip>:<port>|`), mapped to the
+NethVoice instance with the dispatcher table. Read them with:
 
     curl -s -d '{"jsonrpc":"2.0","method":"htable.dump","params":["nvtrunkreg"],"id":1}' http://127.0.0.1:5060/RPC
 

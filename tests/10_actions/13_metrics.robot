@@ -3,10 +3,11 @@ Library   SSHLibrary
 Resource  ../api.resource
 
 *** Variables ***
-# Route of a fake NethVoice instance: its dispatcher set id makes the fake
-# htable entries below belong to an existing instance
+# Route of a fake NethVoice instance: its dispatcher destination makes the
+# fake htable entries below belong to an existing instance
 ${ROBOT_DOMAIN}    metrics-robot.invalid
 ${ROBOT_NETHVOICE}    nvrobot
+${ROBOT_ASTERISK}    127.0.0.1:34995
 
 *** Test Cases ***
 Alerts are disabled by default
@@ -52,10 +53,8 @@ Trunk metrics are exported
 Trunk answers are exported per NethVoice instance
     [Setup]    Add the test route
     [Teardown]    Remove the test entries
-    ${setid} =    Read the test route set id
-    Set Test Variable    ${setid}
-    Set htable entry    nvtrunkreg    ${setid}|nvrobot@example.org    403
-    Set htable entry    nvtrunkopt    ${setid}|192.0.2.10:5060    408
+    Set htable entry    nvtrunkreg    ${ROBOT_ASTERISK}|nvrobot@example.org    403
+    Set htable entry    nvtrunkopt    ${ROBOT_ASTERISK}|192.0.2.10:5060    408
     ${output} =    Export metrics
     Should Contain    ${output}    nethvoice_proxy_trunk_registration_status_code{nethvoice="${ROBOT_NETHVOICE}",trunk="nvrobot@example.org"} 403
     Should Contain    ${output}    nethvoice_proxy_trunk_options_status_code{nethvoice="${ROBOT_NETHVOICE}",trunk="192.0.2.10:5060"} 408
@@ -88,17 +87,8 @@ Export metrics
     RETURN    ${output}
 
 Add the test route
-    Set Test Variable    ${setid}    ${EMPTY}
     Run task    module/${module_id}/add-route
-    ...    {"domain":"${ROBOT_DOMAIN}","address":[{"uri":"sip:127.0.0.1:34995","description":"${ROBOT_NETHVOICE}"}]}
-
-Read the test route set id
-    ${output}    ${rc} =    Execute Command
-    ...    runagent -m ${module_id} podman exec postgres sh -c 'exec psql -tA -U "$POSTGRES_USER" "$POSTGRES_DB" -c "$1"' sh "SELECT setid FROM dispatcher WHERE description = '${ROBOT_NETHVOICE}'"
-    ...    return_rc=True
-    Should Be Equal As Integers    ${rc}    0
-    Should Match Regexp    ${output}    ^[0-9]+$
-    RETURN    ${output}
+    ...    {"domain":"${ROBOT_DOMAIN}","address":[{"uri":"sip:${ROBOT_ASTERISK}","description":"${ROBOT_NETHVOICE}"}]}
 
 Set htable entry
     [Arguments]    ${table}    ${key}    ${value}
@@ -107,10 +97,8 @@ Set htable entry
     Should Contain    ${output}    Ok.
 
 Remove the test entries
-    IF    $setid
-        Execute Command    runagent -m ${module_id} podman exec kamailio kamcmd htable.delete nvtrunkreg '${setid}|nvrobot@example.org'
-        Execute Command    runagent -m ${module_id} podman exec kamailio kamcmd htable.delete nvtrunkopt '${setid}|192.0.2.10:5060'
-    END
+    Execute Command    runagent -m ${module_id} podman exec kamailio kamcmd htable.delete nvtrunkreg '${ROBOT_ASTERISK}|nvrobot@example.org'
+    Execute Command    runagent -m ${module_id} podman exec kamailio kamcmd htable.delete nvtrunkopt '${ROBOT_ASTERISK}|192.0.2.10:5060'
     Run task    module/${module_id}/remove-route    {"domain":"${ROBOT_DOMAIN}"}
 
 Publish rules and watch the event

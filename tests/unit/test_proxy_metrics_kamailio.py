@@ -51,37 +51,39 @@ class RenderTest(unittest.TestCase):
         return text, err.getvalue()
 
     def test_registered_and_rejected(self):
-        text, _ = self.render({"6|NvTestProxy@192.0.2.12": 403, "6|user@sip.example.com": 200}, {"6": "nethvoice2"})
+        text, _ = self.render({"10.5.4.1:20999|NvTestProxy@192.0.2.12": 403, "10.5.4.1:20999|user@sip.example.com": 200}, {"10.5.4.1:20999": "nethvoice2"})
         self.assertIn('nethvoice_proxy_trunk_registration_status_code{nethvoice="nethvoice2",trunk="user@sip.example.com"} 200\n', text)
         self.assertIn('nethvoice_proxy_trunk_registration_status_code{nethvoice="nethvoice2",trunk="NvTestProxy@192.0.2.12"} 403\n', text)
 
     def test_timeout(self):
-        text, _ = self.render({"1|100@sip.provider.it": "408"}, {"1": "nethvoice1"})
+        text, _ = self.render({"10.5.4.1:20101|100@sip.provider.it": "408"}, {"10.5.4.1:20101": "nethvoice1"})
         self.assertIn('nethvoice_proxy_trunk_registration_status_code{nethvoice="nethvoice1",trunk="100@sip.provider.it"} 408\n', text)
 
-    def test_set_id_of_a_removed_instance_is_skipped(self):
-        text, err = self.render({"9|100@sip.provider.it": 403, "1|200@sip.provider.it": 200}, {"1": "nethvoice1"})
+    def test_address_of_a_removed_instance_is_skipped(self):
+        text, err = self.render({"10.5.4.1:20555|100@sip.provider.it": 403, "10.5.4.1:20101|200@sip.provider.it": 200}, {"10.5.4.1:20101": "nethvoice1"})
         self.assertNotIn("100@sip.provider.it", text)
         self.assertNotIn("unknown", text)
         self.assertIn('nethvoice="nethvoice1",trunk="200@sip.provider.it"', text)
         self.assertEqual(err, "")
 
-    def test_two_set_ids_of_the_same_instance_give_one_series(self):
-        text, _ = self.render({"1|100@sip.provider.it": 200, "2|100@sip.provider.it": 200}, {"1": "nethvoice2", "2": "nethvoice2"})
-        self.assertEqual(text.count("nethvoice_proxy_trunk_registration_status_code{"), 1)
+    def test_two_instances_with_the_same_trunk(self):
+        entries = {"10.5.4.1:20101|100@sip.provider.it": 200, "10.5.4.1:20999|100@sip.provider.it": 403}
+        text, _ = self.render(entries, {"10.5.4.1:20101": "nethvoice1", "10.5.4.1:20999": "nethvoice2"})
+        self.assertIn('{nethvoice="nethvoice1",trunk="100@sip.provider.it"} 200', text)
+        self.assertIn('{nethvoice="nethvoice2",trunk="100@sip.provider.it"} 403', text)
 
     def test_malformed_entries_are_skipped(self):
-        text, err = self.render({"garbage": 200, "1|100@sip.provider.it": "abc"}, {"1": "nethvoice1"})
+        text, err = self.render({"garbage": 200, "10.5.4.1:20101|100@sip.provider.it": "abc"}, {"10.5.4.1:20101": "nethvoice1"})
         self.assertNotIn("nethvoice_proxy_trunk_registration_status_code{", text)
         self.assertIn("garbage", err)
 
     def test_label_values_are_escaped(self):
-        text, _ = self.render({'1|a"b@sip.provider.it': 200}, {"1": "nethvoice1"})
+        text, _ = self.render({'10.5.4.1:20101|a"b@sip.provider.it': 200}, {"10.5.4.1:20101": "nethvoice1"})
         self.assertIn('trunk="a\\"b@sip.provider.it"', text)
 
     def test_ip_trunk_options(self):
-        options = {"6|77.239.128.13:5060": 408, "6|198.51.100.7:5060": 404}
-        text = kamailio.render({}, {"6": "nethvoice173"}, options)
+        options = {"10.5.4.1:20999|77.239.128.13:5060": 408, "10.5.4.1:20999|198.51.100.7:5060": 404}
+        text = kamailio.render({}, {"10.5.4.1:20999": "nethvoice173"}, options)
         self.assertIn('nethvoice_proxy_trunk_options_status_code{nethvoice="nethvoice173",trunk="77.239.128.13:5060"} 408\n', text)
         # Any answer means the provider is alive: the code is exported as it is
         self.assertIn('nethvoice_proxy_trunk_options_status_code{nethvoice="nethvoice173",trunk="198.51.100.7:5060"} 404\n', text)
@@ -92,9 +94,9 @@ class RenderTest(unittest.TestCase):
 
         def entries(table):
             tables.append(table)
-            return {"6|77.239.128.13:5060": 200} if table == "nvtrunkopt" else {}
+            return {"10.5.4.1:20999|77.239.128.13:5060": 200} if table == "nvtrunkopt" else {}
 
-        text = kamailio.collect(entries, lambda: {"6": "nethvoice173"})
+        text = kamailio.collect(entries, lambda: {"10.5.4.1:20999": "nethvoice173"})
         self.assertCountEqual(tables, ["nvtrunkreg", "nvtrunkopt"])
         self.assertIn('trunk_options_status_code{nethvoice="nethvoice173",trunk="77.239.128.13:5060"} 200\n', text)
 
@@ -119,7 +121,7 @@ class RenderTest(unittest.TestCase):
             kamailio.collect(lambda table: {}, instances)
 
     def test_reserved_labels_are_never_set(self):
-        text, _ = self.render({"6|user@sip.example.com": 200}, {"6": "nethvoice2"})
+        text, _ = self.render({"10.5.4.1:20999|user@sip.example.com": 200}, {"10.5.4.1:20999": "nethvoice2"})
         self.assertNotRegex(text, r"(module|module_id|instance)=")
 
 
@@ -127,9 +129,18 @@ class ReadInstancesTest(unittest.TestCase):
     def test_dispatcher_rows(self):
         def run(args, **kwargs):
             self.assertEqual(args[:4], ["podman", "exec", "postgres", "sh"])
-            return subprocess.CompletedProcess(args, 0, stdout="1|nethvoice2\n2|nethvoice2\n3|\n\n")
+            self.assertIn("SELECT destination, description FROM dispatcher", args[5])
+            # Two sets of the same instance (domain and trunk rule), a set without description
+            rows = "sip:10.5.4.1:20999|nethvoice2\nsip:10.5.4.1:20999;transport=udp|nethvoice2\nsip:10.5.4.1:20101|\n\n"
+            return subprocess.CompletedProcess(args, 0, stdout=rows)
 
-        self.assertEqual(kamailio.read_instances(run), {"1": "nethvoice2", "2": "nethvoice2"})
+        self.assertEqual(kamailio.read_instances(run), {"10.5.4.1:20999": "nethvoice2"})
+
+    def test_destination_address(self):
+        self.assertEqual(kamailio.destination_address("sip:10.5.4.1:20999"), "10.5.4.1:20999")
+        self.assertEqual(kamailio.destination_address("sip:10.5.4.1"), "10.5.4.1:5060")
+        self.assertEqual(kamailio.destination_address("sip:10.5.4.1:20999;transport=udp"), "10.5.4.1:20999")
+        self.assertEqual(kamailio.destination_address(""), "")
 
 
 class RpcTest(unittest.TestCase):
