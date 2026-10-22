@@ -9,7 +9,17 @@ ${ROBOT_DOMAIN}    metrics-robot.invalid
 ${ROBOT_NETHVOICE}    nvrobot
 
 *** Test Cases ***
+Alerts are disabled by default
+    ${response} =    Run task    module/${module_id}/get-configuration    {}
+    Should Be Equal    ${response['alerts_enabled']}    ${FALSE}
+    ${output}    ${rc} =    Execute Command    runagent redis-exec HKEYS module/${module_id}/metrics_alert_rules    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Not Contain    ${output}    proxy-
+
 Alert rules are published
+    Run task    module/${module_id}/set-alerts    {"alerts_enabled":true}
+    ${response} =    Run task    module/${module_id}/get-configuration    {}
+    Should Be Equal    ${response['alerts_enabled']}    ${TRUE}
     ${output}    ${rc} =    Execute Command    runagent redis-exec HKEYS module/${module_id}/metrics_alert_rules    return_rc=True
     Should Be Equal As Integers    ${rc}    0
     Should Contain    ${output}    proxy-services
@@ -63,6 +73,12 @@ Publishing changed rules sends the event
 Publishing unchanged rules sends no event
     ${events} =    Publish rules and watch the event
     Should Not Contain    ${events}    message
+
+Disabling the alerts removes the rules
+    Run task    module/${module_id}/set-alerts    {"alerts_enabled":false}
+    ${output}    ${rc} =    Execute Command    runagent redis-exec HKEYS module/${module_id}/metrics_alert_rules    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Not Contain    ${output}    proxy-
 
 *** Keywords ***
 Export metrics

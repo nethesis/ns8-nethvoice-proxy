@@ -107,6 +107,16 @@ TLS tracing is enabled when NethServer 8 support session is started, to enable i
 
 ## Alerts
 
+The built-in alerts are a beta feature, disabled by default. Enable them from
+the "Alerts beta" card of the Settings page, or with:
+
+    api-cli run module/nethvoice-proxy1/set-alerts --data '{"alerts_enabled":true}'
+
+The switch is stored in the `ALERTS_ENABLED` environment variable and is also
+accepted by `configure-module` as `alerts_enabled`. While it is off, the
+module removes its alert rules; the metrics are still exported. The list of
+alerts and their severity cannot be changed.
+
 The module publishes the `ServiceDown` alert for its services: kamailio,
 postgres, redis and rtpengine. The `reason` label tells why it fires:
 

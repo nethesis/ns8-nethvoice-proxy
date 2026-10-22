@@ -13,6 +13,10 @@
 # update does not reload Prometheus for nothing. Fields not owned by this
 # script are never touched. The hash is deleted by the core when the module
 # is removed.
+#
+# The alerts are a beta feature: unless ALERTS_ENABLED is "true", the owned
+# fields are removed instead, so no proxy alert reaches Prometheus. The
+# metrics are exported anyway.
 
 import fcntl
 import os
@@ -33,6 +37,13 @@ def desired_rules(rules_dir=RULES_DIR):
             with open(os.path.join(rules_dir, name), encoding="utf-8") as fp:
                 rules[name[: -len(".yml")]] = fp.read()
     return rules
+
+
+def wanted_rules(environ=os.environ, rules_dir=RULES_DIR):
+    """Return the rules to publish: none while the alerts are disabled."""
+    if environ.get("ALERTS_ENABLED") != "true":
+        return {}
+    return desired_rules(rules_dir)
 
 
 def publish(rdb, module_id, agent_id, rules):
@@ -56,13 +67,19 @@ def publish(rdb, module_id, agent_id, rules):
 
 
 def main():
-    rules = desired_rules()
+    rules = wanted_rules()
     lock_path = os.path.join(os.environ["AGENT_STATE_DIR"], LOCK_NAME)
     with open(lock_path, "w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         rdb = agent.redis_connect(privileged=True)
         changed = publish(rdb, os.environ["MODULE_ID"], os.environ["AGENT_ID"], rules)
-    print("alert rules %s" % ("published" if changed else "unchanged"), file=sys.stderr)
+    if not changed:
+        state = "unchanged"
+    elif rules:
+        state = "published"
+    else:
+        state = "removed"
+    print("alert rules %s" % state, file=sys.stderr)
 
 
 if __name__ == "__main__":

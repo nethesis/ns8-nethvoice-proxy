@@ -5,9 +5,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
-# Publish the module alert rules for the metrics module. Also linked from
-# update-module.d, to publish the rules of a new image. A failure must not
-# stop the module creation or update.
+# Publish the module alert rules for the metrics module, or remove them
+# while ALERTS_ENABLED is not "true". Also linked from configure-module, to
+# apply the alerts_enabled field, and from update-module.d, to publish the
+# rules of a new image. A failure must not stop the module creation,
+# configuration or update.
 
 exec 1>&2
 

@@ -62,7 +62,10 @@
     "interface_placeholder": "Select interface",
     "address_and_iface_dont_match": "@:settings.interface and @:settings.address do not match",
     "address_and_iface_dont_match_message": "For the devices in the PBX local network to work correctly, the 'Hairpin NAT' feature — also known as 'NAT reflection', 'NAT hairpinning', 'NAT on a stick' or 'Loopback NAT' — must be enabled on the firewall (specifically, on the device that manages the NAT of the public IP).",
-    "address_tooltip": "This is required only if it differs from @:settings.interface address. The address is filled automatically based on the resolved FQDN above, but you can change it if needed."
+    "address_tooltip": "This is required only if it differs from @:settings.interface address. The address is filled automatically based on the resolved FQDN above, but you can change it if needed.",
+    "alerts_title": "Alerts beta",
+    "alerts_description": "Send built-in alerts about the proxy services and the SIP trunks it relays to the cluster alerting. Beta: alerts may change.",
+    "alerts_toggle": "Built-in alerts"
   },
   "about": {
     "title": "About"
@@ -85,7 +88,8 @@
     "Trunks_list_error": "Cannot retrieve trunk routing rules",
     "list-service-providers": "List service providers",
     "list-trunks": "List trunks",
-    "get-available-interfaces": "Get available interfaces"
+    "get-available-interfaces": "Get available interfaces",
+    "set-alerts": "Set alerts"
   },
   "error": {
     "error": "Error",

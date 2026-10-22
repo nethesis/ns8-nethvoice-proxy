@@ -197,6 +197,40 @@
         </cv-tile>
       </cv-column>
     </cv-row>
+    <cv-row>
+      <cv-column>
+        <cv-tile light>
+          <h4 class="mg-bottom-md">{{ $t("settings.alerts_title") }}</h4>
+          <p class="mg-bottom-md">{{ $t("settings.alerts_description") }}</p>
+          <cv-skeleton-text
+            v-if="loading.getConfiguration"
+            :line-count="1"
+          ></cv-skeleton-text>
+          <NsToggle
+            v-else
+            value="alertsEnabled"
+            :label="$t('settings.alerts_toggle')"
+            v-model="isAlertsEnabled"
+            :disabled="loading.setAlerts"
+            @change="onAlertsToggle"
+          >
+            <template slot="text-left">{{
+              core.$t("common.disabled")
+            }}</template>
+            <template slot="text-right">{{
+              core.$t("common.enabled")
+            }}</template>
+          </NsToggle>
+          <NsInlineNotification
+            v-if="error.setAlerts"
+            kind="error"
+            :title="$t('action.set-alerts')"
+            :description="error.setAlerts"
+            :showCloseButton="false"
+          />
+        </cv-tile>
+      </cv-column>
+    </cv-row>
   </cv-grid>
 </template>
 
@@ -237,6 +271,7 @@ export default {
       fqdnTimeout: 0,
       isLetsEncryptEnabled: false,
       isLetsEncryptCurrentlyEnabled: false,
+      isAlertsEnabled: false,
       validationErrorDetails: [],
       status: null,
       loading: {
@@ -245,6 +280,7 @@ export default {
         getAvailableInterfaces: false,
         resolveFqdn: false,
         getStatus: false,
+        setAlerts: false,
       },
       interfaces: [],
       error: {
@@ -256,6 +292,7 @@ export default {
         public_address: "",
         iface: "",
         getStatus: "",
+        setAlerts: "",
       },
     };
   },
@@ -328,6 +365,7 @@ export default {
       this.fqdn = config.fqdn;
       this.isLetsEncryptEnabled = config.lets_encrypt;
       this.isLetsEncryptCurrentlyEnabled = config.lets_encrypt;
+      this.isAlertsEnabled = !!config.alerts_enabled;
 
       // this.iface is set on get-available-interfaces completion
 
@@ -692,6 +730,63 @@ export default {
           reject(err);
         });
       });
+    },
+    onAlertsToggle() {
+      // wait for v-model to update isAlertsEnabled
+      this.$nextTick(() => {
+        this.setAlerts(this.isAlertsEnabled);
+      });
+    },
+    async setAlerts(enabled) {
+      this.loading.setAlerts = true;
+      this.error.setAlerts = "";
+      const taskAction = "set-alerts";
+      const eventId = this.getUuid();
+
+      // register to task error
+      this.core.$root.$once(
+        `${taskAction}-aborted-${eventId}`,
+        this.setAlertsAborted
+      );
+
+      // register to task completion
+      this.core.$root.$once(
+        `${taskAction}-completed-${eventId}`,
+        this.setAlertsCompleted
+      );
+
+      const res = await to(
+        this.createModuleTaskForApp(this.instanceName, {
+          action: taskAction,
+          data: {
+            alerts_enabled: enabled,
+          },
+          extra: {
+            title: this.$t("action." + taskAction),
+            isNotificationHidden: true,
+            eventId,
+          },
+        })
+      );
+      const err = res[0];
+
+      if (err) {
+        console.error(`error creating task ${taskAction}`, err);
+        this.error.setAlerts = this.getErrorMessage(err);
+        this.isAlertsEnabled = !enabled;
+        this.loading.setAlerts = false;
+        return;
+      }
+    },
+    setAlertsAborted(taskResult, taskContext) {
+      console.error(`${taskContext.action} aborted`, taskResult);
+      this.error.setAlerts = this.$t("error.generic_error");
+      // the switch was not applied: show the previous state
+      this.isAlertsEnabled = !this.isAlertsEnabled;
+      this.loading.setAlerts = false;
+    },
+    setAlertsCompleted() {
+      this.loading.setAlerts = false;
     },
     goToCertificates() {
       this.core.$router.push("/settings/tls-certificates");

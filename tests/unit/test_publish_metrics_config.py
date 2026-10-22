@@ -106,6 +106,17 @@ class PublishTest(unittest.TestCase):
         self.assertEqual(redis.hashes[KEY]["custom"], "z\n")
         self.assertEqual(redis.hashes[KEY]["nethvoice-services"], "w\n")
 
+    def test_disabled_alerts_remove_owned_fields_only(self):
+        redis = FakeRedis({KEY: {"custom": "z\n", "proxy-services": "x\n", "proxy-telephony": "y\n"}})
+        self.assertTrue(self.publish(redis, {}))
+        self.assertEqual(redis.hashes[KEY], {"custom": "z\n"})
+        self.assertEqual(redis.events(), [("publish", EVENT, "{}")])
+
+    def test_disabled_alerts_without_rules_is_noop(self):
+        redis = FakeRedis({KEY: {"custom": "z\n"}})
+        self.assertFalse(self.publish(redis, {}))
+        self.assertEqual(redis.commands, [])
+
     def test_foreign_field_alone_is_noop(self):
         redis = FakeRedis({KEY: {"custom": "z\n", "proxy-services": "x\n"}})
         self.assertFalse(self.publish(redis, {"proxy-services": "x\n"}))
@@ -126,6 +137,23 @@ class DesiredRulesTest(unittest.TestCase):
 
     def test_shipped_rules(self):
         self.assertIn("proxy-services", self.script.desired_rules())
+
+
+class WantedRulesTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.script = load_script()
+
+    def test_enabled_publishes_shipped_rules(self):
+        rules = self.script.wanted_rules({"ALERTS_ENABLED": "true"})
+        self.assertEqual(rules, self.script.desired_rules())
+        self.assertIn("proxy-telephony", rules)
+
+    def test_disabled_publishes_nothing(self):
+        self.assertEqual(self.script.wanted_rules({"ALERTS_ENABLED": "false"}), {})
+
+    def test_missing_flag_means_disabled(self):
+        self.assertEqual(self.script.wanted_rules({}), {})
 
 
 if __name__ == "__main__":

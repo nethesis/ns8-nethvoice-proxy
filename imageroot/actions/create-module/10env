@@ -37,6 +37,8 @@ agent.set_env('DEFAULT_CONTACT', '127.0.0.1:5060')
 agent.set_env('KML_DEFAULT_FQDN', str(random.randint(0, 32767)).zfill(5) + '.ns8.invalid')
 agent.set_env('BEHIND_NAT', "false")
 agent.set_env('KAMAILIO_LOG_LEVEL', '0')
+# Built-in alerts are a beta feature: disabled until enabled from the UI
+agent.set_env('ALERTS_ENABLED', 'false')
 
 rdb = agent.redis_connect(privileged=False)
 # Get the VPN IP address from the node

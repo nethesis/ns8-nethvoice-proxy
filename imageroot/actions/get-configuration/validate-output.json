@@ -77,6 +77,11 @@
         "title": "Netmask of the local network",
         "type": "string"
       }
+    },
+    "alerts_enabled": {
+      "title": "Built-in alerts",
+      "description": "Publish the built-in alert rules of the proxy (beta). Disabled by default.",
+      "type": "boolean"
     }
   }
 }
