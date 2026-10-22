@@ -123,6 +123,11 @@ if "kamailio_log_level" in data:
 elif not os.environ.get("KAMAILIO_LOG_LEVEL"):
     agent.set_env("KAMAILIO_LOG_LEVEL", "0")
 
+# Built-in alerts (beta). Optional: when it is not part of the input, keep
+# the stored value. The rules are published by a later step.
+if "alerts_enabled" in data:
+    agent.set_env("ALERTS_ENABLED", "true" if data["alerts_enabled"] else "false")
+
 if "service_net" in data:
     service = data["service_net"]
     agent.set_env("SERVICE_IP", service["address"])
