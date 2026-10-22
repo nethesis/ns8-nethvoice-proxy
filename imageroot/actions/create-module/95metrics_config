@@ -7,9 +7,10 @@
 
 # Publish the module alert rules for the metrics module, or remove them
 # while ALERTS_ENABLED is not "true". Also linked from configure-module, to
-# apply the alerts_enabled field, and from update-module.d, to publish the
-# rules of a new image. A failure must not stop the module creation,
-# configuration or update.
+# apply the alerts_enabled field, from clone-module, to apply the copied
+# ALERTS_ENABLED, and from update-module.d, to publish the rules of a new
+# image. A failure must not stop the module creation, clone, configuration
+# or update.
 
 exec 1>&2
 
