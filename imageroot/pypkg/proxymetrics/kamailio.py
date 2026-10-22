@@ -14,12 +14,16 @@ Used by the NethVoiceTrunkUnreachable alert (etc/metrics/alert-rules/proxy-telep
   did not answer. Any other code means the provider is alive.
 
 Kamailio stores the last answer in the nvtrunkreg htable with key
-"<dispatcher set id>|<To user>@<To domain>" (kamailio.cfg, route
+"<Asterisk address>|<To user>@<To domain>" (kamailio.cfg, route
 NV_TRUNK_REG_REPLY), and in the nvtrunkopt htable with key
-"<dispatcher set id>|<host>:<port>" of the To URI (route NV_TRUNK_OPT_TAG).
-The set id is mapped to the NethVoice module id with the dispatcher table,
-where the description is the NethVoice MODULE_ID: entries of a set id that
-is not in the table belong to a removed instance and are skipped. Only UDP is tracked: see route
+"<Asterisk address>|<host>:<port>" of the To URI (route NV_TRUNK_OPT_TAG).
+The Asterisk address "<ip>:<port>" is the source of the request, the same
+as a dispatcher destination: it is mapped to the NethVoice module id with
+the dispatcher table, where the description is the NethVoice MODULE_ID.
+The dispatcher set id is not used: an instance has several sets (its
+domain and each trunk routing rule) and the set Kamailio matches can change
+when the sets change. Entries of an address that is not in the table belong
+to a removed instance and are skipped. Only UDP is tracked: see route
 NV_TRUNK_REG_TAG.
 """
 
@@ -75,9 +79,18 @@ def read_entries(table, call=rpc):
     return entries
 
 
+def destination_address(destination):
+    """Return "<host>:<port>" of a dispatcher destination URI, e.g. "sip:10.5.4.1:20999"."""
+    address = destination.strip()
+    address = address.split(":", 1)[1] if address.lower().startswith(("sip:", "sips:")) else address
+    address = address.split(";")[0].rpartition("@")[2]
+    host, _, port = address.partition(":")
+    return "%s:%s" % (host, port or "5060") if host else ""
+
+
 def read_instances(run=subprocess.run):
-    """Return {dispatcher set id: NethVoice module id} from the dispatcher table."""
-    script = 'exec psql -tA -F "|" -U "$POSTGRES_USER" "$POSTGRES_DB" -c "SELECT setid, description FROM dispatcher"'
+    """Return {Asterisk address: NethVoice module id} from the dispatcher table."""
+    script = 'exec psql -tA -F "|" -U "$POSTGRES_USER" "$POSTGRES_DB" -c "SELECT destination, description FROM dispatcher"'
     result = run(
         ["podman", "exec", "postgres", "sh", "-c", script],
         check=True,
@@ -87,18 +100,18 @@ def read_instances(run=subprocess.run):
     )
     instances = {}
     for line in result.stdout.splitlines():
-        setid, _, description = line.partition("|")
-        if setid.strip() and description.strip():
-            instances[setid.strip()] = description.strip()
+        destination, _, description = line.partition("|")
+        address = destination_address(destination)
+        if address and description.strip():
+            instances[address] = description.strip()
     return instances
 
 
 def codes_by_trunk(entries, instances, table):
     """Return {(nethvoice, trunk): SIP code} of the htable entries."""
     codes = {}
-    # Sorted: when two set ids of the same instance have the same trunk, the result does not change between runs
     for key in sorted(entries, key=str):
-        setid, _, trunk = str(key).partition("|")
+        address, _, trunk = str(key).partition("|")
         try:
             code = int(entries[key])
         except (TypeError, ValueError):
@@ -106,10 +119,10 @@ def codes_by_trunk(entries, instances, table):
         if not trunk or code is None:
             print("kamailio: unexpected %s entry %r skipped" % (table, key), file=sys.stderr)
             continue
-        if setid not in instances:
+        if address not in instances:
             # Instance removed: its entries stay in the htable until autoexpire
             continue
-        codes[(instances[setid], trunk)] = code
+        codes[(instances[address], trunk)] = code
     return codes
 
 
