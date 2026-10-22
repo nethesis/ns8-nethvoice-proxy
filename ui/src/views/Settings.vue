@@ -206,28 +206,35 @@
             v-if="loading.getConfiguration"
             :line-count="1"
           ></cv-skeleton-text>
-          <NsToggle
-            v-else
-            value="alertsEnabled"
-            :label="$t('settings.alerts_toggle')"
-            v-model="isAlertsEnabled"
-            :disabled="loading.setAlerts"
-            @change="onAlertsToggle"
-          >
-            <template slot="text-left">{{
-              core.$t("common.disabled")
-            }}</template>
-            <template slot="text-right">{{
-              core.$t("common.enabled")
-            }}</template>
-          </NsToggle>
-          <NsInlineNotification
-            v-if="error.setAlerts"
-            kind="error"
-            :title="$t('action.set-alerts')"
-            :description="error.setAlerts"
-            :showCloseButton="false"
-          />
+          <cv-form v-else @submit.prevent="setAlerts">
+            <NsToggle
+              value="alertsEnabled"
+              :label="$t('settings.alerts_toggle')"
+              v-model="isAlertsEnabled"
+              :disabled="loading.setAlerts"
+            >
+              <template slot="text-left">{{
+                core.$t("common.disabled")
+              }}</template>
+              <template slot="text-right">{{
+                core.$t("common.enabled")
+              }}</template>
+            </NsToggle>
+            <NsInlineNotification
+              v-if="error.setAlerts"
+              kind="error"
+              :title="$t('action.set-alerts')"
+              :description="error.setAlerts"
+              :showCloseButton="false"
+            />
+            <NsButton
+              kind="primary"
+              :icon="Save20"
+              :loading="loading.setAlerts"
+              :disabled="loading.setAlerts"
+              >{{ $t("settings.save") }}</NsButton
+            >
+          </cv-form>
         </cv-tile>
       </cv-column>
     </cv-row>
@@ -731,13 +738,7 @@ export default {
         });
       });
     },
-    onAlertsToggle() {
-      // wait for v-model to update isAlertsEnabled
-      this.$nextTick(() => {
-        this.setAlerts(this.isAlertsEnabled);
-      });
-    },
-    async setAlerts(enabled) {
+    async setAlerts() {
       this.loading.setAlerts = true;
       this.error.setAlerts = "";
       const taskAction = "set-alerts";
@@ -759,7 +760,7 @@ export default {
         this.createModuleTaskForApp(this.instanceName, {
           action: taskAction,
           data: {
-            alerts_enabled: enabled,
+            alerts_enabled: this.isAlertsEnabled,
           },
           extra: {
             title: this.$t("action." + taskAction),
@@ -773,7 +774,6 @@ export default {
       if (err) {
         console.error(`error creating task ${taskAction}`, err);
         this.error.setAlerts = this.getErrorMessage(err);
-        this.isAlertsEnabled = !enabled;
         this.loading.setAlerts = false;
         return;
       }
@@ -781,8 +781,6 @@ export default {
     setAlertsAborted(taskResult, taskContext) {
       console.error(`${taskContext.action} aborted`, taskResult);
       this.error.setAlerts = this.$t("error.generic_error");
-      // the switch was not applied: show the previous state
-      this.isAlertsEnabled = !this.isAlertsEnabled;
       this.loading.setAlerts = false;
     },
     setAlertsCompleted() {

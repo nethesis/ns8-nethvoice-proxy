@@ -40,7 +40,10 @@
     "interface_placeholder": "Seleziona interfaccia",
     "address_and_iface_dont_match": "@:settings.interface e @:settings.address non corrispondono",
     "address_and_iface_dont_match_message": "Affinché i dispositivi nella rete locale del PBX funzionino correttamente, la funzione 'Hairpin NAT' — nota anche come 'NAT reflection', 'NAT hairpinning', 'NAT on a stick' o 'Loopback NAT' — deve essere abilitata sul firewall (in particolare, sul dispositivo che gestisce il NAT dell'IP pubblico).",
-    "address_tooltip": "Questo è richiesto solo se differisce dall'indirizzo di @:settings.interface. L'indirizzo viene compilato automaticamente in base al FQDN risolto sopra, ma puoi modificarlo se necessario."
+    "address_tooltip": "Questo è richiesto solo se differisce dall'indirizzo di @:settings.interface. L'indirizzo viene compilato automaticamente in base al FQDN risolto sopra, ma puoi modificarlo se necessario.",
+    "alerts_title": "Avvisi beta",
+    "alerts_description": "Invia al sistema di avvisi del cluster gli avvisi predefiniti sui servizi del proxy e sui fasci SIP che inoltra. Beta: gli avvisi possono cambiare.",
+    "alerts_toggle": "Avvisi"
   },
   "error": {
     "error": "Errore",
@@ -62,6 +65,7 @@
   },
   "action": {
     "configure-module": "Configura modulo",
+    "set-alerts": "Configura gli avvisi",
     "get-configuration": "Visualizza configurazione",
     "get-status": "Visualizza stato",
     "get-module-info": "Visualizza info modulo",
