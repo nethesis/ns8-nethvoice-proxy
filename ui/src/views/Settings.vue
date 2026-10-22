@@ -201,7 +201,12 @@
       <cv-column>
         <cv-tile light>
           <h4 class="mg-bottom-md">{{ $t("settings.alerts_title") }}</h4>
-          <p class="mg-bottom-md">{{ $t("settings.alerts_description") }}</p>
+          <NsInlineNotification
+            kind="info"
+            :title="$t('settings.alerts_beta_title')"
+            :description="$t('settings.alerts_beta_description')"
+            :showCloseButton="false"
+          />
           <cv-skeleton-text
             v-if="loading.getConfiguration"
             :line-count="1"
@@ -213,6 +218,22 @@
               v-model="isAlertsEnabled"
               :disabled="loading.setAlerts"
             >
+              <template #tooltip>
+                <div class="mg-bottom-sm">
+                  {{ $t("settings.alerts_description") }}
+                </div>
+                <ul class="alerts-list mg-bottom-sm">
+                  <li>
+                    <code>ServiceDown</code>:
+                    {{ $t("settings.alerts_service_down") }}
+                  </li>
+                  <li>
+                    <code>NethVoiceTrunkUnreachable</code>:
+                    {{ $t("settings.alerts_trunk_unreachable") }}
+                  </li>
+                </ul>
+                <div>{{ $t("settings.alerts_where") }}</div>
+              </template>
               <template slot="text-left">{{
                 core.$t("common.disabled")
               }}</template>
@@ -808,6 +829,11 @@ export default {
 
 <style scoped lang="scss">
 @import "../styles/carbon-utils";
+
+.alerts-list {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
 
 .input-label {
   font-size: 12px;
