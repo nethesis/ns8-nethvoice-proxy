@@ -36,20 +36,20 @@ Open App Settings Page
     Go To    https://${node_addr}/cluster-admin/#/apps/${module_id}?page=settings
     Wait For Elements State    iframe >>> css=.page-title h2    visible    timeout=30s
     Get Text    iframe >>> css=.page-title h2    ==    Settings
-    Wait For Elements State    iframe >>> css=form    visible    timeout=30s
+    Wait For Elements State    iframe >>> css=form >> nth=0    visible    timeout=30s
     Wait For Elements State
-    ...    iframe >>> css=form button.bx--btn--primary
+    ...    iframe >>> css=form >> nth=0 >> css=button.bx--btn--primary
     ...    enabled
     ...    timeout=30s
 
 Save Settings Form
-    Click    iframe >>> css=form button.bx--btn--primary
+    Click    iframe >>> css=form >> nth=0 >> css=button.bx--btn--primary
     Wait For Elements State
-    ...    iframe >>> css=form button.bx--btn--primary
+    ...    iframe >>> css=form >> nth=0 >> css=button.bx--btn--primary
     ...    disabled
     ...    timeout=10s
     Wait For Elements State
-    ...    iframe >>> css=form button.bx--btn--primary
+    ...    iframe >>> css=form >> nth=0 >> css=button.bx--btn--primary
     ...    enabled
     ...    timeout=90s
 
