@@ -40,7 +40,15 @@
     "interface_placeholder": "Seleziona interfaccia",
     "address_and_iface_dont_match": "@:settings.interface e @:settings.address non corrispondono",
     "address_and_iface_dont_match_message": "Affinché i dispositivi nella rete locale del PBX funzionino correttamente, la funzione 'Hairpin NAT' — nota anche come 'NAT reflection', 'NAT hairpinning', 'NAT on a stick' o 'Loopback NAT' — deve essere abilitata sul firewall (in particolare, sul dispositivo che gestisce il NAT dell'IP pubblico).",
-    "address_tooltip": "Questo è richiesto solo se differisce dall'indirizzo di @:settings.interface. L'indirizzo viene compilato automaticamente in base al FQDN risolto sopra, ma puoi modificarlo se necessario."
+    "address_tooltip": "Questo è richiesto solo se differisce dall'indirizzo di @:settings.interface. L'indirizzo viene compilato automaticamente in base al FQDN risolto sopra, ma puoi modificarlo se necessario.",
+    "alerts_title": "Avvisi (beta)",
+    "alerts_description": "Se abilitato, ogni 5 minuti il proxy controlla i suoi servizi e i fasci SIP che inoltra e genera questi avvisi:",
+    "alerts_service_down": "un servizio del proxy (Kamailio, rtpengine, PostgreSQL o Redis) è fermo o si riavvia continuamente",
+    "alerts_trunk_unreachable": "un fascio SIP inoltrato dal proxy non raggiunge il provider",
+    "alerts_where": "Gli avvisi attivi sono visibili nella pagina Nodi e, se il cluster ha una sottoscrizione, su my.nethesis.it.",
+    "alerts_toggle": "Avvisi",
+    "alerts_beta_title": "Funzione in beta",
+    "alerts_beta_description": "Può generare avvisi indesiderati e gli avvisi possono cambiare nei prossimi rilasci."
   },
   "error": {
     "error": "Errore",
@@ -62,6 +70,7 @@
   },
   "action": {
     "configure-module": "Configura modulo",
+    "set-alerts": "Configura gli avvisi",
     "get-configuration": "Visualizza configurazione",
     "get-status": "Visualizza stato",
     "get-module-info": "Visualizza info modulo",

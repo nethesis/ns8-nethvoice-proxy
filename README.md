@@ -105,6 +105,90 @@ TLS tracing is enabled when NethServer 8 support session is started, to enable i
 
     kamcmd siptrace.status on 
 
+## Alerts
+
+The built-in alerts are a beta feature, disabled by default. Enable them from
+the "Alerts beta" card of the Settings page, or with:
+
+    api-cli run module/nethvoice-proxy1/set-alerts --data '{"alerts_enabled":true}'
+
+The switch is stored in the `ALERTS_ENABLED` environment variable and is also
+accepted by `configure-module` as `alerts_enabled`. While it is off, the
+module removes its alert rules; the metrics are still exported. The list of
+alerts and their severity cannot be changed.
+
+The module publishes the `ServiceDown` alert for its services: kamailio,
+postgres, redis and rtpengine. The `reason` label tells why it fires:
+
+- `stopped`: the service failed, or is enabled and not running, for more than
+  10 minutes
+- `crash_loop`: systemd restarted it at least 3 times in a short time
+
+The module also publishes `NethVoiceTrunkUnreachable` (critical) for the
+trunks it relays for each NethVoice instance. It fires when the last answer
+of the provider has been a failure for more than 10 minutes:
+
+- `registration_rejected`: the provider answers with an error (for example
+  403); the `$value` is the last SIP code
+- `registration_timeout`: the provider does not answer, or cannot be reached
+- `qualify_timeout`: the provider of an IP trunk (no registration) does not
+  answer the OPTIONS checks of Asterisk. Asterisk counts the 408 sent by the
+  proxy as an answer, so only the proxy can see a silent provider. Only a
+  provider that answered OPTIONS before is checked: some providers never
+  answer OPTIONS but take calls, they get no alert
+
+Labels: `nethvoice` is the NethVoice instance, `trunk` is the To URI of the
+REGISTER (`<user>@<domain>`) or of the OPTIONS (`<host>:<port>`). NethVoice publishes the same alert for the
+trunks that do not use the proxy.
+
+The alert summary and description also show the trunk name, for example
+`Retel_GNR (203.0.113.5:5060)`. The name comes from the
+`nethvoice_trunk_proxy_info` series of the NethVoice instance; when it is
+missing (older NethVoice, NethVoice metrics not exported) only the `trunk`
+label is shown.
+
+Kamailio keeps the last answer in the `nvtrunkreg` htable for 25 hours, and
+the last OPTIONS answer in `nvtrunkopt` for 1 hour. The key starts with the
+address of the Asterisk that sent the request (`<ip>:<port>|`), mapped to the
+NethVoice instance with the dispatcher table. Read them with:
+
+    curl -s -d '{"jsonrpc":"2.0","method":"htable.dump","params":["nvtrunkreg"],"id":1}' http://127.0.0.1:5060/RPC
+
+Limits:
+
+- Only the OPTIONS sent to a contact without user part (`sip:<host>:<port>`)
+  are tracked, so phones are left out; an IP trunk whose contact has a user
+  part is not checked. Devices registered through the proxy (kept in the
+  `nvdevices` htable for 25 hours) are left out too, even when their contact
+  has no user part. After a Kamailio restart a device is known again at its
+  next registration, which also drops the OPTIONS answers stored for its
+  address in the meantime; a de-registration forgets the device.
+- When a trunk is disabled or deleted in NethVoice, its last answer stays
+  until it expires (25 hours for registrations, 1 hour for OPTIONS), so a
+  failing trunk keeps the alert firing for that time.
+- The trunks of a removed NethVoice instance are not exported.
+- Only UDP trunk registrations and OPTIONS are checked. Over TCP and TLS
+  Asterisk sends from a random port, so the proxy cannot tell which NethVoice
+  instance the trunk belongs to.
+- When the provider stops for good after a fatal answer (for example 404), the
+  last answer expires after 25 hours and the alert clears while the trunk is
+  still broken.
+- The NethVoice instance of a trunk is read from the dispatcher table of
+  postgres at every export. While postgres is down or slow, the trunk metrics
+  are missing (`nethvoice_proxy_exporter_collector_up{collector="kamailio"}`
+  is 0) and a pending alert waits its 10 minutes again.
+- A trunk REGISTER whose To URI has no user part gets the `<null>@<domain>`
+  label.
+
+The metrics are exported every 5 minutes; check them with
+`runagent -m nethvoice-proxy1 export-metrics`. The alerts require core 3.24.0
+or later, and the metrics app 1.7.0-dev.1 or later.
+
+Known limit: moving or cloning the module stops kamailio and postgres on
+purpose, while they stay enabled. If the transfer takes more than 10 minutes,
+`ServiceDown` with `reason=stopped` fires for them. The alert clears by itself
+when the services start again or the old instance is removed.
+
 ## Uninstall
 
 To uninstall the instance:

@@ -197,6 +197,68 @@
         </cv-tile>
       </cv-column>
     </cv-row>
+    <cv-row>
+      <cv-column>
+        <cv-tile light>
+          <h4 class="mg-bottom-md">{{ $t("settings.alerts_title") }}</h4>
+          <NsInlineNotification
+            kind="info"
+            :title="$t('settings.alerts_beta_title')"
+            :description="$t('settings.alerts_beta_description')"
+            :showCloseButton="false"
+          />
+          <cv-skeleton-text
+            v-if="loading.getConfiguration"
+            :line-count="1"
+          ></cv-skeleton-text>
+          <cv-form v-else @submit.prevent="setAlerts">
+            <NsToggle
+              value="alertsEnabled"
+              :label="$t('settings.alerts_toggle')"
+              v-model="isAlertsEnabled"
+              :disabled="loading.setAlerts"
+            >
+              <template #tooltip>
+                <div class="mg-bottom-sm">
+                  {{ $t("settings.alerts_description") }}
+                </div>
+                <ul class="alerts-list mg-bottom-sm">
+                  <li>
+                    <code>ServiceDown</code>:
+                    {{ $t("settings.alerts_service_down") }}
+                  </li>
+                  <li>
+                    <code>NethVoiceTrunkUnreachable</code>:
+                    {{ $t("settings.alerts_trunk_unreachable") }}
+                  </li>
+                </ul>
+                <div>{{ $t("settings.alerts_where") }}</div>
+              </template>
+              <template slot="text-left">{{
+                core.$t("common.disabled")
+              }}</template>
+              <template slot="text-right">{{
+                core.$t("common.enabled")
+              }}</template>
+            </NsToggle>
+            <NsInlineNotification
+              v-if="error.setAlerts"
+              kind="error"
+              :title="$t('action.set-alerts')"
+              :description="error.setAlerts"
+              :showCloseButton="false"
+            />
+            <NsButton
+              kind="primary"
+              :icon="Save20"
+              :loading="loading.setAlerts"
+              :disabled="loading.setAlerts"
+              >{{ $t("settings.save") }}</NsButton
+            >
+          </cv-form>
+        </cv-tile>
+      </cv-column>
+    </cv-row>
   </cv-grid>
 </template>
 
@@ -237,6 +299,9 @@ export default {
       fqdnTimeout: 0,
       isLetsEncryptEnabled: false,
       isLetsEncryptCurrentlyEnabled: false,
+      isAlertsEnabled: false,
+      // saved value, restored on the toggle when set-alerts fails
+      isAlertsEnabledSaved: false,
       validationErrorDetails: [],
       status: null,
       loading: {
@@ -245,6 +310,7 @@ export default {
         getAvailableInterfaces: false,
         resolveFqdn: false,
         getStatus: false,
+        setAlerts: false,
       },
       interfaces: [],
       error: {
@@ -256,6 +322,7 @@ export default {
         public_address: "",
         iface: "",
         getStatus: "",
+        setAlerts: "",
       },
     };
   },
@@ -328,6 +395,8 @@ export default {
       this.fqdn = config.fqdn;
       this.isLetsEncryptEnabled = config.lets_encrypt;
       this.isLetsEncryptCurrentlyEnabled = config.lets_encrypt;
+      this.isAlertsEnabled = !!config.alerts_enabled;
+      this.isAlertsEnabledSaved = this.isAlertsEnabled;
 
       // this.iface is set on get-available-interfaces completion
 
@@ -693,6 +762,57 @@ export default {
         });
       });
     },
+    async setAlerts() {
+      this.loading.setAlerts = true;
+      this.error.setAlerts = "";
+      const taskAction = "set-alerts";
+      const eventId = this.getUuid();
+
+      // register to task error
+      this.core.$root.$once(
+        `${taskAction}-aborted-${eventId}`,
+        this.setAlertsAborted
+      );
+
+      // register to task completion
+      this.core.$root.$once(
+        `${taskAction}-completed-${eventId}`,
+        this.setAlertsCompleted
+      );
+
+      const res = await to(
+        this.createModuleTaskForApp(this.instanceName, {
+          action: taskAction,
+          data: {
+            alerts_enabled: this.isAlertsEnabled,
+          },
+          extra: {
+            title: this.$t("action." + taskAction),
+            isNotificationHidden: true,
+            eventId,
+          },
+        })
+      );
+      const err = res[0];
+
+      if (err) {
+        console.error(`error creating task ${taskAction}`, err);
+        this.error.setAlerts = this.getErrorMessage(err);
+        this.isAlertsEnabled = this.isAlertsEnabledSaved;
+        this.loading.setAlerts = false;
+        return;
+      }
+    },
+    setAlertsAborted(taskResult, taskContext) {
+      console.error(`${taskContext.action} aborted`, taskResult);
+      this.error.setAlerts = this.$t("error.generic_error");
+      this.isAlertsEnabled = this.isAlertsEnabledSaved;
+      this.loading.setAlerts = false;
+    },
+    setAlertsCompleted() {
+      this.isAlertsEnabledSaved = this.isAlertsEnabled;
+      this.loading.setAlerts = false;
+    },
     goToCertificates() {
       this.core.$router.push("/settings/tls-certificates");
     },
@@ -715,6 +835,11 @@ export default {
 
 <style scoped lang="scss">
 @import "../styles/carbon-utils";
+
+.alerts-list {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
 
 .input-label {
   font-size: 12px;
