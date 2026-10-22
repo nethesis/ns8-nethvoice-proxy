@@ -63,9 +63,14 @@
     "address_and_iface_dont_match": "@:settings.interface and @:settings.address do not match",
     "address_and_iface_dont_match_message": "For the devices in the PBX local network to work correctly, the 'Hairpin NAT' feature — also known as 'NAT reflection', 'NAT hairpinning', 'NAT on a stick' or 'Loopback NAT' — must be enabled on the firewall (specifically, on the device that manages the NAT of the public IP).",
     "address_tooltip": "This is required only if it differs from @:settings.interface address. The address is filled automatically based on the resolved FQDN above, but you can change it if needed.",
-    "alerts_title": "Alerts beta",
-    "alerts_description": "Send built-in alerts about the proxy services and the SIP trunks it relays to the cluster alerting. Beta: alerts may change.",
-    "alerts_toggle": "Built-in alerts"
+    "alerts_title": "Alerts (beta)",
+    "alerts_description": "When enabled, the proxy checks its services and the SIP trunks it relays every 5 minutes and raises these alerts:",
+    "alerts_service_down": "a proxy service (Kamailio, rtpengine, PostgreSQL or Redis) is stopped or keeps restarting",
+    "alerts_trunk_unreachable": "a SIP trunk relayed by the proxy cannot reach its provider",
+    "alerts_where": "Active alerts are shown in the Nodes page and, if the cluster has a subscription, on my.nethesis.it.",
+    "alerts_toggle": "Built-in alerts",
+    "alerts_beta_title": "Beta feature",
+    "alerts_beta_description": "It may raise unwanted alerts, and the alerts may change in the next releases."
   },
   "about": {
     "title": "About"
