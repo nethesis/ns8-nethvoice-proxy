@@ -212,6 +212,50 @@ FOR EACH ROW EXECUTE FUNCTION reject_route_delete();
         finally:
             self.sql('DROP TRIGGER reject_route_delete ON dispatcher; DROP FUNCTION reject_route_delete();')
 
+    def normalize(self):
+        result = subprocess.run([sys.executable, str(ROOT / 'imageroot/update-module.d/35normalize_domain_routes')],
+                                text=True, capture_output=True, env=self.env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result
+
+    def test_update_normalizes_legacy_routes_and_preserves_sets(self):
+        setid = self.legacy_route()
+        self.action('add-route', 'other.example.org')
+        self.action('add-trunk', rule='3906', destination=ADDRESS[0])
+        dispatcher = self.snapshot()['dispatcher']
+        trunk = self.sql("SELECT json_agg(t) FROM nethvoice_proxy_routes t WHERE route_type = 'trunk';")
+        self.normalize()
+        self.assertEqual(self.sql("SELECT setid FROM nethvoice_proxy_routes WHERE target = 'voice.example.org';"), setid)
+        self.assertEqual(self.sql("SELECT count(*) FROM domain WHERE domain = 'voice.example.org' AND did = domain;"), '1')
+        self.assertEqual(self.sql("SELECT count(*) FROM dialplan WHERE dpid = 1 AND match_exp = 'voice.example.org';"), '1')
+        self.assertEqual(self.sql('SELECT count(*) FROM domain WHERE domain <> lower(domain);'), '0')
+        self.assertEqual(self.snapshot()['dispatcher'], dispatcher)
+        self.assertEqual(self.sql("SELECT json_agg(t) FROM nethvoice_proxy_routes t WHERE route_type = 'trunk';"), trunk)
+        before = self.snapshot()
+        self.normalize()
+        self.assertEqual(self.snapshot(), before)
+
+    def test_update_skips_ambiguous_routes_and_normalizes_the_others(self):
+        self.legacy_route()
+        self.sql("INSERT INTO nethvoice_proxy_routes (target, route_type) VALUES ('VOICE.EXAMPLE.ORG', 'domain');")
+        self.action('add-route', 'other.example.org')
+        self.sql("""
+UPDATE nethvoice_proxy_routes SET target = 'Other.Example.org' WHERE target = 'other.example.org';
+UPDATE domain SET domain = 'Other.Example.org', did = 'Other.Example.org' WHERE domain = 'other.example.org';
+UPDATE dialplan SET match_exp = 'Other.Example.org' WHERE match_exp = 'other.example.org';
+""")
+        def ambiguous_records():
+            return [self.sql(f"SELECT json_agg(t ORDER BY id) FROM {table} t WHERE lower({column}) = 'voice.example.org';")
+                    for table, column in (('nethvoice_proxy_routes', 'target'), ('domain', 'domain'),
+                                          ('dialplan', 'match_exp'))]
+        before = ambiguous_records()
+        result = self.normalize()
+        self.assertIn('Skipped SIP domain route', result.stderr)
+        self.assertEqual(ambiguous_records(), before)
+        self.assertEqual(self.sql("SELECT count(*) FROM nethvoice_proxy_routes WHERE target = 'other.example.org';"), '1')
+        self.assertEqual(self.sql("SELECT count(*) FROM domain WHERE domain = 'other.example.org';"), '1')
+        self.assertEqual(self.sql("SELECT count(*) FROM dialplan WHERE match_exp = 'other.example.org';"), '1')
+
     def test_concurrent_case_variants_create_one_route(self):
         with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
             list(executor.map(lambda domain: self.action('add-route', domain),
