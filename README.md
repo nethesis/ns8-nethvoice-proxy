@@ -123,6 +123,26 @@ Kamailio® (successor of former OpenSER and SER) is an Open Source SIP Server
 released under GPLv2+, able to handle thousands of call setups per second.
 Website: [kamailio](https://www.kamailio.org/w/)
 
+#### Kamailio 6.0 upgrade
+
+The module runs Kamailio 6.0 on Ubuntu 24.04. Older releases ran Kamailio 5.8
+on Ubuntu 20.04.
+
+The only database change required by Kamailio 6.0 is the `htable` table:
+`key_name` grows from 64 to 256 characters and `key_value` from 128 to 512.
+New installations create the table with the new sizes. On existing
+installations the `update-module.d/30migrate_kamailio_60_schema` step widens
+the columns during the module update. Data is preserved and the step can run
+again without changes.
+
+To downgrade to Kamailio 5.8, update the instance to a release that ships it:
+
+    api-cli run update-module --data '{"module_url":"ghcr.io/nethesis/nethvoice-proxy:<5.8 release>","instances":["nethvoice-proxy1"],"force":true}'
+
+Kamailio 5.8 runs with the widened `htable` columns, so the schema does not need
+to be reverted. The module keeps `htable` data in memory only, so the column
+sizes have no effect on routing.
+
 ### Postgres
 
 PostgreSQL is a powerful, open source object-relational database system with over
