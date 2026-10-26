@@ -256,6 +256,49 @@ UPDATE dialplan SET match_exp = 'Other.Example.org' WHERE match_exp = 'other.exa
         self.assertEqual(self.sql("SELECT count(*) FROM domain WHERE domain = 'other.example.org';"), '1')
         self.assertEqual(self.sql("SELECT count(*) FROM dialplan WHERE match_exp = 'other.example.org';"), '1')
 
+    def duplicate_route(self, address=None):
+        # What an older proxy does when NethVoice saves the hostname in lowercase.
+        self.sql("""
+WITH route AS (INSERT INTO nethvoice_proxy_routes (target, route_type) VALUES ('voice.example.org', 'domain') RETURNING setid)
+INSERT INTO dialplan (dpid, pr, match_op, match_exp, match_len, subst_exp, repl_exp, attrs)
+    SELECT 1, 1, 0, 'voice.example.org', 0, '(.*)', setid, setid FROM route;
+INSERT INTO domain (domain, did) VALUES ('voice.example.org', 'voice.example.org');
+""")
+        for entry in ADDRESS if address is None else address:
+            self.sql(f"""INSERT INTO dispatcher (setid, destination, description)
+SELECT setid, '{entry['uri']}', '{entry['description']}' FROM nethvoice_proxy_routes WHERE target = 'voice.example.org';""")
+        return self.sql("SELECT setid FROM nethvoice_proxy_routes WHERE target = 'voice.example.org';")
+
+    def test_update_merges_duplicate_routes_with_the_same_backends(self):
+        self.legacy_route()
+        setid = self.duplicate_route()
+        self.action('add-route', 'other.example.org')
+        self.action('add-trunk', rule='3906', destination=ADDRESS[0])
+        trunk = self.sql("SELECT json_agg(t) FROM nethvoice_proxy_routes t WHERE route_type = 'trunk';")
+        result = self.normalize()
+        self.assertIn('Merged duplicate SIP domain routes voice.example.org', result.stderr)
+        self.assertEqual(self.sql("SELECT setid FROM nethvoice_proxy_routes WHERE lower(target) = 'voice.example.org';"),
+                         setid)
+        self.assertEqual(self.sql("SELECT count(*) FROM domain WHERE lower(domain) = 'voice.example.org';"), '1')
+        self.assertEqual(self.sql("SELECT count(*) FROM dialplan WHERE dpid = 1 AND lower(match_exp) = 'voice.example.org';"), '1')
+        self.assertEqual(self.sql(f'SELECT count(*) FROM dispatcher WHERE setid <> {setid};'), '2')
+        self.assertEqual(self.sql("SELECT json_agg(t) FROM nethvoice_proxy_routes t WHERE route_type = 'trunk';"), trunk)
+        self.assertEqual(json.loads(self.action('get-route', 'VOICE.EXAMPLE.ORG').stdout), {'address': ADDRESS})
+        self.action('add-route', 'Voice.Example.org')
+        self.assertEqual(self.sql("SELECT count(*) FROM nethvoice_proxy_routes WHERE lower(target) = 'voice.example.org';"), '1')
+        before = self.snapshot()
+        self.normalize()
+        self.assertEqual(self.snapshot(), before)
+
+    def test_update_keeps_duplicate_routes_with_different_backends(self):
+        self.legacy_route()
+        self.duplicate_route([{'uri': 'sip:127.0.0.1:15081', 'description': 'module2'}])
+        before = self.snapshot()
+        result = self.normalize()
+        self.assertNotIn('Merged duplicate', result.stderr)
+        self.assertIn('Skipped SIP domain route Voice.Example.org', result.stderr)
+        self.assertEqual(self.snapshot(), before)
+
     def test_concurrent_case_variants_create_one_route(self):
         with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
             list(executor.map(lambda domain: self.action('add-route', domain),

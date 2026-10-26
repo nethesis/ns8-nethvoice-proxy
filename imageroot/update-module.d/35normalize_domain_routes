@@ -15,11 +15,52 @@ import sys
 
 from domain_routes import run_route_query
 
+PSQL = [
+    'podman', 'exec', '-i', 'postgres', 'psql', '-X', '-qAt', '-v', 'ON_ERROR_STOP=1',
+    '-U', os.environ['POSTGRES_USER'], os.environ['POSTGRES_DB'],
+]
+
+# A NethVoice that saves its hostname in lowercase through an older proxy adds
+# a second route next to the mixed-case one, with the same backends. Keep one
+# route for each domain when all of them are consistent and send calls to the
+# same backends; routes with different backends are left to the check below.
+result = subprocess.run(PSQL, input="""
+BEGIN;
+LOCK TABLE nethvoice_proxy_routes, domain, dialplan, dispatcher IN SHARE ROW EXCLUSIVE MODE;
+CREATE TEMP TABLE route_records ON COMMIT DROP AS
+    SELECT r.id, r.target, r.setid, lower(r.target) AS name,
+        (SELECT count(*) FROM domain d WHERE d.domain = r.target AND d.did = r.target) AS domains,
+        (SELECT count(*) FROM dialplan p WHERE p.dpid = 1 AND p.match_exp = r.target AND p.match_op = 0
+            AND p.repl_exp = r.setid::text AND p.attrs = r.setid::text) AS dialplans,
+        (SELECT count(*) FROM nethvoice_proxy_routes o WHERE o.setid = r.setid) AS setid_routes,
+        (SELECT json_agg(json_build_array(s.destination, s.description) ORDER BY s.destination, s.description)::text
+            FROM dispatcher s WHERE s.setid = r.setid) AS backends
+    FROM nethvoice_proxy_routes r WHERE r.route_type = 'domain';
+CREATE TEMP TABLE merged_domains ON COMMIT DROP AS
+    SELECT name FROM route_records r GROUP BY name
+    HAVING count(*) > 1
+        AND bool_and(domains = 1 AND dialplans = 1 AND setid_routes = 1 AND backends IS NOT NULL)
+        AND count(DISTINCT backends) = 1
+        AND count(*) = (SELECT count(*) FROM domain WHERE lower(domain) = r.name)
+        AND count(*) = (SELECT count(*) FROM dialplan WHERE dpid = 1 AND lower(match_exp) = r.name);
+-- Prefer the route already saved in lowercase, then the oldest one.
+CREATE TEMP TABLE dropped_routes ON COMMIT DROP AS
+    SELECT * FROM route_records r WHERE name IN (SELECT name FROM merged_domains)
+        AND id <> (SELECT k.id FROM route_records k WHERE k.name = r.name
+                   ORDER BY k.target = k.name DESC, k.id LIMIT 1);
+DELETE FROM dispatcher WHERE setid IN (SELECT setid FROM dropped_routes);
+DELETE FROM dialplan p USING dropped_routes r
+    WHERE p.dpid = 1 AND p.match_exp = r.target AND p.repl_exp = r.setid::text;
+DELETE FROM domain d USING dropped_routes r WHERE d.domain = r.target;
+DELETE FROM nethvoice_proxy_routes WHERE id IN (SELECT id FROM dropped_routes);
+SELECT name FROM merged_domains;
+COMMIT;
+""", text=True, stdout=subprocess.PIPE, check=True)
+for name in result.stdout.splitlines():
+    print(f"Merged duplicate SIP domain routes {name}", file=sys.stderr)
+
 result = subprocess.run(
-    [
-        'podman', 'exec', '-i', 'postgres', 'psql', '-X', '-qAt', '-v', 'ON_ERROR_STOP=1',
-        '-U', os.environ['POSTGRES_USER'], os.environ['POSTGRES_DB'],
-    ],
+    PSQL,
     input="SELECT target FROM nethvoice_proxy_routes WHERE route_type = 'domain' AND target <> lower(target);",
     text=True, stdout=subprocess.PIPE, check=True,
 )
