@@ -1335,12 +1335,12 @@ __metadata:
   linkType: hard
 
 "@carbon/icons-vue@npm:^10.37.0":
-  version: 10.139.0
-  resolution: "@carbon/icons-vue@npm:10.139.0"
+  version: 10.140.0
+  resolution: "@carbon/icons-vue@npm:10.140.0"
   dependencies:
     "@carbon/icon-helpers": "npm:^10.84.0"
     "@ibm/telemetry-js": "npm:^1.5.0"
-  checksum: 10c0/5509b24b53f980115279d56c2621c6540d314f77a3ce3980580517551f48f5c0794441362752e109822bf61e69d6ad3d29202ca9b8f572dfbd06a4eb5dca979f
+  checksum: 10c0/f3cfc5704e0bd88205c85200c56c79ab2467eeb37da7e11488bf09fd7e46ed8cc776c0d0ee8724aab715359d3e2a0159824256c4c00871120895e214dd3bfafa
   languageName: node
   linkType: hard
 
