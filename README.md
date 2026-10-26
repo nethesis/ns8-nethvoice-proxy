@@ -148,7 +148,10 @@ missing (older NethVoice, NethVoice metrics not exported) only the `trunk`
 label is shown.
 
 Kamailio keeps the last answer in the `nvtrunkreg` htable for 25 hours, and
-the last OPTIONS answer in `nvtrunkopt` for 1 hour. The key starts with the
+the last OPTIONS answer in `nvtrunkopt` for 1 hour. The failures that Asterisk
+retries expire after 15 minutes: 401, 403, 407, 408 and 5xx for registrations
+(Asterisk retries every 10 or 60 seconds by default), 408 for OPTIONS (sent
+every minute). The key starts with the
 address of the Asterisk that sent the request (`<ip>:<port>|`), mapped to the
 NethVoice instance with the dispatcher table. Read them with:
 
@@ -163,9 +166,13 @@ Limits:
   has no user part. After a Kamailio restart a device is known again at its
   next registration, which also drops the OPTIONS answers stored for its
   address in the meantime; a de-registration forgets the device.
-- When a trunk is disabled or deleted in NethVoice, its last answer stays
-  until it expires (25 hours for registrations, 1 hour for OPTIONS), so a
-  failing trunk keeps the alert firing for that time.
+- When a failing trunk is disabled or deleted in NethVoice, or its user or
+  domain is changed, its last answer stays until it expires: the alert clears
+  within about 20 minutes (15 minutes plus the export interval). After a
+  failure that Asterisk does not retry (for example 404) it stays 25 hours.
+- When the retry interval of a trunk is set above 15 minutes, or the
+  forbidden retry interval to 0 (Asterisk stops after a rejection), the last
+  failure expires and the alert clears while the trunk is still broken.
 - The trunks of a removed NethVoice instance are not exported.
 - Only UDP trunk registrations and OPTIONS are checked. Over TCP and TLS
   Asterisk sends from a random port, so the proxy cannot tell which NethVoice
