@@ -189,7 +189,7 @@ Limits:
 
 The metrics are exported every 5 minutes; check them with
 `runagent -m nethvoice-proxy1 export-metrics`. The alerts require core 3.24.0
-or later, and the metrics app 1.7.0-dev.1 or later.
+or later, and the metrics app 1.7.0 or later.
 
 Known limit: moving or cloning the module stops kamailio and postgres on
 purpose, while they stay enabled. If the transfer takes more than 10 minutes,
