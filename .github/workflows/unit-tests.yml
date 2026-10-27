@@ -12,7 +12,7 @@ jobs:
   unit-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # Python unit tests and promtool tests of the alert rules (podman is
       # preinstalled on the runner)
       - run: python3 -m unittest discover -s tests/unit -v
