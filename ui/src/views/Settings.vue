@@ -201,12 +201,6 @@
       <cv-column>
         <cv-tile light>
           <h4 class="mg-bottom-md">{{ $t("settings.alerts_title") }}</h4>
-          <NsInlineNotification
-            kind="info"
-            :title="$t('settings.alerts_beta_title')"
-            :description="$t('settings.alerts_beta_description')"
-            :showCloseButton="false"
-          />
           <cv-skeleton-text
             v-if="loading.getConfiguration"
             :line-count="1"

@@ -107,8 +107,8 @@ TLS tracing is enabled when NethServer 8 support session is started, to enable i
 
 ## Alerts
 
-The built-in alerts are a beta feature, disabled by default. Enable them from
-the "Alerts beta" card of the Settings page, or with:
+The built-in alerts are disabled by default. Enable them from the "Alerts"
+card of the Settings page, or with:
 
     api-cli run module/nethvoice-proxy1/set-alerts --data '{"alerts_enabled":true}'
 
