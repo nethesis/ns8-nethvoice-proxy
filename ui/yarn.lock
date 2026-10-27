@@ -1316,12 +1316,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@carbon/icon-helpers@npm:^10.83.0":
-  version: 10.83.0
-  resolution: "@carbon/icon-helpers@npm:10.83.0"
+"@carbon/icon-helpers@npm:^10.84.0":
+  version: 10.84.0
+  resolution: "@carbon/icon-helpers@npm:10.84.0"
   dependencies:
     "@ibm/telemetry-js": "npm:^1.5.0"
-  checksum: 10c0/f2ea32eeef9ec567f42c32d837edde9cc7c52283e6e6e364c7b351af58cdec8ad631c4e1920264c8bb6153b7a20d235add28085aa1f23b10ba1d2285cf5bcbbc
+  checksum: 10c0/a2759d761cc7dcb7785179b8fdf384320c5c993a4cb6cb9d688736244dfe50a57234c7c5ff90e743e9086a476d7e195cf05a2e9b01327d8f14b27a0c32bc84d7
   languageName: node
   linkType: hard
 
@@ -1335,12 +1335,12 @@ __metadata:
   linkType: hard
 
 "@carbon/icons-vue@npm:^10.37.0":
-  version: 10.138.0
-  resolution: "@carbon/icons-vue@npm:10.138.0"
+  version: 10.140.0
+  resolution: "@carbon/icons-vue@npm:10.140.0"
   dependencies:
-    "@carbon/icon-helpers": "npm:^10.83.0"
+    "@carbon/icon-helpers": "npm:^10.84.0"
     "@ibm/telemetry-js": "npm:^1.5.0"
-  checksum: 10c0/aa363747478a400bea3464b4a15720b650fe2a1b432c52ca388e59c4b3c8efbbfb5f84e1e7efb76b9a230c58d9c4506d0ed1396389cb10ebc582369e99621fc9
+  checksum: 10c0/f3cfc5704e0bd88205c85200c56c79ab2467eeb37da7e11488bf09fd7e46ed8cc776c0d0ee8724aab715359d3e2a0159824256c4c00871120895e214dd3bfafa
   languageName: node
   linkType: hard
 
@@ -1529,8 +1529,8 @@ __metadata:
   linkType: hard
 
 "@nethserver/ns8-ui-lib@npm:^2.0.0":
-  version: 2.0.1
-  resolution: "@nethserver/ns8-ui-lib@npm:2.0.1"
+  version: 2.2.1
+  resolution: "@nethserver/ns8-ui-lib@npm:2.2.1"
   dependencies:
     "@rollup/plugin-json": "npm:^4.1.0"
     core-js: "npm:^3.15.2"
@@ -1539,7 +1539,7 @@ __metadata:
     vue-date-fns: "npm:^2.0.1"
   peerDependencies:
     vue: ^2.6.12
-  checksum: 10c0/0a7e19b2ed067c1e6baf6921a901822a4aa14b2936dc3444694b10da8900cf740fa5d7b937b151c67223955c4397c3f37d6a2c69534b4ac76a8eeb6df9da9639
+  checksum: 10c0/504dde2831ac069993ee08e133bba1474b1d43ec6cbb1cba36b39f07ee1457cdb54fa600f296c94e0667588dfd0ddfd07babbbdd8309a801a10802c05aa4abfc
   languageName: node
   linkType: hard
 
@@ -4313,9 +4313,9 @@ __metadata:
   linkType: hard
 
 "core-js@npm:^3.15.2, core-js@npm:^3.6.5":
-  version: 3.50.0
-  resolution: "core-js@npm:3.50.0"
-  checksum: 10c0/1bfcfb1dbdf45b0b1428a9fdcb03697d1fc52c7e9bc336f804a86ff2c2705a301dca7d9d6636d09d49d60298183273b9321681baeaf330c78db5393bc73f3f6a
+  version: 3.51.0
+  resolution: "core-js@npm:3.51.0"
+  checksum: 10c0/1c10402cb9e8748c17327a68ba7a69e535d125cc81b63261506400681bdd814c6267c55fbc51fafd71d3094dcb25f5f41cc1bc5caba6a15118c73aec9653dd3b
   languageName: node
   linkType: hard
 
@@ -10622,8 +10622,8 @@ __metadata:
   linkType: hard
 
 "sass@npm:^1.34.1":
-  version: 1.104.1
-  resolution: "sass@npm:1.104.1"
+  version: 1.106.1
+  resolution: "sass@npm:1.106.1"
   dependencies:
     "@parcel/watcher": "npm:^2.4.1"
     chokidar: "npm:^5.0.0"
@@ -10634,7 +10634,7 @@ __metadata:
       optional: true
   bin:
     sass: sass.js
-  checksum: 10c0/d04e1898a9470a7a5052e67cbe5fc4ec342374f6d65a75eb180a5a60d0ee1af85bb2df6d877087169c4d53e358ff0864f2343fd594dc60474ce7a6467ee41961
+  checksum: 10c0/4f1043e2d5b3b7e9cf563050040ed3d91ef1bf8eb9dd180ecfd7ec403bfbd52ac2f557d7e7b398573021f9240a134a080d11af21b802724c05cad386b768df4c
   languageName: node
   linkType: hard
 
