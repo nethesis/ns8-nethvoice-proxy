@@ -89,7 +89,7 @@
     },
     "alerts_enabled": {
       "title": "Built-in alerts",
-      "description": "Publish the built-in alert rules of the proxy (beta). Disabled by default.",
+      "description": "Publish the built-in alert rules of the proxy. Disabled by default.",
       "type": "boolean"
     }
   }

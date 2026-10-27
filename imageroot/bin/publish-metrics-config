@@ -14,9 +14,9 @@
 # script are never touched. The hash is deleted by the core when the module
 # is removed.
 #
-# The alerts are a beta feature: unless ALERTS_ENABLED is "true", the owned
-# fields are removed instead, so no proxy alert reaches Prometheus. The
-# metrics are exported anyway.
+# The alerts are off unless ALERTS_ENABLED is "true": when off, the owned
+# fields are removed, so no proxy alert reaches Prometheus. The metrics are
+# exported anyway.
 
 import fcntl
 import os
