@@ -25,6 +25,11 @@ if os.getenv("SERVICE_IP", None) is None:
     # Clean up obsolete env variable
     agent.unset_env('KML_INTERNAL_NETWORK')
 
+# Built-in alerts are off by default: keep them disabled on existing
+# instances until enabled from the UI
+if os.getenv("ALERTS_ENABLED") is None:
+    agent.set_env("ALERTS_ENABLED", "false")
+
 # test if the passwords.env is present and if 'POSTGRES_PASSWORD' is present
 if not os.path.exists("passwords.env") and os.getenv('POSTGRES_PASSWORD') is not None:
         # create the passwords.env file
