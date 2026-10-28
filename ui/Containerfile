@@ -1,4 +1,4 @@
-FROM node:24-bookworm
+FROM node:26-bookworm
 RUN corepack enable \
     && yarn set version stable
 WORKDIR /app
