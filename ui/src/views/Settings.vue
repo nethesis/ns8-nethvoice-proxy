@@ -162,6 +162,66 @@
               :description="$t('settings.address_and_iface_dont_match_message')"
               :showCloseButton="false"
             />
+            <cv-accordion
+              ref="accordion"
+              class="advanced-accordion mg-bottom-md"
+            >
+              <cv-accordion-item :open="isAdvancedOpen">
+                <template slot="title">{{
+                  core.$t("common.advanced")
+                }}</template>
+                <template slot="content">
+                  <div class="mg-bottom-md">
+                    <div class="bx--label mb-0">
+                      {{ $t("settings.sip_port") }}
+                      <cv-interactive-tooltip
+                        alignment="start"
+                        direction="bottom"
+                        class="info relative top-0.5"
+                      >
+                        <template slot="content">
+                          {{ $t("settings.sip_port_tooltip") }}
+                        </template>
+                      </cv-interactive-tooltip>
+                    </div>
+                    <cv-text-input
+                      v-model="sipPort"
+                      type="number"
+                      min="1"
+                      max="65535"
+                      :disabled="loading.configureModule"
+                      :invalid-message="error.sip_port"
+                      :helper-text="$t('settings.sip_port_helper')"
+                      ref="sip_port"
+                    />
+                  </div>
+                  <div class="mg-bottom-md">
+                    <div class="bx--label mb-0">
+                      {{ $t("settings.sips_port") }}
+                      <cv-interactive-tooltip
+                        alignment="start"
+                        direction="bottom"
+                        class="info relative top-0.5"
+                      >
+                        <template slot="content">
+                          {{ $t("settings.sips_port_tooltip") }}
+                        </template>
+                      </cv-interactive-tooltip>
+                    </div>
+                    <cv-text-input
+                      v-model="sipsPort"
+                      type="number"
+                      min="1"
+                      max="65535"
+                      :disabled="loading.configureModule"
+                      :invalid-message="error.sips_port"
+                      :helper-text="$t('settings.sips_port_helper')"
+                      ref="sips_port"
+                    />
+                  </div>
+                </template>
+              </cv-accordion-item>
+            </cv-accordion>
             <NsInlineNotification
               v-if="validationErrorDetails.length"
               kind="error"
@@ -290,6 +350,9 @@ export default {
       address: "",
       resolvedIp: "",
       iface: "",
+      sipPort: "5060",
+      sipsPort: "5061",
+      isAdvancedOpen: false,
       fqdnTimeout: 0,
       isLetsEncryptEnabled: false,
       isLetsEncryptCurrentlyEnabled: false,
@@ -315,6 +378,8 @@ export default {
         address: "",
         public_address: "",
         iface: "",
+        sip_port: "",
+        sips_port: "",
         getStatus: "",
         setAlerts: "",
       },
@@ -391,6 +456,8 @@ export default {
       this.isLetsEncryptCurrentlyEnabled = config.lets_encrypt;
       this.isAlertsEnabled = !!config.alerts_enabled;
       this.isAlertsEnabledSaved = this.isAlertsEnabled;
+      this.sipPort = String(config.sip_port || 5060);
+      this.sipsPort = String(config.sips_port || 5061);
 
       // this.iface is set on get-available-interfaces completion
 
@@ -450,6 +517,31 @@ export default {
         if (isValidationOk) {
           this.focusElement("public_address");
           isValidationOk = false;
+        }
+      }
+
+      // SIP ports: 1-65535, different, not the local listeners 6060/6061
+      const ports = { sip_port: this.sipPort, sips_port: this.sipsPort };
+      for (const [field, value] of Object.entries(ports)) {
+        const port = Number(value);
+        let portError = "";
+
+        if (!Number.isInteger(port) || port < 1 || port > 65535) {
+          portError = this.$t("settings.port_invalid");
+        } else if (port === 6060 || port === 6061) {
+          portError = this.$t(`settings.${field}_reserved`);
+        } else if (field === "sips_port" && port === Number(this.sipPort)) {
+          portError = this.$t("settings.sip_ports_must_differ");
+        }
+
+        if (portError) {
+          this.error[field] = portError;
+          this.isAdvancedOpen = true;
+
+          if (isValidationOk) {
+            this.focusElement(field);
+            isValidationOk = false;
+          }
         }
       }
       return isValidationOk;
@@ -582,6 +674,10 @@ export default {
           if (field !== "(root)") {
             // set i18n error message
             this.error[field] = this.$t("settings." + validationError.error);
+
+            if (field === "sip_port" || field === "sips_port") {
+              this.isAdvancedOpen = true;
+            }
           }
         }
       }
@@ -634,6 +730,8 @@ export default {
           address: this.iface,
         },
         lets_encrypt: this.isLetsEncryptEnabled,
+        sip_port: Number(this.sipPort),
+        sips_port: Number(this.sipsPort),
       };
 
       // check if public_address exists and is different from local ip address
@@ -829,6 +927,16 @@ export default {
 
 <style scoped lang="scss">
 @import "../styles/carbon-utils";
+
+// same width as the other form fields, without the item dividers
+.advanced-accordion {
+  max-width: 38rem;
+
+  ::v-deep .bx--accordion__item {
+    border-top: none;
+    border-bottom: none;
+  }
+}
 
 .alerts-list {
   list-style: disc;

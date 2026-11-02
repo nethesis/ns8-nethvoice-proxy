@@ -25,25 +25,30 @@ rm -f /tmp/kamailio-local-additional.cfg
 # creating empty file /tmp/kamailio-local-additional.cfg
 touch /tmp/kamailio-local-additional.cfg
 
+# SIP ports for phones, gateways and trunks; the service network keeps 5060
+SIP_PORT=${SIP_PORT:-5060}
+SIPS_PORT=${SIPS_PORT:-5061}
+
 # now I need to handle external interface that could be behind a NAT or not
 if [ "${BEHIND_NAT}" == "true" ]; then
     # now I have to add the listen with the advertise address in the kamailio-local-additional.cfg
-    echo "listen=udp:${PRIVATE_IP}:5060 advertise ${PUBLIC_IP}:5060" > /tmp/kamailio-local-additional.cfg
+    echo "listen=udp:${PRIVATE_IP}:${SIP_PORT} advertise ${PUBLIC_IP}:${SIP_PORT}" > /tmp/kamailio-local-additional.cfg
     # doind the same for TCP
-    echo "listen=tcp:${PRIVATE_IP}:5060 advertise ${PUBLIC_IP}:5060" >> /tmp/kamailio-local-additional.cfg
+    echo "listen=tcp:${PRIVATE_IP}:${SIP_PORT} advertise ${PUBLIC_IP}:${SIP_PORT}" >> /tmp/kamailio-local-additional.cfg
     # doing the same for TLS
-    echo "listen=tls:${PRIVATE_IP}:5061 advertise ${PUBLIC_IP}:5061" >> /tmp/kamailio-local-additional.cfg
-    # Add listeners for port 6060
-    echo "listen=udp:${PRIVATE_IP}:6060 advertise ${PRIVATE_IP}:5060" >> /tmp/kamailio-local-additional.cfg
-    echo "listen=tcp:${PRIVATE_IP}:6060 advertise ${PRIVATE_IP}:5060" >> /tmp/kamailio-local-additional.cfg
-    echo "listen=tls:${PRIVATE_IP}:6061 advertise ${PRIVATE_IP}:5061" >> /tmp/kamailio-local-additional.cfg
+    echo "listen=tls:${PRIVATE_IP}:${SIPS_PORT} advertise ${PUBLIC_IP}:${SIPS_PORT}" >> /tmp/kamailio-local-additional.cfg
+    # Add listeners for port 6060: local clients reach them on the SIP ports
+    # through the firewall port forwarding
+    echo "listen=udp:${PRIVATE_IP}:6060 advertise ${PRIVATE_IP}:${SIP_PORT}" >> /tmp/kamailio-local-additional.cfg
+    echo "listen=tcp:${PRIVATE_IP}:6060 advertise ${PRIVATE_IP}:${SIP_PORT}" >> /tmp/kamailio-local-additional.cfg
+    echo "listen=tls:${PRIVATE_IP}:6061 advertise ${PRIVATE_IP}:${SIPS_PORT}" >> /tmp/kamailio-local-additional.cfg
 else
     # now I have to add the listen with the public IP in the kamailio-local-additional.cfg
-    echo "listen=udp:${PUBLIC_IP}:5060" > /tmp/kamailio-local-additional.cfg
+    echo "listen=udp:${PUBLIC_IP}:${SIP_PORT}" > /tmp/kamailio-local-additional.cfg
     # doind the same for TCP
-    echo "listen=tcp:${PUBLIC_IP}:5060" >> /tmp/kamailio-local-additional.cfg
+    echo "listen=tcp:${PUBLIC_IP}:${SIP_PORT}" >> /tmp/kamailio-local-additional.cfg
     # doing the same for TLS
-    echo "listen=tls:${PUBLIC_IP}:5061" >> /tmp/kamailio-local-additional.cfg
+    echo "listen=tls:${PUBLIC_IP}:${SIPS_PORT}" >> /tmp/kamailio-local-additional.cfg
 fi
 
 # if SERVICE_IP not set exit with error

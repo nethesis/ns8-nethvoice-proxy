@@ -7,10 +7,9 @@
 
 import os
 import agent
+import sip_ports
 
-# Open SIP 5060 (TCP/UDP), SIPS 5061 (TCP only) and RTP range (10000-20000).
+# Open SIP (TCP/UDP), SIPS (TCP only) and RTP range (10000-20000).
 # NAT-only ports 6060/6061 are managed during configure-module.
-agent.assert_exp(agent.add_public_service(os.environ['MODULE_ID'], [
-    "5060-5061/tcp",
-    "5060/udp",
-    "10000-20000/udp"]))
+agent.assert_exp(agent.add_public_service(os.environ['MODULE_ID'],
+    sip_ports.public_ports(*sip_ports.get_ports())))

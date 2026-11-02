@@ -68,7 +68,17 @@
     "alerts_service_down": "a proxy service (Kamailio, rtpengine, PostgreSQL or Redis) is stopped or keeps restarting",
     "alerts_trunk_unreachable": "a SIP trunk relayed by the proxy cannot reach its provider",
     "alerts_where": "Active alerts are shown in the Nodes page and, if the cluster has a subscription, on my.nethesis.it.",
-    "alerts_toggle": "Built-in alerts"
+    "alerts_toggle": "Built-in alerts",
+    "sip_port": "SIP port",
+    "sip_port_helper": "Default 5060",
+    "sips_port": "SIPS port",
+    "sips_port_helper": "Default 5061",
+    "port_invalid": "Must be a number between 1 and 65535",
+    "sip_port_reserved": "Ports 6060 and 6061 are used by the local networks listeners",
+    "sips_port_reserved": "@:settings.sip_port_reserved",
+    "sip_ports_must_differ": "Must be different from @:settings.sip_port",
+    "sip_port_tooltip": "UDP and TCP port for phones, gateways and trunks. Provisioned phones and gateways get the new port; trunk providers and manually configured devices must be updated by hand.",
+    "sips_port_tooltip": "TLS port for phones, gateways and the mobile app. Provisioned devices and the app get the new port; manually configured devices must be updated by hand."
   },
   "about": {
     "title": "About"
