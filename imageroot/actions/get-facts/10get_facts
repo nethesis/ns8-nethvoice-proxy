@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2026 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+# Inventory facts reported to phonehome
+
+import json
+import os
+import sys
+
+facts = {
+    "nethvoice_proxy_alerts_enabled": os.getenv("ALERTS_ENABLED") == "true",
+}
+json.dump(facts, fp=sys.stdout)
