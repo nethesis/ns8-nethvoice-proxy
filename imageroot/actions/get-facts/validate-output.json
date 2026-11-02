@@ -5,17 +5,37 @@
     "description": "Module facts reported to phonehome",
     "examples": [
         {
-            "nethvoice_proxy_alerts_enabled": false
+            "nethvoice_proxy_alerts_enabled": false,
+            "nethvoice_proxy_local_networks_count": 1,
+            "nethvoice_proxy_lets_encrypt": true,
+            "nethvoice_proxy_domain_routes_count": 2,
+            "nethvoice_proxy_trunk_routes_count": 0
         }
     ],
     "type": "object",
-    "required": [
-        "nethvoice_proxy_alerts_enabled"
-    ],
     "properties": {
         "nethvoice_proxy_alerts_enabled": {
             "description": "The built-in alerts are enabled",
             "type": "boolean"
+        },
+        "nethvoice_proxy_local_networks_count": {
+            "description": "Number of local networks set in the settings",
+            "type": "integer",
+            "minimum": 0
+        },
+        "nethvoice_proxy_lets_encrypt": {
+            "description": "The proxy FQDN uses a Let's Encrypt certificate",
+            "type": "boolean"
+        },
+        "nethvoice_proxy_domain_routes_count": {
+            "description": "Number of NethVoice domains routed by the proxy",
+            "type": "integer",
+            "minimum": 0
+        },
+        "nethvoice_proxy_trunk_routes_count": {
+            "description": "Number of trunk routes",
+            "type": "integer",
+            "minimum": 0
         }
     }
 }

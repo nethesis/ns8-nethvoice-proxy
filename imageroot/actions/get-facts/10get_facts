@@ -9,9 +9,49 @@
 
 import json
 import os
+import subprocess
 import sys
 
-facts = {
-    "nethvoice_proxy_alerts_enabled": os.getenv("ALERTS_ENABLED") == "true",
-}
+import agent
+
+
+def safe(label, fn, facts):
+    """Call fn(facts), log any exception and go on with the next fact."""
+    try:
+        fn(facts)
+    except Exception as ex:
+        print(agent.SD_ERR, f"get-facts [{label}]:", ex, file=sys.stderr)
+
+
+def collect_env(facts):
+    facts["nethvoice_proxy_alerts_enabled"] = os.getenv("ALERTS_ENABLED") == "true"
+    facts["nethvoice_proxy_local_networks_count"] = len(
+        [n for n in os.getenv("LOCALNETWORKS", "").split(",") if n.strip()])
+
+
+def collect_certificate(facts):
+    certificate = agent.get_certificate(os.environ["KML_DEFAULT_FQDN"])
+    facts["nethvoice_proxy_lets_encrypt"] = certificate.get("lets_encrypt", False)
+
+
+def collect_routes(facts):
+    # Domain routes point to the NethVoice instances behind the proxy,
+    # trunk routes send provider calls to one of them
+    result = subprocess.run(
+        ["podman", "exec", "postgres", "psql", "-X", "-qtA",
+         "-U", os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"], "-c",
+         "SELECT COUNT(*) FILTER (WHERE route_type = 'domain'), "
+         "COUNT(*) FILTER (WHERE route_type = 'trunk') "
+         "FROM nethvoice_proxy_routes;"],
+        capture_output=True, text=True, check=True,
+    )
+    domains, trunks = result.stdout.strip().split("|")
+    facts["nethvoice_proxy_domain_routes_count"] = int(domains)
+    facts["nethvoice_proxy_trunk_routes_count"] = int(trunks)
+
+
+facts = {}
+safe("env", collect_env, facts)
+safe("certificate", collect_certificate, facts)
+safe("routes", collect_routes, facts)
 json.dump(facts, fp=sys.stdout)
