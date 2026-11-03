@@ -43,7 +43,7 @@ def collect_routes(facts):
          "SELECT COUNT(*) FILTER (WHERE route_type = 'domain'), "
          "COUNT(*) FILTER (WHERE route_type = 'trunk') "
          "FROM nethvoice_proxy_routes;"],
-        capture_output=True, text=True, check=True,
+        capture_output=True, text=True, check=True, timeout=30,
     )
     domains, trunks = result.stdout.strip().split("|")
     facts["nethvoice_proxy_domain_routes_count"] = int(domains)
