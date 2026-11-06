@@ -49,3 +49,16 @@ Kamailio kamcmd reports the running config without parse errors
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}    0
     Should Contain    ${output}    uptime
+
+Kamailio drops the alias of a routed in-dialog request
+    [Documentation]    When loose_route() takes the next hop from a
+    ...                Record-Route of the far end, DLGURI must still remove
+    ...                the ;alias= param from the Request-URI and keep that
+    ...                next hop: a provider proxy that checks the remote
+    ...                target refuses the request with 481 otherwise.
+    ${output}  ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio awk '/^route\\[DLGURI\\]/,/^} # end route\\[DLGURI\\]/' /etc/kamailio/kamailio.cfg
+    ...    return_rc=True
+    Should Be Equal As Integers    ${rc}    0
+    Should Contain    ${output}    $(ru{uri.param,alias})
+    Should Contain    ${output}    $du = $var(dlguri_du);
