@@ -7,6 +7,7 @@
 
 import agent
 import os
+import secrets
 
 # Check if the previus version supoported the NAT scenario
 # if not adjust the env variables
@@ -38,3 +39,16 @@ if not os.path.exists("passwords.env") and os.getenv('POSTGRES_PASSWORD') is not
 
         # unset the POSTGRES_PASSWORD
         agent.unset_env('POSTGRES_PASSWORD')
+
+# Add the per instance key of the topoh Call-ID mask, if missing
+if os.path.exists("passwords.env"):
+    passwords = {}
+    with open("passwords.env") as f:
+        for line in f:
+            line = line.rstrip("\n")
+            if "=" in line and not line.startswith("#"):
+                key, value = line.split("=", 1)
+                passwords[key] = value
+    if not passwords.get("TOPOH_MASK_KEY"):
+        passwords["TOPOH_MASK_KEY"] = secrets.token_hex(16)
+        agent.write_envfile("passwords.env", passwords)
