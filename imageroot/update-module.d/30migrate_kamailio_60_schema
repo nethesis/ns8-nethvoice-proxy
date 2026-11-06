@@ -1,0 +1,27 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2026 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+set -euo pipefail
+
+for i in {1..30}; do
+    if podman exec -e PGCONNECT_TIMEOUT=2 postgres psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c "SELECT 1;" &> /dev/null; then
+        break
+    fi
+
+    if [ "$i" -eq 30 ]; then
+        echo "PostgreSQL is not ready for Kamailio 6.0 schema migration" >&2
+        exit 1
+    fi
+
+    sleep 1
+done
+
+podman exec -i postgres psql -v ON_ERROR_STOP=1 -qU "$POSTGRES_USER" "$POSTGRES_DB" <<'SQL'
+ALTER TABLE public.htable
+    ALTER COLUMN key_name TYPE character varying(256),
+    ALTER COLUMN key_value TYPE character varying(512);
+SQL
