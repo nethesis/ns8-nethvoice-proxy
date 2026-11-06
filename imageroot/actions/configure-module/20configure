@@ -10,41 +10,24 @@ import sys
 import agent
 import subprocess
 import os
-
-BASE_PUBLIC_PORTS = [
-    "5060-5061/tcp",
-    "5060/udp",
-    "10000-20000/udp",
-]
-
-NAT_PUBLIC_PORTS = [
-    "6060-6061/tcp",
-    "6060/udp",
-]
+import sip_ports
 
 data = json.load(sys.stdin)
 
 local_networks = set()
 
-# Function to create rich rules for port forwarding
-def create_port_forward_rules(local_networks_list):
-    """Create rich rules for each local network"""
-    rules = []
-    for network in local_networks_list:
-        if network:  # Skip empty networks
-            # Port forward 5060 UDP to 6060
-            rules.append(f'rule family=ipv4 source address={network} forward-port port=5060 protocol=udp to-port=6060')
-            # Port forward 5060 TCP to 6060
-            rules.append(f'rule family=ipv4 source address={network} forward-port port=5060 protocol=tcp to-port=6060')
-            # Port forward 5061 TCP to 6061
-            rules.append(f'rule family=ipv4 source address={network} forward-port port=5061 protocol=tcp to-port=6061')
-    return rules
+# SIP ports: from the input, otherwise the current ones. The previous ports
+# are needed to remove the rules created with them.
+prev_sip_port, prev_sips_port = sip_ports.get_ports()
+sip_port = data.get("sip_port", prev_sip_port)
+sips_port = data.get("sips_port", prev_sips_port)
+agent.set_env("SIP_PORT", str(sip_port))
+agent.set_env("SIPS_PORT", str(sips_port))
 
 def set_public_firewall_ports(behind_nat):
-    ports = BASE_PUBLIC_PORTS + NAT_PUBLIC_PORTS if behind_nat else BASE_PUBLIC_PORTS
     agent.assert_exp(agent.add_public_service(
         os.environ["MODULE_ID"],
-        ports,
+        sip_ports.public_ports(sip_port, sips_port, behind_nat),
         replace_ports=True,
     ))
 
@@ -61,7 +44,7 @@ if "addresses" in data:
         prev_private_ip = os.environ.get("PRIVATE_IP")
         if prev_localnetworks and prev_private_ip:
             prev_networks = [n for n in prev_localnetworks.split(",") if n]
-            previous_rules = create_port_forward_rules(prev_networks)
+            previous_rules = sip_ports.port_forward_rules(prev_networks, prev_sip_port, prev_sips_port)
             if previous_rules:
                 result = agent.remove_rich_rules(previous_rules)
                 if not result:
@@ -90,7 +73,7 @@ if "addresses" in data:
         prev_private_ip = os.environ.get("PRIVATE_IP")
         if prev_localnetworks and prev_private_ip:
             prev_networks = [n for n in prev_localnetworks.split(",") if n]
-            previous_rules = create_port_forward_rules(prev_networks)
+            previous_rules = sip_ports.port_forward_rules(prev_networks, prev_sip_port, prev_sips_port)
             if previous_rules:
                 agent.remove_rich_rules(previous_rules)
 
@@ -104,7 +87,7 @@ if "addresses" in data:
 
         # Create and apply new port forwarding rules for each local network
         if local_networks:
-            new_rules = create_port_forward_rules(list(local_networks))
+            new_rules = sip_ports.port_forward_rules(list(local_networks), sip_port, sips_port)
             if new_rules:
                 result = agent.add_rich_rules(new_rules)
                 if not result:
@@ -112,7 +95,7 @@ if "addresses" in data:
 
         set_public_firewall_ports(bool(local_networks))
 
-    agent.set_env("DEFAULT_CONTACT", address["address"] + ":5060" if "public_address" not in address else address["public_address"] + ":5060")
+    agent.set_env("DEFAULT_CONTACT", (address["address"] if "public_address" not in address else address["public_address"]) + f":{sip_port}")
 
 # Log level kamailio is started with. The field is optional: when it is not
 # part of the input, keep the value already stored in the environment, so that

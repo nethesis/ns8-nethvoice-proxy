@@ -53,10 +53,29 @@ Launch `configure-module`, by setting the following parameters:
   - `address`: IPv4 address that is expected to receive VoIP traffic, **mandatory**.
   - `public_address`: public IPV4 address that is expected to receive
     VoIP traffic, in case of NAT.
+- `sip_port`: port of SIP over UDP and TCP for phones, gateways and trunks,
+  optional. Default `5060`.
+- `sips_port`: port of SIP over TLS for phones, gateways and the mobile app,
+  optional. Default `5061`.
 
 Example:
 
     api-cli run module/nethvoice-proxy1/configure-module --data '{"fqdn": "example.com", "addresses": { "address": "192.168.1.1", "public_address": "1.2.3.4" }}'
+
+### SIP ports
+
+`sip_port` and `sips_port` change only the ports devices connect to: the
+firewall, the Kamailio listeners on the public (or private, behind NAT)
+address and the advertised address follow them. The service network toward
+NethVoice keeps port 5060, and the local listeners of the NAT scenario keep
+6060/6061. The two values must differ and cannot be 6060 or 6061.
+
+The ports are published in the service discovery records
+(`module/nethvoice-proxyX/srv/{tcp,udp}/sip`) as `sip_port` and `sips_port`,
+next to `port`, the port of the service network. NethVoice reads them to
+provision phones, gateways and the mobile app.
+
+    api-cli run module/nethvoice-proxy1/configure-module --data '{"fqdn": "example.com", "addresses": { "address": "1.2.3.4" }, "sip_port": 5070, "sips_port": 5071}'
 
 ## NAT scenario: local networks support
 
@@ -72,12 +91,13 @@ need for hairpin NAT by automatically:
 1. Adding Kamailio listeners on ports **6060** (SIP/TCP/UDP) and **6061**
    (SIPS/TLS) bound to the private IP.
 2. Creating firewall port-forwarding rules that redirect traffic arriving
-   on 5060/5061 **from local network sources** to 6060/6061.
+   on the SIP ports (5060/5061 by default) **from local network sources** to
+   6060/6061.
 3. Configuring Kamailio to select `PRIVATE_IP:6060` as the outbound socket
    for destinations inside local networks, so the **private IP is
    advertised in SDP** for local clients — eliminating hairpin NAT.
 
-Remote clients are unaffected and continue to use ports 5060/5061 with
+Remote clients are unaffected and continue to use the SIP ports with
 the public IP in SDP.
 
 The network directly attached to `address` is detected automatically from
