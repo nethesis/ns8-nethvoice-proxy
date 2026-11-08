@@ -928,14 +928,9 @@ export default {
 <style scoped lang="scss">
 @import "../styles/carbon-utils";
 
-// same width as the other form fields, without the item dividers
+// same width as the other form fields
 .advanced-accordion {
   max-width: 38rem;
-
-  ::v-deep .bx--accordion__item {
-    border-top: none;
-    border-bottom: none;
-  }
 }
 
 .alerts-list {
