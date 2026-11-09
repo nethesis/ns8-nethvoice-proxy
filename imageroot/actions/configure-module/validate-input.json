@@ -97,15 +97,15 @@
       "title": "SIP port",
       "description": "Port of SIP over UDP and TCP for phones, gateways and trunks. Default 5060.",
       "type": "integer",
-      "minimum": 1,
-      "maximum": 65535
+      "minimum": 1024,
+      "maximum": 9999
     },
     "sips_port": {
       "title": "SIPS port",
       "description": "Port of SIP over TLS for phones, gateways and the mobile app. Default 5061.",
       "type": "integer",
-      "minimum": 1,
-      "maximum": 65535
+      "minimum": 1024,
+      "maximum": 9999
     },
     "alerts_enabled": {
       "title": "Built-in alerts",

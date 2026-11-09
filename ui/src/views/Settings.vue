@@ -187,8 +187,8 @@
                     <cv-text-input
                       v-model="sipPort"
                       type="number"
-                      min="1"
-                      max="65535"
+                      min="1024"
+                      max="9999"
                       :disabled="loading.configureModule"
                       :invalid-message="error.sip_port"
                       :helper-text="$t('settings.sip_port_helper')"
@@ -211,8 +211,8 @@
                     <cv-text-input
                       v-model="sipsPort"
                       type="number"
-                      min="1"
-                      max="65535"
+                      min="1024"
+                      max="9999"
                       :disabled="loading.configureModule"
                       :invalid-message="error.sips_port"
                       :helper-text="$t('settings.sips_port_helper')"
@@ -520,13 +520,14 @@ export default {
         }
       }
 
-      // SIP ports: 1-65535, different, not the local listeners 6060/6061
+      // SIP ports: 1024-9999 (below the RTP range), different, not the local
+      // listeners 6060/6061
       const ports = { sip_port: this.sipPort, sips_port: this.sipsPort };
       for (const [field, value] of Object.entries(ports)) {
         const port = Number(value);
         let portError = "";
 
-        if (!Number.isInteger(port) || port < 1 || port > 65535) {
+        if (!Number.isInteger(port) || port < 1024 || port > 9999) {
           portError = this.$t("settings.port_invalid");
         } else if (port === 6060 || port === 6061) {
           portError = this.$t(`settings.${field}_reserved`);
