@@ -1,0 +1,13 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2026 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+# Publish or remove the alert rules according to ALERTS_ENABLED. Here a
+# failure fails the action, so the UI can tell the switch was not applied.
+
+exec 1>&2
+
+exec publish-metrics-config

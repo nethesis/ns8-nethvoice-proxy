@@ -1,0 +1,50 @@
+#
+# Copyright (C) 2026 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# One alert for every broken service, as ServiceDown of NethSecurity and
+# NethVoice. The reason label tells why:
+# - stopped: the unit failed, or is enabled and not running, for 10 minutes
+# - crash_loop: systemd restarted it at least 3 times in 10 minutes
+# max_over_time is used instead of "for", so that a crash loop ending in the
+# systemd start limit hands over to "stopped" with no gap and no overlap.
+# The second crash_loop condition keeps it firing until that handover: the
+# description says 20 minutes, true for both conditions.
+# Known limit: transfer-state and clone-module stop kamailio and postgres on
+# purpose and leave them enabled, so a transfer longer than 10 minutes fires
+# "stopped" for them. Accepted: it clears when the transfer ends.
+# "offset 10m" requires the series to exist 10 minutes ago: a series that
+# appears already at 0 (a static unit reported once kamailio starts, or an
+# empty history) waits 10 minutes too, instead of firing at once.
+# Series come from export-metrics (pypkg/proxymetrics/systemd.py) every 5
+# minutes.
+groups:
+  - name: services
+    rules:
+      - alert: ServiceDown
+        expr: max_over_time(nethvoice_proxy_service_up[10m]) == 0 and nethvoice_proxy_service_up offset 10m
+        labels:
+          severity: critical
+          alertgroup: services
+          reason: stopped
+        annotations:
+          summary_en: 'Service {{ $labels.service }} is down'
+          summary_it: 'Il servizio {{ $labels.service }} non è attivo'
+          description_en: 'Service {{ $labels.service }} of module {{ $labels.module_id }} on node {{ $labels.node }} has been down for more than 10 minutes'
+          description_it: 'Il servizio {{ $labels.service }} del modulo {{ $labels.module_id }} sul nodo {{ $labels.node }} non è attivo da più di 10 minuti'
+      - alert: ServiceDown
+        expr: |
+          (
+            increase(nethvoice_proxy_service_restarts_total[10m]) >= 3
+            or (increase(nethvoice_proxy_service_restarts_total[20m]) >= 3 and on(service) nethvoice_proxy_service_up == 0)
+          )
+          unless on(service) (max_over_time(nethvoice_proxy_service_up[10m]) == 0 and nethvoice_proxy_service_up offset 10m)
+        labels:
+          severity: critical
+          alertgroup: services
+          reason: crash_loop
+        annotations:
+          summary_en: 'Service {{ $labels.service }} keeps restarting'
+          summary_it: 'Il servizio {{ $labels.service }} si riavvia continuamente'
+          description_en: 'Service {{ $labels.service }} of module {{ $labels.module_id }} on node {{ $labels.node }} restarted at least 3 times in the last 20 minutes'
+          description_it: 'Il servizio {{ $labels.service }} del modulo {{ $labels.module_id }} sul nodo {{ $labels.node }} si è riavviato almeno 3 volte negli ultimi 20 minuti'

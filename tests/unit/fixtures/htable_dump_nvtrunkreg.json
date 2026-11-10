@@ -1,0 +1,28 @@
+{
+ "jsonrpc": "2.0",
+ "result": [
+  {
+   "entry": 0,
+   "size": 1,
+   "slot": [
+    {
+     "name": "6|NvTestProxy@192.0.2.12",
+     "value": 403,
+     "type": "int"
+    }
+   ]
+  },
+  {
+   "entry": 5,
+   "size": 1,
+   "slot": [
+    {
+     "name": "6|user@sip.example.com",
+     "value": 200,
+     "type": "int"
+    }
+   ]
+  }
+ ],
+ "id": 1
+}

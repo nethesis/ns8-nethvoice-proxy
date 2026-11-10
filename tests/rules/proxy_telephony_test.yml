@@ -1,0 +1,123 @@
+rule_files:
+  - ../../imageroot/etc/metrics/alert-rules/proxy-telephony.yml
+
+evaluation_interval: 1m
+
+tests:
+  # Rejected by the provider: fires after 10 minutes, then resolves
+  - interval: 1m
+    input_series:
+      - series: 'nethvoice_proxy_trunk_registration_status_code{module_id="nethvoice-proxy1",node="1",nethvoice="nethvoice1",trunk="100@sip.provider.it"}'
+        values: '200x4 403x15 200x5'
+    alert_rule_test:
+      - eval_time: 14m
+        alertname: NethVoiceTrunkUnreachable
+        exp_alerts: []
+      - eval_time: 15m
+        alertname: NethVoiceTrunkUnreachable
+        exp_alerts:
+          - exp_labels: {severity: critical, alertgroup: telephony, reason: registration_rejected, module_id: nethvoice-proxy1, node: "1", nethvoice: nethvoice1, trunk: 100@sip.provider.it}
+            exp_annotations:
+              summary_en: "Trunk 100@sip.provider.it of nethvoice1 is unreachable: registration rejected"
+              summary_it: "Il fascio 100@sip.provider.it di nethvoice1 non è raggiungibile: registrazione rifiutata"
+              description_en: "The provider has rejected the registration of trunk 100@sip.provider.it (NethVoice nethvoice1, proxy nethvoice-proxy1) for more than 10 minutes: calls through this trunk fail. Last SIP code: 403. Check the trunk credentials."
+              description_it: "Il provider rifiuta la registrazione del fascio 100@sip.provider.it (NethVoice nethvoice1, proxy nethvoice-proxy1) da più di 10 minuti: le chiamate su questo fascio falliscono. Ultimo codice SIP: 403. Verificare le credenziali del fascio."
+      - eval_time: 21m
+        alertname: NethVoiceTrunkUnreachable
+        exp_alerts: []
+
+  # No answer from the provider: only the timeout reason
+  - interval: 1m
+    input_series:
+      - series: 'nethvoice_proxy_trunk_registration_status_code{module_id="nethvoice-proxy1",node="1",nethvoice="nethvoice1",trunk="100@sip.provider.it"}'
+        values: '408x20'
+    alert_rule_test:
+      - eval_time: 9m
+        alertname: NethVoiceTrunkUnreachable
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: NethVoiceTrunkUnreachable
+        exp_alerts:
+          - exp_labels: {severity: critical, alertgroup: telephony, reason: registration_timeout, module_id: nethvoice-proxy1, node: "1", nethvoice: nethvoice1, trunk: 100@sip.provider.it}
+            exp_annotations:
+              summary_en: "Trunk 100@sip.provider.it of nethvoice1 is unreachable: no answer from the provider"
+              summary_it: "Il fascio 100@sip.provider.it di nethvoice1 non è raggiungibile: il provider non risponde"
+              description_en: "The provider has not answered the registration of trunk 100@sip.provider.it (NethVoice nethvoice1, proxy nethvoice-proxy1) for more than 10 minutes: calls through this trunk fail. Check the provider address and the network path from the proxy."
+              description_it: "Il provider non risponde alla registrazione del fascio 100@sip.provider.it (NethVoice nethvoice1, proxy nethvoice-proxy1) da più di 10 minuti: le chiamate su questo fascio falliscono. Verificare l'indirizzo del provider e il percorso di rete dal proxy."
+
+  # One failed answer between good ones does not fire
+  - interval: 1m
+    input_series:
+      - series: 'nethvoice_proxy_trunk_registration_status_code{module_id="nethvoice-proxy1",node="1",nethvoice="nethvoice1",trunk="100@sip.provider.it"}'
+        values: '200x4 503x4 200x15'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: NethVoiceTrunkUnreachable
+        exp_alerts: []
+
+  # Registered (2xx) never fires
+  - interval: 1m
+    input_series:
+      - series: 'nethvoice_proxy_trunk_registration_status_code{module_id="nethvoice-proxy1",node="1",nethvoice="nethvoice1",trunk="100@sip.provider.it"}'
+        values: '200x20'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: NethVoiceTrunkUnreachable
+        exp_alerts: []
+
+  # IP trunk whose provider does not answer OPTIONS: qualify_timeout; any
+  # other answer (here 404) means the provider is alive
+  - interval: 1m
+    input_series:
+      - series: 'nethvoice_proxy_trunk_options_status_code{module_id="nethvoice-proxy1",node="1",nethvoice="nethvoice1",trunk="77.239.128.13:5060"}'
+        values: '200x4 408x15 200x5'
+      - series: 'nethvoice_proxy_trunk_options_status_code{module_id="nethvoice-proxy1",node="1",nethvoice="nethvoice1",trunk="198.51.100.7"}'
+        values: '404x25'
+    alert_rule_test:
+      - eval_time: 14m
+        alertname: NethVoiceTrunkUnreachable
+        exp_alerts: []
+      - eval_time: 15m
+        alertname: NethVoiceTrunkUnreachable
+        exp_alerts:
+          - exp_labels: {severity: critical, alertgroup: telephony, reason: qualify_timeout, module_id: nethvoice-proxy1, node: "1", nethvoice: nethvoice1, trunk: "77.239.128.13:5060"}
+            exp_annotations:
+              summary_en: "Trunk 77.239.128.13:5060 of nethvoice1 is unreachable: no answer to OPTIONS"
+              summary_it: "Il fascio 77.239.128.13:5060 di nethvoice1 non è raggiungibile: nessuna risposta agli OPTIONS"
+              description_en: "The provider of IP trunk 77.239.128.13:5060 (NethVoice nethvoice1, proxy nethvoice-proxy1) has not answered the OPTIONS checks for more than 10 minutes: calls through this trunk fail. Check the provider address and the network path from the proxy."
+              description_it: "Il provider del fascio IP 77.239.128.13:5060 (NethVoice nethvoice1, proxy nethvoice-proxy1) non risponde ai controlli OPTIONS da più di 10 minuti: le chiamate su questo fascio falliscono. Verificare l'indirizzo del provider e il percorso di rete dal proxy."
+      - eval_time: 21m
+        alertname: NethVoiceTrunkUnreachable
+        exp_alerts: []
+
+  # The trunk name comes from nethvoice_trunk_proxy_info of the same NethVoice
+  # instance (module_id = nethvoice label); another instance with the same
+  # address does not count
+  - interval: 1m
+    input_series:
+      - series: 'nethvoice_proxy_trunk_options_status_code{module_id="nethvoice-proxy1",node="1",nethvoice="nethvoice1",trunk="203.0.113.5:5060"}'
+        values: '408x20'
+      - series: 'nethvoice_trunk_proxy_info{module_id="nethvoice1",node="1",trunk="Ip_Proxy",proxy_trunk="203.0.113.5:5060"}'
+        values: '1x20'
+      - series: 'nethvoice_trunk_proxy_info{module_id="nethvoice2",node="1",trunk="Other",proxy_trunk="203.0.113.5:5060"}'
+        values: '1x20'
+      - series: 'nethvoice_proxy_trunk_registration_status_code{module_id="nethvoice-proxy1",node="1",nethvoice="nethvoice1",trunk="100@sip.provider.it"}'
+        values: '403x20'
+      - series: 'nethvoice_trunk_proxy_info{module_id="nethvoice1",node="1",trunk="Provider_1",proxy_trunk="100@sip.provider.it"}'
+        values: '1x20'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: NethVoiceTrunkUnreachable
+        exp_alerts:
+          - exp_labels: {severity: critical, alertgroup: telephony, reason: qualify_timeout, module_id: nethvoice-proxy1, node: "1", nethvoice: nethvoice1, trunk: "203.0.113.5:5060"}
+            exp_annotations:
+              summary_en: "Trunk Ip_Proxy (203.0.113.5:5060) of nethvoice1 is unreachable: no answer to OPTIONS"
+              summary_it: "Il fascio Ip_Proxy (203.0.113.5:5060) di nethvoice1 non è raggiungibile: nessuna risposta agli OPTIONS"
+              description_en: "The provider of IP trunk Ip_Proxy (203.0.113.5:5060, NethVoice nethvoice1, proxy nethvoice-proxy1) has not answered the OPTIONS checks for more than 10 minutes: calls through this trunk fail. Check the provider address and the network path from the proxy."
+              description_it: "Il provider del fascio IP Ip_Proxy (203.0.113.5:5060, NethVoice nethvoice1, proxy nethvoice-proxy1) non risponde ai controlli OPTIONS da più di 10 minuti: le chiamate su questo fascio falliscono. Verificare l'indirizzo del provider e il percorso di rete dal proxy."
+          - exp_labels: {severity: critical, alertgroup: telephony, reason: registration_rejected, module_id: nethvoice-proxy1, node: "1", nethvoice: nethvoice1, trunk: 100@sip.provider.it}
+            exp_annotations:
+              summary_en: "Trunk Provider_1 (100@sip.provider.it) of nethvoice1 is unreachable: registration rejected"
+              summary_it: "Il fascio Provider_1 (100@sip.provider.it) di nethvoice1 non è raggiungibile: registrazione rifiutata"
+              description_en: "The provider has rejected the registration of trunk Provider_1 (100@sip.provider.it, NethVoice nethvoice1, proxy nethvoice-proxy1) for more than 10 minutes: calls through this trunk fail. Last SIP code: 403. Check the trunk credentials."
+              description_it: "Il provider rifiuta la registrazione del fascio Provider_1 (100@sip.provider.it, NethVoice nethvoice1, proxy nethvoice-proxy1) da più di 10 minuti: le chiamate su questo fascio falliscono. Ultimo codice SIP: 403. Verificare le credenziali del fascio."

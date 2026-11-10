@@ -53,10 +53,15 @@ reponame="nethvoice-proxy"
 # Create a new empty container image
 container=$(buildah from scratch)
 
+# Node.js 25+ no longer ships Corepack, install it from npm
+# renovate: datasource=npm packageName=corepack
+corepack_version=0.36.0
+
 # Reuse existing nodebuilder-kickstart container, to speed up builds
 if ! buildah containers --format "{{.ContainerName}}" | grep -q nodebuilder-nethvoice-proxy; then
     echo "Pulling NodeJS runtime..."
-    buildah from --name nodebuilder-nethvoice-proxy -v "${PWD}:/usr/src:Z" docker.io/library/node:lts
+    buildah from --name nodebuilder-nethvoice-proxy -v "${PWD}:/usr/src:Z" docker.io/library/node:26.13.0-slim
+    buildah run nodebuilder-nethvoice-proxy sh -c "npm install -g corepack@${corepack_version} && corepack enable"
 fi
 
 echo "Build static UI files with node..."
@@ -64,14 +69,14 @@ buildah run \
     --workingdir=/usr/src/ui \
     --env="NODE_OPTIONS=--openssl-legacy-provider" \
     nodebuilder-nethvoice-proxy \
-    sh -c "corepack enable && yarn install && yarn build"
+    sh -c "yarn install && yarn build"
 
 # Add imageroot directory to the container image
 buildah add "${container}" imageroot /imageroot
 buildah add "${container}" ui/dist /ui
 # Setup the entrypoint, ask to reserve one TCP port with the label and set a rootless container
 buildah config --entrypoint=/ \
-    --label="org.nethserver.min-core=3.20.1" \
+    --label="org.nethserver.min-core=3.24.0" \
     --label="org.nethserver.max-per-node=1" \
     --label="org.nethserver.rootfull=0" \
     --label="org.nethserver.authorizations=node:fwadm traefik@any:certadm" \

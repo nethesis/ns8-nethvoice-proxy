@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2026 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+# Store the alerts switch. Unlike configure-module, this action does not
+# restart kamailio and rtpengine, so active calls are not affected.
+
+import json
+import sys
+
+import agent
+
+data = json.load(sys.stdin)
+agent.set_env("ALERTS_ENABLED", "true" if data["alerts_enabled"] else "false")

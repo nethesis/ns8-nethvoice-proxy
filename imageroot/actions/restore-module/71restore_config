@@ -43,3 +43,11 @@ with open('config_dump.json', 'r') as f:
         # crash.
         # See: https://www.kamailio.org/docs/modules/stable/modules/permissions.html#permissions.p.reload_delta
         time.sleep(5)
+    elif config.get('alerts_enabled'):
+        # configure-module is skipped: restore the alerts switch alone
+        alerts_response = agent.tasks.run(
+            agent_id=os.environ['AGENT_ID'],
+            action='set-alerts',
+            data={'alerts_enabled': True}
+        )
+        agent.assert_exp(alerts_response['exit_code'] == 0)
