@@ -39,4 +39,6 @@ config["local_networks"] = os.environ["LOCALNETWORKS"].split(",") if os.getenv("
 
 config["kamailio_log_level"] = int(os.environ.get("KAMAILIO_LOG_LEVEL") or 0)
 
+config["alerts_enabled"] = os.environ.get("ALERTS_ENABLED") == "true"
+
 json.dump(config, fp=sys.stdout)
