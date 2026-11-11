@@ -12,6 +12,7 @@ import subprocess
 # Try to parse the stdin as JSON.
 # If parsing fails, output everything to stderr
 data = json.load(sys.stdin)
+rule_regex = "\\" + data["rule"] if data["rule"].startswith("+") else data["rule"]
 
 # Chek if a trunk is registred
 with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.environ["POSTGRES_USER"], os.environ["POSTGRES_DB"]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True) as psql:
@@ -22,7 +23,7 @@ with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-tAU', os.en
 if proxy_route:
     query = (
             f'DELETE FROM nethvoice_proxy_routes WHERE target=\'{data["rule"]}\' AND setid={proxy_route[0]["setid"]} AND route_type=\'trunk\';\n'
-            f'DELETE FROM dialplan WHERE match_exp=\'sip:{data["rule"]}.*@.*\' AND repl_exp=\'{proxy_route[0]["setid"]}\' AND attrs=\'{proxy_route[0]["setid"]}\';\n'
+            f'DELETE FROM dialplan WHERE match_exp IN (\'sip:{rule_regex}.*@.*\', \'sip:{data["rule"]}.*@.*\') AND repl_exp=\'{proxy_route[0]["setid"]}\' AND attrs=\'{proxy_route[0]["setid"]}\';\n'
             f'DELETE FROM dispatcher WHERE setid={proxy_route[0]["setid"]};\n'
             )
     # Remove the route
