@@ -97,11 +97,10 @@ configuration is updated or the module is destroyed.
 
 ## Debug
 
-To enable Kamailio debug traces at runtime, run both commands inside the
-Kamailio container:
+To enable Kamailio debug traces at runtime, run both commands:
 
-    kamcmd corex.debug 3
-    kamcmd pv.shvSet debug int 1
+    runagent -m nethvoice-proxy1 kamcmd corex.debug 3
+    runagent -m nethvoice-proxy1 kamcmd pv.shvSet debug int 1
 
 The first command raises the logging threshold to debug; the second enables
 the `[DEV]` and `[TT157]` trace messages. The trace flag alone does not show
@@ -110,8 +109,8 @@ these messages at the default warning threshold (`0`).
 Debug logging produces a large volume of messages. When troubleshooting is
 complete, disable tracing and restore the default logging threshold:
 
-    kamcmd pv.shvSet debug int 0
-    kamcmd corex.debug 0
+    runagent -m nethvoice-proxy1 kamcmd pv.shvSet debug int 0
+    runagent -m nethvoice-proxy1 kamcmd corex.debug 0
 
 These runtime settings reset on restart. See the [Kamailio logging
 documentation](modules/kamailio/README.md#logging) for persistent log levels
@@ -119,7 +118,7 @@ and other logging controls.
 
 TLS tracing is enabled when NethServer 8 support session is started, to enable it manually, launch
 
-    kamcmd siptrace.status on 
+    runagent -m nethvoice-proxy1 kamcmd siptrace.status on 
 
 ## Alerts
 
