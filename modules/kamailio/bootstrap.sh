@@ -58,6 +58,15 @@ echo "listen=tcp:${SERVICE_IP}:5060" >> /tmp/kamailio-local-additional.cfg
 echo "listen=tls:${SERVICE_IP}:5061" >> /tmp/kamailio-local-additional.cfg
 
 
+# TOPOH_MASK_KEY is generated per instance by the NS8 module. Without it
+# (e.g. local development) use a random key: Call-IDs masked before a
+# restart can no longer be unmasked after it.
+if [ -z "${TOPOH_MASK_KEY}" ]; then
+    echo "TOPOH_MASK_KEY not set, using a random key"
+    TOPOH_MASK_KEY=$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')
+    export TOPOH_MASK_KEY
+fi
+
 # rendering the template of kamailio-local.cfg and kamailio.cfg
 envsubst < /etc/kamailio/template.kamailio-local.cfg > /tmp/kamailio-local.cfg
 # concatenate the additional configuration
