@@ -9,6 +9,7 @@ import json
 import sys
 import agent
 import os
+import sip_ports
 
 config = {}
 addresses = {}
@@ -38,6 +39,8 @@ config["service_network"] = service_network
 config["local_networks"] = os.environ["LOCALNETWORKS"].split(",") if os.getenv("LOCALNETWORKS") else []
 
 config["kamailio_log_level"] = int(os.environ.get("KAMAILIO_LOG_LEVEL") or 0)
+
+config["sip_port"], config["sips_port"] = sip_ports.get_ports()
 
 config["alerts_enabled"] = os.environ.get("ALERTS_ENABLED") == "true"
 

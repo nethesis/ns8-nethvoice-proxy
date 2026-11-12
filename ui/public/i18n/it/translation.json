@@ -46,7 +46,21 @@
     "alerts_service_down": "un servizio del proxy (Kamailio, rtpengine, PostgreSQL o Redis) è fermo o si riavvia continuamente",
     "alerts_trunk_unreachable": "un fascio SIP inoltrato dal proxy non raggiunge il provider",
     "alerts_where": "Gli avvisi attivi sono visibili nella pagina Nodi e, se il cluster ha una sottoscrizione, su my.nethesis.it.",
-    "alerts_toggle": "Avvisi"
+    "alerts_toggle": "Avvisi",
+    "sip_port": "Porta SIP",
+    "sip_port_helper": "Predefinita 5060",
+    "sips_port": "Porta SIPS",
+    "sips_port_helper": "Predefinita 5061",
+    "port_invalid": "Deve essere un numero tra 1024 e 9999",
+    "sip_port_number_gte": "@:settings.port_invalid",
+    "sip_port_number_lte": "@:settings.port_invalid",
+    "sips_port_number_gte": "@:settings.port_invalid",
+    "sips_port_number_lte": "@:settings.port_invalid",
+    "sip_port_reserved": "Le porte 6060 e 6061 sono usate dai listener delle reti locali",
+    "sips_port_reserved": "@:settings.sip_port_reserved",
+    "sip_ports_must_differ": "Deve essere diversa dalla @:settings.sip_port",
+    "sip_port_tooltip": "Porta UDP e TCP per telefoni, gateway e trunk. Telefoni e gateway con provisioning ricevono la nuova porta; provider dei trunk e dispositivi configurati a mano vanno aggiornati manualmente.",
+    "sips_port_tooltip": "Porta TLS per telefoni, gateway e app mobile. Dispositivi con provisioning e app ricevono la nuova porta; i dispositivi configurati a mano vanno aggiornati manualmente."
   },
   "error": {
     "error": "Errore",

@@ -33,6 +33,9 @@ agent.set_env('RTP_PORT_MIN', '10000')
 agent.set_env('RTP_PORT_MAX', '20000')
 agent.set_env('PUBLIC_IP', '127.0.0.1')
 agent.set_env('PRIVATE_IP', '')
+# SIP_PORT and SIPS_PORT are not set here: when they are missing the
+# defaults 5060 and 5061 apply, and a cloned instance imports them from
+# the source (clone-module copies only the variables missing here).
 agent.set_env('DEFAULT_CONTACT', '127.0.0.1:5060')
 agent.set_env('KML_DEFAULT_FQDN', str(random.randint(0, 32767)).zfill(5) + '.ns8.invalid')
 agent.set_env('BEHIND_NAT', "false")
