@@ -102,10 +102,6 @@ To enable Kamailio debug traces at runtime, run both commands:
     runagent -m nethvoice-proxy1 kamcmd corex.debug 3
     runagent -m nethvoice-proxy1 kamcmd pv.shvSet debug int 1
 
-The first command raises the logging threshold to debug; the second enables
-the `[DEV]` and `[TT157]` trace messages. The trace flag alone does not show
-these messages at the default warning threshold (`0`).
-
 Debug logging produces a large volume of messages. When troubleshooting is
 complete, disable tracing and restore the default logging threshold:
 
