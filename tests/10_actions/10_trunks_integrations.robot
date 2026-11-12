@@ -62,3 +62,40 @@ Remove a trunk
 List of trunks should be empty
     ${response} =  Run task    module/${module_id}/list-trunks    {}
     Should Be Empty    ${response}
+
+Add a trunk with a leading plus
+    Run task    module/${module_id}/add-trunk
+    ...    {"rule":"+390721", "destination":{"uri":"sip:127.0.0.1:5085","description":"module5"}}
+    ${response} =  Run task    module/${module_id}/get-trunk
+    ...    {"rule":"+390721"}
+    Should Be Equal    ${response["destination"]}    ${{ {"uri":"sip:127.0.0.1:5085","description":"module5"} }}
+    Dialplan should translate    sip:+390721000000@example.org
+    Dialplan should translate    sip:+390721000001@example.org;user=phone
+    Dialplan should not translate    sip:390721000000@example.org
+
+Remove a trunk with a leading plus
+    Run task    module/${module_id}/remove-trunk
+    ...    {"rule":"+390721"}
+    ${response} =  Run task    module/${module_id}/get-trunk
+    ...    {"rule":"+390721"}
+    Should Be Empty    ${response}
+    Dialplan should not translate    sip:+390721000000@example.org
+
+*** Keywords ***
+Translate with trunk dialplan
+    [Arguments]    ${uri}
+    ${stdout}    ${rc} =    Execute Command
+    ...    runagent -m ${module_id} podman exec kamailio kamcmd dialplan.translate 2 '${uri}'
+    ...    return_stdout=True    return_rc=True
+    RETURN    ${stdout}
+
+Dialplan should translate
+    [Arguments]    ${uri}
+    ${stdout} =    Translate with trunk dialplan    ${uri}
+    Should Contain    ${stdout}    Output
+    Should Not Contain    ${stdout}    error
+
+Dialplan should not translate
+    [Arguments]    ${uri}
+    ${stdout} =    Translate with trunk dialplan    ${uri}
+    Should Not Contain    ${stdout}    Output

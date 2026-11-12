@@ -12,6 +12,7 @@ import subprocess
 # Try to parse the stdin as JSON.
 # If parsing fails, output everything to stderr
 data = json.load(sys.stdin)
+rule_regex = "\\" + data["rule"] if data["rule"].startswith("+") else data["rule"]
 
 # Prepare the query with the new route configuration
 query = ""
@@ -31,7 +32,7 @@ if not proxy_route:
 
         # Create dialplan for the rule
         query += (
-                f'INSERT INTO dialplan (dpid, pr, match_op, match_exp, match_len, subst_exp, repl_exp, attrs) VALUES (2,1,1,\'sip:{data["rule"]}.*@.*\',0,\'(.*)\',{proxy_route[0]["setid"]},{proxy_route[0]["setid"]});\n'
+                f'INSERT INTO dialplan (dpid, pr, match_op, match_exp, match_len, subst_exp, repl_exp, attrs) VALUES (2,1,1,\'sip:{rule_regex}.*@.*\',0,\'(.*)\',{proxy_route[0]["setid"]},{proxy_route[0]["setid"]});\n'
                   )
 
 # Add trunk route into dispatcher table
