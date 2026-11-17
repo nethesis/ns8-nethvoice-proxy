@@ -59,7 +59,7 @@
     "generic_error": "Qualcosa è andato storto",
     "401": "Autenticazione non valida",
     "403": "Operazione non autorizzata",
-    "root_invalid_alphanumeric_format": "Il nome radice deve essere alfanumerico (solo lettere e numeri)",
+    "root_invalid_alphanumeric_format": "Il nome radice deve essere alfanumerico (solo lettere e numeri), eventualmente preceduto da +",
     "root_already_exists": "Una regola con questo nome radice esiste già",
     "error_loading_providers": "Errore caricamento lista provider di servizio",
     "provider_missing_fields": "Un'istanza ha campi mancanti: {module_id}",
