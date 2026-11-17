@@ -103,7 +103,7 @@
     "401": "Invalid authentication",
     "403": "Operation not authorized",
     "404": "Resource not found",
-    "root_invalid_alphanumeric_format": "The root name must be alphanumeric (letters and numbers only)",
+    "root_invalid_alphanumeric_format": "The root name must be alphanumeric (letters and numbers only), optionally preceded by +",
     "root_already_exists": "A rule with this root name already exists",
     "cannot_retrieve_module_info": "Cannot retrieve module info",
     "cannot_retrieve_installed_modules": "Cannot retrieve installed modules",

@@ -146,7 +146,7 @@ export default {
         isValidationOk = false;
       }
       // validate rule is alphanumeric
-      const ruleRegex = /^[0-9a-zA-Z]+$/;
+      const ruleRegex = /^\+?[0-9a-zA-Z]+$/;
       if (this.rule && !ruleRegex.test(this.rule)) {
         this.error.rule = "error.root_invalid_alphanumeric_format";
         if (isValidationOk) {
