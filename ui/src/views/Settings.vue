@@ -171,54 +171,40 @@
                   core.$t("common.advanced")
                 }}</template>
                 <template slot="content">
-                  <div class="mg-bottom-md">
-                    <div class="bx--label mb-0">
-                      {{ $t("settings.sip_port") }}
-                      <cv-interactive-tooltip
-                        alignment="start"
-                        direction="bottom"
-                        class="info relative top-0.5"
-                      >
-                        <template slot="content">
-                          {{ $t("settings.sip_port_tooltip") }}
-                        </template>
-                      </cv-interactive-tooltip>
-                    </div>
-                    <cv-text-input
-                      v-model="sipPort"
-                      type="number"
-                      min="1024"
-                      max="9999"
-                      :disabled="loading.configureModule"
-                      :invalid-message="error.sip_port"
-                      :helper-text="$t('settings.sip_port_helper')"
-                      ref="sip_port"
-                    />
-                  </div>
-                  <div class="mg-bottom-md">
-                    <div class="bx--label mb-0">
-                      {{ $t("settings.sips_port") }}
-                      <cv-interactive-tooltip
-                        alignment="start"
-                        direction="bottom"
-                        class="info relative top-0.5"
-                      >
-                        <template slot="content">
-                          {{ $t("settings.sips_port_tooltip") }}
-                        </template>
-                      </cv-interactive-tooltip>
-                    </div>
-                    <cv-text-input
-                      v-model="sipsPort"
-                      type="number"
-                      min="1024"
-                      max="9999"
-                      :disabled="loading.configureModule"
-                      :invalid-message="error.sips_port"
-                      :helper-text="$t('settings.sips_port_helper')"
-                      ref="sips_port"
-                    />
-                  </div>
+                  <NsTextInput
+                    v-model="sipPort"
+                    :label="$t('settings.sip_port')"
+                    type="number"
+                    min="1024"
+                    max="9999"
+                    :disabled="loading.configureModule"
+                    :invalid-message="error.sip_port"
+                    :helper-text="$t('settings.sip_port_helper')"
+                    tooltipAlignment="start"
+                    tooltipDirection="bottom"
+                    ref="sip_port"
+                  >
+                    <template slot="tooltip">
+                      {{ $t("settings.sip_port_tooltip") }}
+                    </template>
+                  </NsTextInput>
+                  <NsTextInput
+                    v-model="sipsPort"
+                    :label="$t('settings.sips_port')"
+                    type="number"
+                    min="1024"
+                    max="9999"
+                    :disabled="loading.configureModule"
+                    :invalid-message="error.sips_port"
+                    :helper-text="$t('settings.sips_port_helper')"
+                    tooltipAlignment="start"
+                    tooltipDirection="bottom"
+                    ref="sips_port"
+                  >
+                    <template slot="tooltip">
+                      {{ $t("settings.sips_port_tooltip") }}
+                    </template>
+                  </NsTextInput>
                 </template>
               </cv-accordion-item>
             </cv-accordion>
