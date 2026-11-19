@@ -23,14 +23,14 @@ sips_port = data.get("sips_port", current_sips_port)
 errors = sip_ports.validate_ports(sip_port, sips_port)
 if not errors:
     # Kamailio listens on the private address behind NAT, otherwise on the
-    # public one. Its current ports on that address are not a conflict.
+    # public one. Its current sockets on that address are not a conflict.
     address = data["addresses"]["address"]
     if os.environ.get("BEHIND_NAT") == "true":
         listen_address = os.environ.get("PRIVATE_IP")
     else:
         listen_address = os.environ.get("PUBLIC_IP")
-    own_ports = (current_sip_port, current_sips_port) if address == listen_address else ()
-    errors = sip_ports.busy_ports(address, sip_port, sips_port, own_ports)
+    own_sockets = sip_ports.sockets(current_sip_port, current_sips_port) if address == listen_address else ()
+    errors = sip_ports.busy_ports(address, sip_port, sips_port, own_sockets)
 if errors:
     agent.set_status('validation-failed')
     json.dump([{'field': field, 'parameter': field, 'value': sip_port if field == 'sip_port' else sips_port, 'error': error} for field, error in errors], fp=sys.stdout)

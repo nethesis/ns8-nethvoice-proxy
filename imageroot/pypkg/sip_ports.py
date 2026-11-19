@@ -62,18 +62,23 @@ def port_in_use(address, port, protocol):
     return False
 
 
-def busy_ports(address, sip_port, sips_port, own_ports=()):
+def sockets(sip_port, sips_port):
+    """Return the (port, protocol) pairs Kamailio listens on: SIP on UDP and
+    TCP, SIPS on TCP."""
+    return {(sip_port, "udp"), (sip_port, "tcp"), (sips_port, "tcp")}
+
+
+def busy_ports(address, sip_port, sips_port, own_sockets=()):
     """Return a list of (field, error) for the ports another service already
-    uses on address. own_ports are the ports Kamailio listens on now."""
+    uses on address. own_sockets are the (port, protocol) pairs Kamailio
+    listens on now."""
     errors = []
     checks = (
         ("sip_port", sip_port, ("udp", "tcp")),
         ("sips_port", sips_port, ("tcp",)),
     )
     for field, port, protocols in checks:
-        if port in own_ports:
-            continue
-        if any(port_in_use(address, port, protocol) for protocol in protocols):
+        if any((port, protocol) not in own_sockets and port_in_use(address, port, protocol) for protocol in protocols):
             errors.append((field, f"{field}_in_use"))
     return errors
 
@@ -90,6 +95,12 @@ def public_ports(sip_port, sips_port, local_networks=False):
     if local_networks:
         ports += _tcp_ports(LOCAL_SIP_PORT, LOCAL_SIPS_PORT) + [f"{LOCAL_SIP_PORT}/udp"]
     return ports
+
+
+def rule_key(rule):
+    """Return a comparable form of a rich rule: firewalld lists the rules
+    with quoted values."""
+    return frozenset(rule.replace('"', "").split())
 
 
 def port_forward_rules(local_networks, sip_port, sips_port):

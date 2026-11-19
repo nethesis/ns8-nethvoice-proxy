@@ -67,8 +67,15 @@ class BusyPortsTest(unittest.TestCase):
     def test_busy_sips_port_on_tcp(self):
         self.assertEqual(sip_ports.busy_ports("127.0.0.1", self.free_port(), self.tcp_port), [("sips_port", "sips_port_in_use")])
 
-    def test_own_ports_are_not_busy(self):
-        self.assertEqual(sip_ports.busy_ports("127.0.0.1", self.udp_port, self.tcp_port, (self.udp_port, self.tcp_port)), [])
+    def test_own_sockets_are_not_busy(self):
+        own = {(self.udp_port, "udp"), (self.tcp_port, "tcp")}
+        self.assertEqual(sip_ports.busy_ports("127.0.0.1", self.udp_port, self.tcp_port, own), [])
+
+    def test_own_socket_exempts_only_its_protocol(self):
+        # SIPS moves to SIP: Kamailio uses that port on TCP only, the UDP
+        # socket of another service is a conflict
+        own = sip_ports.sockets(self.free_port(), self.udp_port)
+        self.assertEqual(sip_ports.busy_ports("127.0.0.1", self.udp_port, self.free_port(), own), [("sip_port", "sip_port_in_use")])
 
 
 class PublicPortsTest(unittest.TestCase):
@@ -81,6 +88,14 @@ class PublicPortsTest(unittest.TestCase):
 
     def test_ports_not_adjacent(self):
         self.assertEqual(sip_ports.public_ports(5080, 5443), ["5080/tcp", "5443/tcp", "5080/udp", "10000-20000/udp"])
+
+
+class RuleKeyTest(unittest.TestCase):
+    def test_matches_the_firewalld_listing(self):
+        rule = "rule family=ipv4 source address=192.0.2.0/24 forward-port port=5070 protocol=udp to-port=6060"
+        listed = 'rule family="ipv4" source address="192.0.2.0/24" forward-port port="5070" protocol="udp" to-port="6060"'
+        self.assertEqual(sip_ports.rule_key(rule), sip_ports.rule_key(listed))
+        self.assertNotEqual(sip_ports.rule_key(rule), sip_ports.rule_key(listed.replace("5070", "5060")))
 
 
 class PortForwardRulesTest(unittest.TestCase):
