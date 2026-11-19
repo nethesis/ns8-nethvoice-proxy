@@ -55,10 +55,12 @@ Kamailio drops the alias of a routed in-dialog request
     ...                Record-Route of the far end, DLGURI must still remove
     ...                the ;alias= param from the Request-URI and keep that
     ...                next hop: a provider proxy that checks the remote
-    ...                target refuses the request with 481 otherwise.
+    ...                target refuses the request with 481 otherwise. The
+    ...                behavior is covered by tests/integration/test_dlguri.py;
+    ...                this checks that the running config has the same route.
     ${output}  ${rc} =    Execute Command
     ...    runagent -m ${module_id} podman exec kamailio awk '/^route\\[DLGURI\\]/,/^} # end route\\[DLGURI\\]/' /etc/kamailio/kamailio.cfg
     ...    return_rc=True
     Should Be Equal As Integers    ${rc}    0
     Should Contain    ${output}    $(ru{uri.param,alias})
-    Should Contain    ${output}    $du = $var(dlguri_du);
+    Should Contain    ${output}    uri_param_rm("alias");
