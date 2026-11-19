@@ -5,6 +5,30 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
+set -e
+
 systemctl --user restart kamailio.service rtpengine.service
 
-exit 0
+# Kamailio stops if it cannot bind the SIP ports: wait for its listeners
+# before the next steps publish the ports
+if [[ "${BEHIND_NAT}" == "true" ]]; then
+    address=${PRIVATE_IP}
+else
+    address=${PUBLIC_IP}
+fi
+sip_port=${SIP_PORT:-5060}
+sips_port=${SIPS_PORT:-5061}
+
+listening() {
+    ss -Hln "$1" "src ${address}:$2" | grep -q .
+}
+
+for _ in $(seq 60); do
+    if listening -u "${sip_port}" && listening -t "${sip_port}" && listening -t "${sips_port}"; then
+        exit 0
+    fi
+    sleep 1
+done
+
+echo "Kamailio is not listening on ${address}, ports ${sip_port} and ${sips_port}" >&2
+exit 1

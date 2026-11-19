@@ -70,6 +70,9 @@ address and the advertised address follow them. The service network toward
 NethVoice keeps port 5060, and the local listeners of the NAT scenario keep
 6060/6061. The two values must be between 1024 and 9999, below the RTP
 range 10000-20000, must differ and cannot be 6060 or 6061.
+A port that another service already uses on the proxy address is refused.
+After the restart, `configure-module` waits for Kamailio to listen on the new
+ports and fails if it does not, before the ports are published.
 
 The ports are published in the service discovery records
 (`module/nethvoice-proxyX/srv/{tcp,udp}/sip`) as `sip_port` and `sips_port`,
