@@ -17,7 +17,8 @@
 - `REDIS_PORT` Redis DB backend port. Example: "20012"
 - `RTP_PORT_MIN` Kamailio RTP port range start. Example: "10000"
 - `RTP_PORT_MAX` Kamailio RTP port range end. Example: "20000"
-- `SIP_PORT` Kamailio SIP port. Example: "5060"
+- `SIP_PORT` Port of SIP over UDP and TCP on the public (or private, behind NAT) address. Default: "5060"
+- `SIPS_PORT` Port of SIP over TLS on the public (or private, behind NAT) address. Default: "5061"
 
 ## Logging
 

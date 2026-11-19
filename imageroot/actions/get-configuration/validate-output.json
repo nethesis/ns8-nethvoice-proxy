@@ -78,6 +78,16 @@
         "type": "string"
       }
     },
+    "sip_port": {
+      "title": "SIP port",
+      "description": "Port of SIP over UDP and TCP",
+      "type": "integer"
+    },
+    "sips_port": {
+      "title": "SIPS port",
+      "description": "Port of SIP over TLS",
+      "type": "integer"
+    },
     "alerts_enabled": {
       "title": "Built-in alerts",
       "description": "Publish the built-in alert rules of the proxy. Disabled by default.",
