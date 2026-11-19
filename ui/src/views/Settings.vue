@@ -162,6 +162,52 @@
               :description="$t('settings.address_and_iface_dont_match_message')"
               :showCloseButton="false"
             />
+            <cv-accordion
+              ref="accordion"
+              class="advanced-accordion mg-bottom-md"
+            >
+              <cv-accordion-item :open="isAdvancedOpen">
+                <template slot="title">{{
+                  core.$t("common.advanced")
+                }}</template>
+                <template slot="content">
+                  <NsTextInput
+                    v-model="sipPort"
+                    :label="$t('settings.sip_port')"
+                    type="number"
+                    min="1024"
+                    max="9999"
+                    :disabled="loading.configureModule"
+                    :invalid-message="error.sip_port"
+                    :helper-text="$t('settings.sip_port_helper')"
+                    tooltipAlignment="start"
+                    tooltipDirection="bottom"
+                    ref="sip_port"
+                  >
+                    <template slot="tooltip">
+                      {{ $t("settings.sip_port_tooltip") }}
+                    </template>
+                  </NsTextInput>
+                  <NsTextInput
+                    v-model="sipsPort"
+                    :label="$t('settings.sips_port')"
+                    type="number"
+                    min="1024"
+                    max="9999"
+                    :disabled="loading.configureModule"
+                    :invalid-message="error.sips_port"
+                    :helper-text="$t('settings.sips_port_helper')"
+                    tooltipAlignment="start"
+                    tooltipDirection="bottom"
+                    ref="sips_port"
+                  >
+                    <template slot="tooltip">
+                      {{ $t("settings.sips_port_tooltip") }}
+                    </template>
+                  </NsTextInput>
+                </template>
+              </cv-accordion-item>
+            </cv-accordion>
             <NsInlineNotification
               v-if="validationErrorDetails.length"
               kind="error"
@@ -290,6 +336,9 @@ export default {
       address: "",
       resolvedIp: "",
       iface: "",
+      sipPort: "5060",
+      sipsPort: "5061",
+      isAdvancedOpen: false,
       fqdnTimeout: 0,
       isLetsEncryptEnabled: false,
       isLetsEncryptCurrentlyEnabled: false,
@@ -315,6 +364,8 @@ export default {
         address: "",
         public_address: "",
         iface: "",
+        sip_port: "",
+        sips_port: "",
         getStatus: "",
         setAlerts: "",
       },
@@ -391,6 +442,8 @@ export default {
       this.isLetsEncryptCurrentlyEnabled = config.lets_encrypt;
       this.isAlertsEnabled = !!config.alerts_enabled;
       this.isAlertsEnabledSaved = this.isAlertsEnabled;
+      this.sipPort = String(config.sip_port || 5060);
+      this.sipsPort = String(config.sips_port || 5061);
 
       // this.iface is set on get-available-interfaces completion
 
@@ -450,6 +503,32 @@ export default {
         if (isValidationOk) {
           this.focusElement("public_address");
           isValidationOk = false;
+        }
+      }
+
+      // SIP ports: 1024-9999 (below the RTP range), different, not the local
+      // listeners 6060/6061
+      const ports = { sip_port: this.sipPort, sips_port: this.sipsPort };
+      for (const [field, value] of Object.entries(ports)) {
+        const port = Number(value);
+        let portError = "";
+
+        if (!Number.isInteger(port) || port < 1024 || port > 9999) {
+          portError = this.$t("settings.port_invalid");
+        } else if (port === 6060 || port === 6061) {
+          portError = this.$t(`settings.${field}_reserved`);
+        } else if (field === "sips_port" && port === Number(this.sipPort)) {
+          portError = this.$t("settings.sip_ports_must_differ");
+        }
+
+        if (portError) {
+          this.error[field] = portError;
+          this.isAdvancedOpen = true;
+
+          if (isValidationOk) {
+            this.focusElement(field);
+            isValidationOk = false;
+          }
         }
       }
       return isValidationOk;
@@ -582,6 +661,10 @@ export default {
           if (field !== "(root)") {
             // set i18n error message
             this.error[field] = this.$t("settings." + validationError.error);
+
+            if (field === "sip_port" || field === "sips_port") {
+              this.isAdvancedOpen = true;
+            }
           }
         }
       }
@@ -634,6 +717,8 @@ export default {
           address: this.iface,
         },
         lets_encrypt: this.isLetsEncryptEnabled,
+        sip_port: Number(this.sipPort),
+        sips_port: Number(this.sipsPort),
       };
 
       // check if public_address exists and is different from local ip address
@@ -829,6 +914,11 @@ export default {
 
 <style scoped lang="scss">
 @import "../styles/carbon-utils";
+
+// same width as the other form fields
+.advanced-accordion {
+  max-width: 38rem;
+}
 
 .alerts-list {
   list-style: disc;

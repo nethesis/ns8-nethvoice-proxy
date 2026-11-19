@@ -12,6 +12,12 @@
     },
     {
       "fqdn": "proxy.example.com",
+      "addresses": { "address": "1.2.3.4" },
+      "sip_port": 5070,
+      "sips_port": 5071
+    },
+    {
+      "fqdn": "proxy.example.com",
       "lets_encrypt": true,
       "addresses": { "address": "192.168.1.1", "public_address": "1.2.3.4" }
     },
@@ -86,6 +92,20 @@
         "title": "Netmask of the local network",
         "type": "string"
       }
+    },
+    "sip_port": {
+      "title": "SIP port",
+      "description": "Port of SIP over UDP and TCP for phones, gateways and trunks. Default 5060.",
+      "type": "integer",
+      "minimum": 1024,
+      "maximum": 9999
+    },
+    "sips_port": {
+      "title": "SIPS port",
+      "description": "Port of SIP over TLS for phones, gateways and the mobile app. Default 5061.",
+      "type": "integer",
+      "minimum": 1024,
+      "maximum": 9999
     },
     "alerts_enabled": {
       "title": "Built-in alerts",
