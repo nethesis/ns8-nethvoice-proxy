@@ -17,12 +17,11 @@ data = json.load(sys.stdin)
 local_networks = set()
 
 # SIP ports: from the input, otherwise the current ones. The previous ports
-# are needed to remove the rules created with them.
+# are needed to remove the rules created with them, so they are saved only
+# after the firewall changes succeed: a retry removes the same rules.
 prev_sip_port, prev_sips_port = sip_ports.get_ports()
 sip_port = data.get("sip_port", prev_sip_port)
 sips_port = data.get("sips_port", prev_sips_port)
-agent.set_env("SIP_PORT", str(sip_port))
-agent.set_env("SIPS_PORT", str(sips_port))
 
 def set_public_firewall_ports(behind_nat):
     agent.assert_exp(agent.add_public_service(
@@ -46,9 +45,7 @@ if "addresses" in data:
             prev_networks = [n for n in prev_localnetworks.split(",") if n]
             previous_rules = sip_ports.port_forward_rules(prev_networks, prev_sip_port, prev_sips_port)
             if previous_rules:
-                result = agent.remove_rich_rules(previous_rules)
-                if not result:
-                    print("Warning: Failed to remove some rich rules", file=sys.stderr)
+                agent.assert_exp(agent.remove_rich_rules(previous_rules), "Failed to remove the port forwarding rules")
 
         agent.set_env("PUBLIC_IP", address["address"])
         agent.set_env("PRIVATE_IP", "")
@@ -75,7 +72,7 @@ if "addresses" in data:
             prev_networks = [n for n in prev_localnetworks.split(",") if n]
             previous_rules = sip_ports.port_forward_rules(prev_networks, prev_sip_port, prev_sips_port)
             if previous_rules:
-                agent.remove_rich_rules(previous_rules)
+                agent.assert_exp(agent.remove_rich_rules(previous_rules), "Failed to remove the port forwarding rules")
 
         agent.set_env("PUBLIC_IP", address["public_address"])
         agent.set_env("PRIVATE_IP", address["address"])
@@ -96,6 +93,9 @@ if "addresses" in data:
         set_public_firewall_ports(bool(local_networks))
 
     agent.set_env("DEFAULT_CONTACT", (address["address"] if "public_address" not in address else address["public_address"]) + f":{sip_port}")
+
+agent.set_env("SIP_PORT", str(sip_port))
+agent.set_env("SIPS_PORT", str(sips_port))
 
 # Log level kamailio is started with. The field is optional: when it is not
 # part of the input, keep the value already stored in the environment, so that
