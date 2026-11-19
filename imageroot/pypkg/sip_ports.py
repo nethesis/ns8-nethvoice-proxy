@@ -9,7 +9,9 @@
 # ports phones, gateways and trunks connect to. The service network toward
 # NethVoice and the local listeners keep fixed ports.
 
+import errno
 import os
+import socket
 
 DEFAULT_SIP_PORT = 5060
 DEFAULT_SIPS_PORT = 5061
@@ -40,6 +42,39 @@ def validate_ports(sip_port, sips_port):
         errors.append(("sips_port", "sips_port_reserved"))
     if sip_port == sips_port:
         errors.append(("sips_port", "sip_ports_must_differ"))
+    return errors
+
+
+def port_in_use(address, port, protocol):
+    """Return True if another socket is already bound to address:port."""
+    if protocol == "tcp":
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Ignore connections in TIME_WAIT: a listener still makes bind fail
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    else:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        sock.bind((address, port))
+    except OSError as ex:
+        return ex.errno == errno.EADDRINUSE
+    finally:
+        sock.close()
+    return False
+
+
+def busy_ports(address, sip_port, sips_port, own_ports=()):
+    """Return a list of (field, error) for the ports another service already
+    uses on address. own_ports are the ports Kamailio listens on now."""
+    errors = []
+    checks = (
+        ("sip_port", sip_port, ("udp", "tcp")),
+        ("sips_port", sips_port, ("tcp",)),
+    )
+    for field, port, protocols in checks:
+        if port in own_ports:
+            continue
+        if any(port_in_use(address, port, protocol) for protocol in protocols):
+            errors.append((field, f"{field}_in_use"))
     return errors
 
 

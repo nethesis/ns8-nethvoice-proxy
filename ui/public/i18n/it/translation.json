@@ -56,6 +56,8 @@
     "sip_port_number_lte": "@:settings.port_invalid",
     "sips_port_number_gte": "@:settings.port_invalid",
     "sips_port_number_lte": "@:settings.port_invalid",
+    "sip_port_in_use": "Già usata da un altro servizio su questo indirizzo",
+    "sips_port_in_use": "@:settings.sip_port_in_use",
     "sip_port_reserved": "Le porte 6060 e 6061 sono usate dai listener delle reti locali",
     "sips_port_reserved": "@:settings.sip_port_reserved",
     "sip_ports_must_differ": "Deve essere diversa dalla @:settings.sip_port",

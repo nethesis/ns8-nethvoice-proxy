@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
+import socket
 import sys
 import unittest
 from pathlib import Path
@@ -32,6 +33,42 @@ class ValidatePortsTest(unittest.TestCase):
     def test_local_listener_ports(self):
         self.assertEqual(sip_ports.validate_ports(6060, 5061), [("sip_port", "sip_port_reserved")])
         self.assertEqual(sip_ports.validate_ports(5060, 6061), [("sips_port", "sips_port_reserved")])
+
+
+class BusyPortsTest(unittest.TestCase):
+    def setUp(self):
+        self.tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.tcp.bind(("127.0.0.1", 0))
+        self.tcp.listen()
+        self.tcp_port = self.tcp.getsockname()[1]
+        self.udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.udp.bind(("127.0.0.1", 0))
+        self.udp_port = self.udp.getsockname()[1]
+
+    def tearDown(self):
+        self.tcp.close()
+        self.udp.close()
+
+    def free_port(self):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.bind(("127.0.0.1", 0))
+            return sock.getsockname()[1]
+
+    def test_port_in_use(self):
+        self.assertTrue(sip_ports.port_in_use("127.0.0.1", self.tcp_port, "tcp"))
+        self.assertTrue(sip_ports.port_in_use("127.0.0.1", self.udp_port, "udp"))
+        self.assertFalse(sip_ports.port_in_use("127.0.0.1", self.free_port(), "tcp"))
+
+    def test_busy_sip_port_on_udp_or_tcp(self):
+        free = self.free_port()
+        self.assertEqual(sip_ports.busy_ports("127.0.0.1", self.udp_port, free), [("sip_port", "sip_port_in_use")])
+        self.assertEqual(sip_ports.busy_ports("127.0.0.1", self.tcp_port, free), [("sip_port", "sip_port_in_use")])
+
+    def test_busy_sips_port_on_tcp(self):
+        self.assertEqual(sip_ports.busy_ports("127.0.0.1", self.free_port(), self.tcp_port), [("sips_port", "sips_port_in_use")])
+
+    def test_own_ports_are_not_busy(self):
+        self.assertEqual(sip_ports.busy_ports("127.0.0.1", self.udp_port, self.tcp_port, (self.udp_port, self.tcp_port)), [])
 
 
 class PublicPortsTest(unittest.TestCase):
