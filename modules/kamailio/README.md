@@ -17,7 +17,8 @@
 - `REDIS_PORT` Redis DB backend port. Example: "20012"
 - `RTP_PORT_MIN` Kamailio RTP port range start. Example: "10000"
 - `RTP_PORT_MAX` Kamailio RTP port range end. Example: "20000"
-- `SIP_PORT` Kamailio SIP port. Example: "5060"
+- `SIP_PORT` Port of SIP over UDP and TCP on the public (or private, behind NAT) address. Default: "5060"
+- `SIPS_PORT` Port of SIP over TLS on the public (or private, behind NAT) address. Default: "5061"
 - `TOPOH_MASK_KEY` Key used to mask the Call-ID toward the trunks. Generated per instance in `passwords.env` by the NS8 module; when missing, `bootstrap.sh` uses a random key. Example: "3f2a9c0e7b1d4e6f8a5c2b9d0e1f3a4b"
 
 ## Logging

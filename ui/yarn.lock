@@ -69,8 +69,8 @@ __metadata:
   linkType: hard
 
 "@babel/eslint-parser@npm:^7.11.0":
-  version: 7.29.9
-  resolution: "@babel/eslint-parser@npm:7.29.9"
+  version: 7.29.13
+  resolution: "@babel/eslint-parser@npm:7.29.13"
   dependencies:
     "@nicolo-ribaudo/eslint-scope-5-internals": "npm:5.1.1-v1"
     eslint-visitor-keys: "npm:^2.1.0"
@@ -78,7 +78,7 @@ __metadata:
   peerDependencies:
     "@babel/core": ^7.11.0
     eslint: ^7.5.0 || ^8.0.0 || ^9.0.0
-  checksum: 10c0/f97d9eb23ad53e9263235e9efe204908494922fb89a4cf623e174d7e62a112c52850990cc19b9ef5043af6e2ca87b1772f998175571ac8cb9967689d6e036bd8
+  checksum: 10c0/b8dc7912871324b47bd2e10eafc877438288cdbe2045f829ed445c1fa75d1f4fcf57ac1042b75c8404af5085482db1aaabe18bb0095332bcb78bf69f29b56da2
   languageName: node
   linkType: hard
 
@@ -1316,12 +1316,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@carbon/icon-helpers@npm:^10.84.0":
-  version: 10.84.0
-  resolution: "@carbon/icon-helpers@npm:10.84.0"
+"@carbon/icon-helpers@npm:^10.85.0":
+  version: 10.85.0
+  resolution: "@carbon/icon-helpers@npm:10.85.0"
   dependencies:
     "@ibm/telemetry-js": "npm:^1.5.0"
-  checksum: 10c0/a2759d761cc7dcb7785179b8fdf384320c5c993a4cb6cb9d688736244dfe50a57234c7c5ff90e743e9086a476d7e195cf05a2e9b01327d8f14b27a0c32bc84d7
+  checksum: 10c0/108480acde5ff6a52441185b4fdebf637fe5a4068653d6d70ce0eb9c760304e431debc0459109da2e3746a3bf0d81552f2d32734ea6f914a9f6e1ec439f469be
   languageName: node
   linkType: hard
 
@@ -1335,12 +1335,12 @@ __metadata:
   linkType: hard
 
 "@carbon/icons-vue@npm:^10.37.0":
-  version: 10.140.0
-  resolution: "@carbon/icons-vue@npm:10.140.0"
+  version: 10.141.0
+  resolution: "@carbon/icons-vue@npm:10.141.0"
   dependencies:
-    "@carbon/icon-helpers": "npm:^10.84.0"
+    "@carbon/icon-helpers": "npm:^10.85.0"
     "@ibm/telemetry-js": "npm:^1.5.0"
-  checksum: 10c0/f3cfc5704e0bd88205c85200c56c79ab2467eeb37da7e11488bf09fd7e46ed8cc776c0d0ee8724aab715359d3e2a0159824256c4c00871120895e214dd3bfafa
+  checksum: 10c0/713135879ef983fe15473c2b899edd9b4543bfd008a42e898c914f58d7a1b000b9ca147f06f9763b5f3c39c19cf7b7796c123d90d5fafe2d8c4a99f2162f591a
   languageName: node
   linkType: hard
 
@@ -3091,14 +3091,14 @@ __metadata:
   linkType: hard
 
 "axios@npm:^1.18.1":
-  version: 1.20.0
-  resolution: "axios@npm:1.20.0"
+  version: 1.21.1
+  resolution: "axios@npm:1.21.1"
   dependencies:
-    follow-redirects: "npm:^1.16.0"
+    follow-redirects: "npm:^1.16.2"
     form-data: "npm:^4.0.6"
     https-proxy-agent: "npm:^5.0.1"
     proxy-from-env: "npm:^2.1.0"
-  checksum: 10c0/976088acf532286356f4c2e65df1ef47ba7da3936d83e928d0d64357bbf5370456abd3eb5826c15df322335fcb1fe200d4a84b4fcf20ffccdd63b40d80fa495c
+  checksum: 10c0/8f0375ff53f1a8edfaadf6259559bb1d8b03daeeb2c4faf550752dac203508803f2430ff8cfe9bfcecbc22d2b8a9ae7a4021f3fc0307c571cbd3177dc5f127eb
   languageName: node
   linkType: hard
 
@@ -6085,13 +6085,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.16.0":
-  version: 1.16.0
-  resolution: "follow-redirects@npm:1.16.0"
+"follow-redirects@npm:^1.16.2":
+  version: 1.16.3
+  resolution: "follow-redirects@npm:1.16.3"
   peerDependenciesMeta:
     debug:
       optional: true
-  checksum: 10c0/a1e2900163e6f1b4d1ed5c221b607f41decbab65534c63fe7e287e40a5d552a6496e7d9d7d976fa4ba77b4c51c11e5e9f683f10b43011ea11e442ff128d0e181
+  checksum: 10c0/0ad440d1d921ce8d7e8cbb3a2f25a15e682086209eb49a84cf2f1d5960d0f238b697d5613893f72e7deb9c915f0bc4c7924f04a0e0c5544b8b7d3b797af5121d
   languageName: node
   linkType: hard
 
@@ -10622,8 +10622,8 @@ __metadata:
   linkType: hard
 
 "sass@npm:^1.34.1":
-  version: 1.106.1
-  resolution: "sass@npm:1.106.1"
+  version: 1.108.2
+  resolution: "sass@npm:1.108.2"
   dependencies:
     "@parcel/watcher": "npm:^2.4.1"
     chokidar: "npm:^5.0.0"
@@ -10634,7 +10634,7 @@ __metadata:
       optional: true
   bin:
     sass: sass.js
-  checksum: 10c0/4f1043e2d5b3b7e9cf563050040ed3d91ef1bf8eb9dd180ecfd7ec403bfbd52ac2f557d7e7b398573021f9240a134a080d11af21b802724c05cad386b768df4c
+  checksum: 10c0/957bc1d19bf06e2f5d9e6df3a6dc287aedc6b24ce5f343eaaba14a56c0fbe6c4fbfb536040a2e6b02076ccf0fc629c9c9947115157318c343ea416ad938012de
   languageName: node
   linkType: hard
 
