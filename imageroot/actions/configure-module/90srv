@@ -7,6 +7,7 @@
 import os
 import agent
 import json
+import sip_ports
 
 node_id = os.environ['NODE_ID']
 agent_id = os.environ['AGENT_ID']
@@ -19,6 +20,10 @@ beind_nat = os.environ["BEHIND_NAT"]
 
 address = private_addr if beind_nat == "true" else public_addr
 
+# "port" is the port of the service network, used by NethVoice to reach the
+# proxy. sip_port and sips_port are the ports devices connect to.
+sip_port, sips_port = sip_ports.get_ports()
+
 # Create srv records in Redis for service discovery
 with agent.redis_connect(privileged=True) as prdb:
     trx = prdb.pipeline()
@@ -30,6 +35,8 @@ with agent.redis_connect(privileged=True) as prdb:
         "address": address,
         "public_address": public_addr,
         "fqdn": proxy_fqdn,
+        "sip_port": str(sip_port),
+        "sips_port": str(sips_port),
         "node": node_id,
         "module_uuid": module_uuid,
     })
@@ -41,6 +48,8 @@ with agent.redis_connect(privileged=True) as prdb:
         "address": address,
         "public_address": public_addr,
         "fqdn": proxy_fqdn,
+        "sip_port": str(sip_port),
+        "sips_port": str(sips_port),
         "node": node_id,
         "module_uuid": module_uuid,
     })

@@ -10,71 +10,47 @@ import sys
 import agent
 import subprocess
 import os
-
-BASE_PUBLIC_PORTS = [
-    "5060-5061/tcp",
-    "5060/udp",
-    "10000-20000/udp",
-]
-
-NAT_PUBLIC_PORTS = [
-    "6060-6061/tcp",
-    "6060/udp",
-]
+import sip_ports
 
 data = json.load(sys.stdin)
 
 local_networks = set()
 
-# Function to create rich rules for port forwarding
-def create_port_forward_rules(local_networks_list):
-    """Create rich rules for each local network"""
-    rules = []
-    for network in local_networks_list:
-        if network:  # Skip empty networks
-            # Port forward 5060 UDP to 6060
-            rules.append(f'rule family=ipv4 source address={network} forward-port port=5060 protocol=udp to-port=6060')
-            # Port forward 5060 TCP to 6060
-            rules.append(f'rule family=ipv4 source address={network} forward-port port=5060 protocol=tcp to-port=6060')
-            # Port forward 5061 TCP to 6061
-            rules.append(f'rule family=ipv4 source address={network} forward-port port=5061 protocol=tcp to-port=6061')
-    return rules
+# SIP ports: from the input, otherwise the current ones. The previous ports
+# are needed to remove the rules created with them, so they are saved only
+# after the firewall changes succeed: a retry removes the same rules.
+prev_sip_port, prev_sips_port = sip_ports.get_ports()
+sip_port = data.get("sip_port", prev_sip_port)
+sips_port = data.get("sips_port", prev_sips_port)
 
 def set_public_firewall_ports(behind_nat):
-    ports = BASE_PUBLIC_PORTS + NAT_PUBLIC_PORTS if behind_nat else BASE_PUBLIC_PORTS
     agent.assert_exp(agent.add_public_service(
         os.environ["MODULE_ID"],
-        ports,
+        sip_ports.public_ports(sip_port, sips_port, behind_nat),
         replace_ports=True,
     ))
+
+def replace_port_forward_rules(previous_rules, new_rules):
+    """Replace the port forwarding rules of the local networks and check the
+    firewall configuration: the node actions do not report the failure of a
+    single rule."""
+    stale_rules = [rule for rule in previous_rules if rule not in new_rules]
+    if stale_rules:
+        agent.assert_exp(agent.remove_rich_rules(stale_rules), "Failed to remove the port forwarding rules")
+    if new_rules:
+        agent.assert_exp(agent.add_rich_rules(new_rules), "Failed to add the port forwarding rules")
+    if stale_rules or new_rules:
+        current_rules = {sip_ports.rule_key(rule) for rule in agent.list_rich_rules(raise_on_error=True)}
+        agent.assert_exp(not any(sip_ports.rule_key(rule) in current_rules for rule in stale_rules), "Some port forwarding rules were not removed")
+        agent.assert_exp(all(sip_ports.rule_key(rule) in current_rules for rule in new_rules), "Some port forwarding rules were not added")
 
 if "addresses" in data:
 
     address = data["addresses"]
+    # With a public address the proxy is behind NAT
+    behind_nat = "public_address" in address
 
-    # Set public and private IP
-    if "public_address" not in address:
-        # if there's no public address, the proxy is not behind NAT
-
-        # Clean up any existing port forwarding rich rules based on previous configuration
-        prev_localnetworks = os.environ.get("LOCALNETWORKS")
-        prev_private_ip = os.environ.get("PRIVATE_IP")
-        if prev_localnetworks and prev_private_ip:
-            prev_networks = [n for n in prev_localnetworks.split(",") if n]
-            previous_rules = create_port_forward_rules(prev_networks)
-            if previous_rules:
-                result = agent.remove_rich_rules(previous_rules)
-                if not result:
-                    print("Warning: Failed to remove some rich rules", file=sys.stderr)
-
-        agent.set_env("PUBLIC_IP", address["address"])
-        agent.set_env("PRIVATE_IP", "")
-        agent.set_env("BEHIND_NAT", "false")
-        agent.unset_env("LOCALNETWORKS")
-        set_public_firewall_ports(False)
-    else:
-        # If there's a public address, the proxy is behind NAT
-
+    if behind_nat:
         # Get local network from routing table (excluding default route)
         detected_network = os.popen("ip route | grep -v default | grep 'src " + address["address"] + "' | awk '{print $1}'").read().strip()
         if detected_network:
@@ -85,34 +61,36 @@ if "addresses" in data:
             # Add extra local networks
             local_networks.update(set(data["local_networks"]))
 
-        # Remove existing port forwarding rules based on previous configuration before adding new ones
-        prev_localnetworks = os.environ.get("LOCALNETWORKS")
-        prev_private_ip = os.environ.get("PRIVATE_IP")
-        if prev_localnetworks and prev_private_ip:
-            prev_networks = [n for n in prev_localnetworks.split(",") if n]
-            previous_rules = create_port_forward_rules(prev_networks)
-            if previous_rules:
-                agent.remove_rich_rules(previous_rules)
+    # Port forwarding rules of the previous configuration and of the new one
+    previous_rules = []
+    prev_localnetworks = os.environ.get("LOCALNETWORKS")
+    prev_private_ip = os.environ.get("PRIVATE_IP")
+    if prev_localnetworks and prev_private_ip:
+        prev_networks = [n for n in prev_localnetworks.split(",") if n]
+        previous_rules = sip_ports.port_forward_rules(prev_networks, prev_sip_port, prev_sips_port)
+    new_rules = sip_ports.port_forward_rules(list(local_networks), sip_port, sips_port)
 
+    replace_port_forward_rules(previous_rules, new_rules)
+    set_public_firewall_ports(bool(local_networks))
+
+    # Save the addresses only after the firewall changes succeed: a retry
+    # derives the rules to remove from them
+    if behind_nat:
         agent.set_env("PUBLIC_IP", address["public_address"])
         agent.set_env("PRIVATE_IP", address["address"])
         agent.set_env("BEHIND_NAT", "true")
-
-        # Store local networks
         if local_networks:
             agent.set_env("LOCALNETWORKS", ",".join(local_networks))
+    else:
+        agent.set_env("PUBLIC_IP", address["address"])
+        agent.set_env("PRIVATE_IP", "")
+        agent.set_env("BEHIND_NAT", "false")
+        agent.unset_env("LOCALNETWORKS")
 
-        # Create and apply new port forwarding rules for each local network
-        if local_networks:
-            new_rules = create_port_forward_rules(list(local_networks))
-            if new_rules:
-                result = agent.add_rich_rules(new_rules)
-                if not result:
-                    print("Warning: Failed to add some rich rules", file=sys.stderr)
+    agent.set_env("DEFAULT_CONTACT", (address["address"] if "public_address" not in address else address["public_address"]) + f":{sip_port}")
 
-        set_public_firewall_ports(bool(local_networks))
-
-    agent.set_env("DEFAULT_CONTACT", address["address"] + ":5060" if "public_address" not in address else address["public_address"] + ":5060")
+agent.set_env("SIP_PORT", str(sip_port))
+agent.set_env("SIPS_PORT", str(sips_port))
 
 # Log level kamailio is started with. The field is optional: when it is not
 # part of the input, keep the value already stored in the environment, so that

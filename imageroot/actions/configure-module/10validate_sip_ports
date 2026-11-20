@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2026 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+import json
+import os
+import sys
+
+import agent
+import sip_ports
+
+agent.set_weight(os.path.basename(__file__), 0) # Validation step, no task progress at all
+
+data = json.load(sys.stdin)
+
+current_sip_port, current_sips_port = sip_ports.get_ports()
+sip_port = data.get("sip_port", current_sip_port)
+sips_port = data.get("sips_port", current_sips_port)
+
+errors = sip_ports.validate_ports(sip_port, sips_port)
+if not errors:
+    # Kamailio listens on the private address behind NAT, otherwise on the
+    # public one. Its current sockets on that address are not a conflict.
+    address = data["addresses"]["address"]
+    if os.environ.get("BEHIND_NAT") == "true":
+        listen_address = os.environ.get("PRIVATE_IP")
+    else:
+        listen_address = os.environ.get("PUBLIC_IP")
+    own_sockets = sip_ports.sockets(current_sip_port, current_sips_port) if address == listen_address else ()
+    errors = sip_ports.busy_ports(address, sip_port, sips_port, own_sockets)
+if errors:
+    agent.set_status('validation-failed')
+    json.dump([{'field': field, 'parameter': field, 'value': sip_port if field == 'sip_port' else sips_port, 'error': error} for field, error in errors], fp=sys.stdout)
+    sys.exit(3)
