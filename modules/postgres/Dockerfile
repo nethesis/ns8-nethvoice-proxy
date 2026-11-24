@@ -1,4 +1,4 @@
-FROM postgres:14
+FROM postgres:16
 
 LABEL maintainer="Giovanni Tommasini <giovanni.tommasini@evoseed.io>"
 
