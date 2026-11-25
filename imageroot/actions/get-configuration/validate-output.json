@@ -88,6 +88,28 @@
       "description": "Port of SIP over TLS",
       "type": "integer"
     },
+    "bypass_sources": {
+      "title": "Proxy bypass sources",
+      "description": "IPv4 addresses whose SIP traffic over UDP skips the proxy and is redirected to the SIP port of a NethVoice instance of the same node. Use it for local gateways and trunks.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["address", "module_id"],
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "title": "Source IPv4 address",
+            "type": "string",
+            "format": "ipv4"
+          },
+          "module_id": {
+            "title": "NethVoice instance that receives the traffic",
+            "type": "string",
+            "pattern": "^nethvoice[0-9]+$"
+          }
+        }
+      }
+    },
     "alerts_enabled": {
       "title": "Built-in alerts",
       "description": "Publish the built-in alert rules of the proxy. Disabled by default.",

@@ -119,6 +119,48 @@ The `local_networks` field accepts an array of CIDR-notation IPv4 subnets.
 Port-forwarding rules are applied and removed automatically when the
 configuration is updated or the module is destroyed.
 
+## Proxy bypass
+
+Some local gateways and trunks do not work through the proxy. The optional
+`bypass_sources` parameter of `configure-module` sends their SIP traffic
+straight to a NethVoice instance running on the same node as the proxy.
+In the UI it is the *Proxy bypass* list of the advanced settings.
+
+Each item has the IPv4 address of the device and the NethVoice instance
+that receives its traffic:
+
+    api-cli run module/nethvoice-proxy1/configure-module --data \
+      '{"fqdn": "proxy.example.com",
+        "addresses": {"address": "192.168.1.1", "public_address": "1.2.3.4"},
+        "bypass_sources": [{"address": "192.168.1.245", "module_id": "nethvoice1"}]}'
+
+For each item the module creates two firewall rich rules, both with
+priority `-10`:
+
+1. a redirect of the SIP port of the proxy, over UDP, to the SIP port of
+   the NethVoice instance. The priority places it before the redirect
+   rules of the local networks, which have none: without it, a device
+   inside a local network keeps reaching Kamailio.
+2. an accept rule for the SIP port of the instance. Asterisk writes that
+   port in its `Contact` header, so the device sends there the requests
+   that follow the first one, such as `ACK` and `BYE`. Without it an
+   inbound call is closed after 32 seconds.
+
+The SIP port of the instance comes from its `sip` service over UDP. The
+rules follow the changes of the SIP port of the proxy, and they are
+removed when the item is removed or the module is destroyed. When the
+parameter is not part of the input the saved list is kept; send an empty
+list to remove every item. An item whose NethVoice instance is no longer
+on the node is dropped at the next `configure-module`.
+
+Only UDP is bypassed. A device that is already sending SIP traffic to the
+proxy keeps reaching it until its connection tracking entry expires,
+about two minutes after its last packet: stop the device for that time,
+or restart the node.
+
+On the NethVoice side the trunk of the device must have no outbound
+proxy, and it identifies the device by its IP address.
+
 ## Debug
 
 To enable Kamailio debug traces at runtime, run both commands:

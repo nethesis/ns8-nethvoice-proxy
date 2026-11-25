@@ -47,3 +47,20 @@ lets_encrypt field must be a boolean
 Lets encrypt can be enabled only with valid FQDN
     ${response} =  Run task    module/${module_id}/configure-module
     ...    {"fqdn": "example.com", "addresses": {"address": "127.0.0.1"}, "lets_encrypt": true}    rc_expected=3    decode_json=False
+
+Proxy bypass sources must have a valid IPv4 address
+    ${response} =  Run task    module/${module_id}/configure-module
+    ...    {"fqdn": "example.com", "addresses": {"address": "127.0.0.1"}, "bypass_sources": [{"address": "192.168.1", "module_id": "nethvoice1"}]}    rc_expected=10    decode_json=False
+    ${response} =  Run task    module/${module_id}/configure-module
+    ...    {"fqdn": "example.com", "addresses": {"address": "127.0.0.1"}, "bypass_sources": [{"address": "192.168.1.0/24", "module_id": "nethvoice1"}]}    rc_expected=10    decode_json=False
+
+Proxy bypass sources must have an address and a NethVoice instance
+    ${response} =  Run task    module/${module_id}/configure-module
+    ...    {"fqdn": "example.com", "addresses": {"address": "127.0.0.1"}, "bypass_sources": [{"address": "192.168.1.245"}]}    rc_expected=10    decode_json=False
+    ${response} =  Run task    module/${module_id}/configure-module
+    ...    {"fqdn": "example.com", "addresses": {"address": "127.0.0.1"}, "bypass_sources": [{"address": "192.168.1.245", "module_id": "traefik1"}]}    rc_expected=10    decode_json=False
+
+Proxy bypass sources must point to a NethVoice instance of the node
+    ${response} =  Run task    module/${module_id}/configure-module
+    ...    {"fqdn": "example.com", "addresses": {"address": "127.0.0.1"}, "bypass_sources": [{"address": "192.168.1.245", "module_id": "nethvoice999"}]}    rc_expected=3    decode_json=False
+    Should Contain    ${response}    bypass_source_instance_not_found

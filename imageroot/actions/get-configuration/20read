@@ -10,6 +10,7 @@ import sys
 import agent
 import os
 import sip_ports
+import proxy_bypass
 
 config = {}
 addresses = {}
@@ -41,6 +42,11 @@ config["local_networks"] = os.environ["LOCALNETWORKS"].split(",") if os.getenv("
 config["kamailio_log_level"] = int(os.environ.get("KAMAILIO_LOG_LEVEL") or 0)
 
 config["sip_port"], config["sips_port"] = sip_ports.get_ports()
+
+config["bypass_sources"] = [
+    {"address": source["address"], "module_id": source["module_id"]}
+    for source in proxy_bypass.parse_sources(os.environ.get("BYPASS_SOURCES"))
+]
 
 config["alerts_enabled"] = os.environ.get("ALERTS_ENABLED") == "true"
 

@@ -28,6 +28,13 @@
         "address": "2001:db8:3333:4444:5555:6666:7777:8888",
         "public_address": "2001:db8:3333:4444:CCCC:DDDD:EEEE:FFFF"
       }
+    },
+    {
+      "fqdn": "proxy.example.com",
+      "addresses": { "address": "192.168.1.1", "public_address": "1.2.3.4" },
+      "bypass_sources": [
+        { "address": "192.168.1.245", "module_id": "nethvoice1" }
+      ]
     }
   ],
   "type": "object",
@@ -106,6 +113,28 @@
       "type": "integer",
       "minimum": 1024,
       "maximum": 9999
+    },
+    "bypass_sources": {
+      "title": "Proxy bypass sources",
+      "description": "IPv4 addresses whose SIP traffic over UDP skips the proxy and is redirected to the SIP port of a NethVoice instance of the same node. Use it for local gateways and trunks.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["address", "module_id"],
+        "additionalProperties": false,
+        "properties": {
+          "address": {
+            "title": "Source IPv4 address",
+            "type": "string",
+            "format": "ipv4"
+          },
+          "module_id": {
+            "title": "NethVoice instance that receives the traffic",
+            "type": "string",
+            "pattern": "^nethvoice[0-9]+$"
+          }
+        }
+      }
     },
     "alerts_enabled": {
       "title": "Built-in alerts",
