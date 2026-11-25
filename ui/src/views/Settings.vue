@@ -207,17 +207,20 @@
                   </NsTextInput>
                   <!-- proxy bypass -->
                   <div class="bypass-section">
-                    <div class="bx--label">
-                      {{ $t("settings.bypass_title") }}
-                      <cv-interactive-tooltip
-                        alignment="start"
-                        direction="bottom"
-                        class="info relative top-0.5"
-                      >
-                        <template slot="content">
-                          {{ $t("settings.bypass_tooltip") }}
-                        </template>
-                      </cv-interactive-tooltip>
+                    <!-- the label is inline: keep it on its own line -->
+                    <div>
+                      <div class="bx--label">
+                        {{ $t("settings.bypass_title") }}
+                        <cv-interactive-tooltip
+                          alignment="start"
+                          direction="bottom"
+                          class="info relative top-0.5"
+                        >
+                          <template slot="content">
+                            {{ $t("settings.bypass_tooltip") }}
+                          </template>
+                        </cv-interactive-tooltip>
+                      </div>
                     </div>
                     <NsInlineNotification
                       v-if="error.listInstances"
