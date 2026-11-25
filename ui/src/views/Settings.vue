@@ -293,7 +293,7 @@
                       >{{ $t("settings.bypass_add") }}</NsButton
                     >
                     <NsInlineNotification
-                      v-if="bypassSources.length"
+                      v-if="isBypassChanged || isBypassChangeApplied"
                       kind="info"
                       :title="$t('settings.bypass_active_devices')"
                       :description="
@@ -441,6 +441,10 @@ export default {
       // proxy bypass: rows of the form and SIP providers of the cluster
       bypassSources: [],
       bypassSourceId: 0,
+      // saved list, to tell when the form differs from it
+      savedBypassSources: [],
+      // the last save changed the list
+      isBypassChangeApplied: false,
       sipProviders: [],
       isAdvancedOpen: false,
       fqdnTimeout: 0,
@@ -482,6 +486,15 @@ export default {
     ...mapState(["instanceName", "core", "appName"]),
     addressAndInterfaceDontMatch() {
       return this.address && this.iface && this.address !== this.iface;
+    },
+    // the complete rows of the form differ from the saved list
+    isBypassChanged() {
+      const current = this.bypassSources
+        .filter((source) => source.address && source.moduleId)
+        .map((source) => this.bypassSourceKey(source.address, source.moduleId))
+        .sort();
+      const saved = [...this.savedBypassSources].sort();
+      return current.join(",") !== saved.join(",");
     },
     // NethVoice instances running on the node of the proxy: the only ones
     // the firewall can redirect the traffic to
@@ -575,6 +588,9 @@ export default {
       this.sipsPort = String(config.sips_port || 5061);
       this.bypassSources = (config.bypass_sources || []).map((source) =>
         this.newBypassSource(source.address, source.module_id)
+      );
+      this.savedBypassSources = (config.bypass_sources || []).map((source) =>
+        this.bypassSourceKey(source.address, source.module_id)
       );
 
       // this.iface is set on get-available-interfaces completion
@@ -697,6 +713,9 @@ export default {
         }
       });
       return isValidationOk;
+    },
+    bypassSourceKey(address, moduleId) {
+      return address + ":" + moduleId;
     },
     newBypassSource(address = "", moduleId = "") {
       this.bypassSourceId += 1;
@@ -1008,6 +1027,9 @@ export default {
     },
     configureModuleCompleted() {
       this.loading.configureModule = false;
+      // keep the notice about active devices after the list is reloaded
+      this.isBypassChangeApplied =
+        this.isBypassChangeApplied || this.isBypassChanged;
 
       // reload configuration
       this.getConfiguration();
