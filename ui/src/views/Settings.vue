@@ -205,6 +205,106 @@
                       {{ $t("settings.sips_port_tooltip") }}
                     </template>
                   </NsTextInput>
+                  <!-- proxy bypass -->
+                  <div class="bypass-section">
+                    <div class="bx--label">
+                      {{ $t("settings.bypass_title") }}
+                    </div>
+                    <div class="bypass-description">
+                      {{ $t("settings.bypass_description") }}
+                    </div>
+                    <NsInlineNotification
+                      v-if="error.listInstances"
+                      kind="error"
+                      :title="$t('settings.bypass_cannot_load_instances')"
+                      :description="error.listInstances"
+                      :showCloseButton="false"
+                    />
+                    <NsInlineNotification
+                      v-else-if="
+                        !loading.listInstances && !bypassInstances.length
+                      "
+                      kind="info"
+                      :title="$t('settings.bypass_no_instances')"
+                      :description="
+                        $t('settings.bypass_no_instances_description')
+                      "
+                      :showCloseButton="false"
+                    />
+                    <div
+                      v-for="(source, index) in bypassSources"
+                      :key="source.id"
+                      class="bypass-row"
+                    >
+                      <NsTextInput
+                        v-model.trim="source.address"
+                        :label="$t('settings.bypass_address')"
+                        :placeholder="$t('settings.bypass_address_placeholder')"
+                        :disabled="loading.configureModule"
+                        :invalid-message="source.error.address"
+                        :ref="'bypass_address_' + index"
+                        class="bypass-address"
+                      />
+                      <NsComboBox
+                        v-model="source.moduleId"
+                        :title="$t('settings.bypass_instance')"
+                        :label="
+                          loading.listInstances
+                            ? $t('common.loading')
+                            : $t('settings.bypass_instance_placeholder')
+                        "
+                        :options="bypassInstances"
+                        :auto-highlight="true"
+                        :acceptUserInput="false"
+                        :disabled="
+                          loading.configureModule || loading.listInstances
+                        "
+                        :invalid-message="source.error.moduleId"
+                        class="bypass-instance"
+                      />
+                      <NsButton
+                        kind="ghost"
+                        size="field"
+                        type="button"
+                        :icon="TrashCan20"
+                        :disabled="loading.configureModule"
+                        class="bypass-remove"
+                        @click.prevent="removeBypassSource(index)"
+                        >{{ $t("settings.bypass_remove") }}</NsButton
+                      >
+                    </div>
+                    <div
+                      v-if="error.bypass_sources"
+                      class="bx--form-requirement bypass-error"
+                    >
+                      {{ error.bypass_sources }}
+                    </div>
+                    <NsButton
+                      kind="tertiary"
+                      size="field"
+                      type="button"
+                      :icon="Add20"
+                      :disabled="
+                        loading.configureModule ||
+                        loading.listInstances ||
+                        !bypassInstances.length
+                      "
+                      @click.prevent="addBypassSource"
+                      >{{ $t("settings.bypass_add") }}</NsButton
+                    >
+                    <NsInlineNotification
+                      v-if="bypassSources.length"
+                      kind="info"
+                      :title="$t('settings.bypass_active_devices')"
+                      :description="
+                        $t('settings.bypass_active_devices_description', {
+                          minutes: 2,
+                        })
+                      "
+                      :showCloseButton="false"
+                      class="mg-top-md"
+                    />
+                  </div>
                 </template>
               </cv-accordion-item>
             </cv-accordion>
@@ -338,6 +438,10 @@ export default {
       iface: "",
       sipPort: "5060",
       sipsPort: "5061",
+      // proxy bypass: rows of the form and SIP providers of the cluster
+      bypassSources: [],
+      bypassSourceId: 0,
+      sipProviders: [],
       isAdvancedOpen: false,
       fqdnTimeout: 0,
       isLetsEncryptEnabled: false,
@@ -354,6 +458,7 @@ export default {
         resolveFqdn: false,
         getStatus: false,
         setAlerts: false,
+        listInstances: false,
       },
       interfaces: [],
       error: {
@@ -366,6 +471,8 @@ export default {
         iface: "",
         sip_port: "",
         sips_port: "",
+        bypass_sources: "",
+        listInstances: "",
         getStatus: "",
         setAlerts: "",
       },
@@ -375,6 +482,27 @@ export default {
     ...mapState(["instanceName", "core", "appName"]),
     addressAndInterfaceDontMatch() {
       return this.address && this.iface && this.address !== this.iface;
+    },
+    // NethVoice instances running on the node of the proxy: the only ones
+    // the firewall can redirect the traffic to
+    bypassInstances() {
+      if (!this.status) {
+        return [];
+      }
+      return this.sipProviders
+        .filter(
+          (provider) =>
+            provider.node_id &&
+            provider.module_id &&
+            String(provider.node_id) === String(this.status.node)
+        )
+        .map((provider) => ({
+          name: provider.module_id,
+          label: provider.ui_name
+            ? `${provider.ui_name} (${provider.module_id})`
+            : provider.module_id,
+          value: provider.module_id,
+        }));
     },
   },
   watch: {
@@ -399,6 +527,7 @@ export default {
     this.getConfiguration();
     this.getAvailableInterfaces();
     this.getStatus();
+    this.listInstances();
   },
   methods: {
     async getConfiguration() {
@@ -444,6 +573,9 @@ export default {
       this.isAlertsEnabledSaved = this.isAlertsEnabled;
       this.sipPort = String(config.sip_port || 5060);
       this.sipsPort = String(config.sips_port || 5061);
+      this.bypassSources = (config.bypass_sources || []).map((source) =>
+        this.newBypassSource(source.address, source.module_id)
+      );
 
       // this.iface is set on get-available-interfaces completion
 
@@ -531,7 +663,111 @@ export default {
           }
         }
       }
+
+      // Proxy bypass: IPv4 addresses, each one listed once, with an instance
+      const ipv4 =
+        /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
+      const seenAddresses = [];
+      this.bypassSources.forEach((source, index) => {
+        source.error.address = "";
+        source.error.moduleId = "";
+
+        if (!source.address) {
+          source.error.address = this.$t("common.required");
+        } else if (!ipv4.test(source.address)) {
+          source.error.address = this.$t("settings.bypass_address_invalid");
+        } else if (seenAddresses.includes(source.address)) {
+          source.error.address = this.$t("settings.bypass_source_duplicated");
+        }
+        seenAddresses.push(source.address);
+
+        if (!source.moduleId) {
+          source.error.moduleId = this.$t("settings.bypass_instance_required");
+        }
+
+        if (source.error.address || source.error.moduleId) {
+          this.isAdvancedOpen = true;
+
+          if (isValidationOk) {
+            if (source.error.address) {
+              this.focusElement("bypass_address_" + index);
+            }
+            isValidationOk = false;
+          }
+        }
+      });
       return isValidationOk;
+    },
+    newBypassSource(address = "", moduleId = "") {
+      this.bypassSourceId += 1;
+      return {
+        id: this.bypassSourceId,
+        address,
+        moduleId,
+        error: { address: "", moduleId: "" },
+      };
+    },
+    addBypassSource() {
+      // with a single instance there is nothing to choose
+      const moduleId =
+        this.bypassInstances.length === 1 ? this.bypassInstances[0].value : "";
+      this.bypassSources.push(this.newBypassSource("", moduleId));
+      this.$nextTick(() => {
+        this.focusElement("bypass_address_" + (this.bypassSources.length - 1));
+      });
+    },
+    removeBypassSource(index) {
+      this.bypassSources.splice(index, 1);
+      this.error.bypass_sources = "";
+    },
+    async listInstances() {
+      this.loading.listInstances = true;
+      this.error.listInstances = "";
+      const taskAction = "list-service-providers";
+      const eventId = this.getUuid();
+
+      // register to task error
+      this.core.$root.$once(
+        `${taskAction}-aborted-${eventId}`,
+        this.listInstancesAborted
+      );
+
+      // register to task completion
+      this.core.$root.$once(
+        `${taskAction}-completed-${eventId}`,
+        this.listInstancesCompleted
+      );
+
+      const res = await to(
+        this.createModuleTaskForApp(this.instanceName, {
+          action: taskAction,
+          data: {
+            service: "sip",
+            transport: "udp",
+          },
+          extra: {
+            title: this.$t("action." + taskAction),
+            isNotificationHidden: true,
+            eventId,
+          },
+        })
+      );
+      const err = res[0];
+
+      if (err) {
+        console.error(`error creating task ${taskAction}`, err);
+        this.error.listInstances = this.getErrorMessage(err);
+        this.loading.listInstances = false;
+      }
+    },
+    listInstancesAborted(taskResult, taskContext) {
+      console.error(`${taskContext.action} aborted`, taskResult);
+      this.error.listInstances = this.$t("error.generic_error");
+      this.loading.listInstances = false;
+    },
+    listInstancesCompleted(taskContext, taskResult) {
+      this.sipProviders = taskResult.output || [];
+      this.loading.listInstances = false;
     },
     getValidationErrorField(validationError) {
       // error field could be "parameters.fieldName", let's take "fieldName" only
@@ -655,6 +891,12 @@ export default {
           this.validationErrorDetails = validationError.details
             .split("\n")
             .filter((detail) => detail.trim() !== "");
+        } else if (validationError.field.startsWith("bypass_sources")) {
+          // the errors of the proxy bypass list share one message
+          this.error.bypass_sources = this.$t(
+            "settings." + validationError.error
+          );
+          this.isAdvancedOpen = true;
         } else {
           let field = this.getValidationErrorField(validationError);
 
@@ -719,6 +961,10 @@ export default {
         lets_encrypt: this.isLetsEncryptEnabled,
         sip_port: Number(this.sipPort),
         sips_port: Number(this.sipsPort),
+        bypass_sources: this.bypassSources.map((source) => ({
+          address: source.address,
+          module_id: source.moduleId,
+        })),
       };
 
       // check if public_address exists and is different from local ip address
@@ -918,6 +1164,48 @@ export default {
 // same width as the other form fields
 .advanced-accordion {
   max-width: 38rem;
+}
+
+.bypass-section {
+  margin-bottom: $spacing-05;
+}
+
+.bypass-description {
+  margin-bottom: $spacing-05;
+  font-size: 0.875rem;
+}
+
+// address, instance and remove button on one line, stacked on small screens
+.bypass-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  column-gap: $spacing-05;
+
+  .bypass-address,
+  .bypass-instance {
+    flex: 1 1 12rem;
+  }
+
+  // The label of the text input sits in a block wrapper, whose line box is
+  // taller than the label: as a flex container it gets the height of the
+  // label, like the one of the combo box
+  .bypass-address ::v-deep > div:first-child {
+    display: flex;
+  }
+
+  // align the button with the fields, below their labels
+  .bypass-remove {
+    margin-top: 1.5rem;
+    margin-bottom: $spacing-05;
+  }
+}
+
+.bypass-error {
+  display: block;
+  max-height: none;
+  margin-bottom: $spacing-05;
+  color: #da1e28;
 }
 
 .alerts-list {
