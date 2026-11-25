@@ -209,9 +209,15 @@
                   <div class="bypass-section">
                     <div class="bx--label">
                       {{ $t("settings.bypass_title") }}
-                    </div>
-                    <div class="bypass-description">
-                      {{ $t("settings.bypass_description") }}
+                      <cv-interactive-tooltip
+                        alignment="start"
+                        direction="bottom"
+                        class="info relative top-0.5"
+                      >
+                        <template slot="content">
+                          {{ $t("settings.bypass_tooltip") }}
+                        </template>
+                      </cv-interactive-tooltip>
                     </div>
                     <NsInlineNotification
                       v-if="error.listInstances"
@@ -1190,11 +1196,6 @@ export default {
 
 .bypass-section {
   margin-bottom: $spacing-05;
-}
-
-.bypass-description {
-  margin-bottom: $spacing-05;
-  font-size: 0.875rem;
 }
 
 // address, instance and remove button on one line, stacked on small screens

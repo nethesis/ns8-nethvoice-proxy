@@ -86,7 +86,7 @@
     "sip_port_tooltip": "UDP and TCP port for phones, gateways and trunks. Provisioned phones and gateways get the new port; trunk providers and manually configured devices must be updated by hand.",
     "sips_port_tooltip": "TLS port for phones, gateways and the mobile app. Provisioned devices and the app get the new port; manually configured devices must be updated by hand.",
     "bypass_title": "Proxy bypass",
-    "bypass_description": "SIP traffic over UDP from these IP addresses skips the proxy and goes directly to the selected NethVoice instance. Use it for local gateways and trunks that do not work through the proxy.",
+    "bypass_tooltip": "SIP traffic over UDP from these IP addresses skips the proxy and goes directly to the selected NethVoice instance. Use it for local gateways and trunks that do not work through the proxy.",
     "bypass_address": "IP address",
     "bypass_address_placeholder": "e.g. 192.168.1.245",
     "bypass_address_invalid": "Enter a valid IPv4 address",
