@@ -715,7 +715,7 @@ export default {
 
           if (isValidationOk) {
             if (source.error.address) {
-              this.focusElement("bypass_address_" + index);
+              this.focusBypassAddress(index);
             }
             isValidationOk = false;
           }
@@ -740,8 +740,16 @@ export default {
       const moduleId =
         this.bypassInstances.length === 1 ? this.bypassInstances[0].value : "";
       this.bypassSources.push(this.newBypassSource("", moduleId));
+      this.focusBypassAddress(this.bypassSources.length - 1);
+    },
+    focusBypassAddress(index) {
+      // a ref inside v-for is an array, which focusElement() cannot focus
       this.$nextTick(() => {
-        this.focusElement("bypass_address_" + (this.bypassSources.length - 1));
+        const ref = this.$refs["bypass_address_" + index];
+        const input = Array.isArray(ref) ? ref[0] : ref;
+        if (input) {
+          input.focus();
+        }
       });
     },
     removeBypassSource(index) {
