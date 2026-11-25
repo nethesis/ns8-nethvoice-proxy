@@ -140,15 +140,28 @@ priority `-10`:
 1. a redirect of the SIP port of the proxy, over UDP, to the SIP port of
    the NethVoice instance. The priority places it before the redirect
    rules of the local networks, which have none: without it, a device
-   inside a local network keeps reaching Kamailio.
+   inside a local network keeps reaching Kamailio. The rule matches only
+   the address the proxy listens on, so the traffic the device sends to
+   another address of the node is left alone.
 2. an accept rule for the SIP port of the instance. Asterisk writes that
    port in its `Contact` header, so the device sends there the requests
    that follow the first one, such as `ACK` and `BYE`. Without it an
    inbound call is closed after 32 seconds.
 
 The SIP port of the instance comes from its `sip` service over UDP. The
-rules follow the changes of the SIP port of the proxy, and they are
-removed when the item is removed or the module is destroyed. When the
+rules follow the changes of the SIP port and of the address of the proxy,
+and they are removed when the item is removed or the module is destroyed.
+When the instance moves its SIP port it publishes the
+`pbx-settings-changed` event, and the proxy moves both rules to the new
+port.
+
+The rules that are, or may be, in the firewall are recorded in the
+`bypass_rules.json` file of the module state, before and after each
+firewall change: a `configure-module` that fails halfway does not leave
+rules behind, because the next one removes them. The file is not part of
+the backup.
+
+When the
 parameter is not part of the input the saved list is kept; send an empty
 list to remove every item. An item whose NethVoice instance is no longer
 on the node is dropped at the next `configure-module`.
