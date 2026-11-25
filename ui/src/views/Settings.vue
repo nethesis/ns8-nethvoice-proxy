@@ -289,7 +289,7 @@
                       {{ error.bypass_sources }}
                     </div>
                     <NsButton
-                      kind="tertiary"
+                      kind="secondary"
                       size="field"
                       type="button"
                       :icon="Add20"
