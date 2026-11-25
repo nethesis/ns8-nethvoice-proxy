@@ -26,10 +26,18 @@ sips_port = data.get("sips_port", prev_sips_port)
 
 # Proxy bypass sources: from the input, otherwise the saved ones. The rules
 # are created again in both cases, because they depend on the SIP port of the
-# proxy and on the one of the NethVoice instance.
-bypass_sources = data.get("bypass_sources", proxy_bypass.parse_sources(os.environ.get("BYPASS_SOURCES")))
+# proxy and on the one of the NethVoice instance. The lock is held until the
+# end of this step, and the saved sources are read after taking it: the
+# handler of the NethVoice events can change them.
+bypass_lock = proxy_bypass.acquire_lock()
+bypass_sources = data.get("bypass_sources", proxy_bypass.parse_sources(agent.read_envfile("environment").get("BYPASS_SOURCES")))
 if bypass_sources:
-    bypass_sources, missing_sources = proxy_bypass.resolve_sources(bypass_sources, proxy_bypass.local_instance_ports())
+    instances = proxy_bypass.local_instances()
+    bypass_sources, missing_sources = proxy_bypass.resolve_sources(
+        bypass_sources,
+        {module_id: instance["port"] for module_id, instance in instances.items()},
+        {module_id: instance["module_uuid"] for module_id, instance in instances.items()},
+    )
     for source in missing_sources:
         print(agent.SD_WARNING + f'Proxy bypass of {source["address"]} removed: {source["module_id"]} is not on this node', file=sys.stderr)
 # The redirect matches the address the proxy listens on

@@ -159,7 +159,20 @@ The rules that are, or may be, in the firewall are recorded in the
 `bypass_rules.json` file of the module state, before and after each
 firewall change: a `configure-module` that fails halfway does not leave
 rules behind, because the next one removes them. The file is not part of
-the backup.
+the backup. `configure-module`, `destroy-module` and the event handler
+take the same lock before they read the saved list and change the
+firewall, so they never work on a list another one has just replaced.
+
+Every redirect with priority `-10`, the address of the proxy as
+destination and its SIP port over UDP belongs to the module: one that is
+not in the list is removed at the next firewall change. Do not create
+rules of that form by hand.
+
+The saved list has the UUID of each NethVoice instance, and
+`get-configuration` returns it as `module_uuid` for the backup. On
+restore the instance is found by its UUID, because its module ID can
+belong to another instance of the new node; an item whose instance is not
+on the node is left out.
 
 When the
 parameter is not part of the input the saved list is kept; send an empty

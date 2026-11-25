@@ -10,27 +10,15 @@
 # update of the instance rewrites, and the accept rule would use two
 # different ports until the next configure-module.
 
-import os
 import sys
 
 import agent
 import proxy_bypass
-import sip_ports
 
-saved_sources = proxy_bypass.parse_sources(os.environ.get("BYPASS_SOURCES"))
-if not saved_sources:
-    sys.exit(0)
-
-instance_ports = proxy_bypass.local_instance_ports()
-# The source of an instance that is not on the node keeps its port: it is
-# dropped by the next configure-module
-sources = [
-    dict(source, port=instance_ports.get(source["module_id"], source["port"]))
-    for source in saved_sources
-]
-if sources == saved_sources:
-    sys.exit(0)
-
-print(agent.SD_INFO + "The SIP port of a NethVoice instance changed: updating the proxy bypass rules", file=sys.stderr)
-proxy_bypass.reconcile(sources, sip_ports.get_ports()[0], proxy_bypass.listen_address())
-agent.set_env("BYPASS_SOURCES", proxy_bypass.format_sources(sources))
+# Read the saved sources after taking the lock, from the file: a
+# configure-module that ran in the meantime could have changed them
+bypass_lock = proxy_bypass.acquire_lock()
+sources = proxy_bypass.follow_instance_ports(agent.read_envfile("environment"), proxy_bypass.local_instance_ports())
+if sources is not None:
+    print(agent.SD_INFO + "The SIP port of a NethVoice instance changed: proxy bypass rules updated", file=sys.stderr)
+    agent.set_env("BYPASS_SOURCES", proxy_bypass.format_sources(sources))

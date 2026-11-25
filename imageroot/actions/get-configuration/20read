@@ -43,8 +43,10 @@ config["kamailio_log_level"] = int(os.environ.get("KAMAILIO_LOG_LEVEL") or 0)
 
 config["sip_port"], config["sips_port"] = sip_ports.get_ports()
 
+# The UUID of the NethVoice instance is for the backup: restore-module finds
+# the instance with it
 config["bypass_sources"] = [
-    {"address": source["address"], "module_id": source["module_id"]}
+    {key: source[key] for key in ("address", "module_id", "module_uuid") if key in source}
     for source in proxy_bypass.parse_sources(os.environ.get("BYPASS_SOURCES"))
 ]
 

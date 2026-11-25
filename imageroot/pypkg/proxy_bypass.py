@@ -9,9 +9,11 @@
 # local gateway, is redirected to the SIP port of a NethVoice instance of the
 # same node and never reaches Kamailio.
 
+import fcntl
 import ipaddress
 import json
 import os
+import re
 
 import sip_ports
 
@@ -25,24 +27,47 @@ RULE_PRIORITY = -10
 # rules of a failed change are still known and removed by the next one. It is
 # not part of the backup: the rules belong to the node.
 APPLIED_RULES_FILE = "bypass_rules.json"
+LOCK_FILE = "bypass_rules.lock"
 
 
 def parse_sources(value):
     """Return the bypass sources saved in the BYPASS_SOURCES variable, a
-    comma-separated list of address:module_id:port items. The port is the one
-    the firewall rule was created with."""
+    comma-separated list of address:module_id:port:module_uuid items. The
+    port is the one the firewall rule was created with. The UUID of the
+    NethVoice instance is missing in the items saved by the first builds of
+    the proxy bypass."""
     sources = []
     for item in (value or "").split(","):
         fields = item.split(":")
-        if len(fields) != 3 or not fields[2].isdigit():
+        if len(fields) not in (3, 4) or not fields[2].isdigit():
             continue
-        sources.append({"address": fields[0], "module_id": fields[1], "port": int(fields[2])})
+        source = {"address": fields[0], "module_id": fields[1], "port": int(fields[2])}
+        if len(fields) == 4 and fields[3]:
+            source["module_uuid"] = fields[3]
+        sources.append(source)
     return sources
 
 
 def format_sources(sources):
     """Return the value of the BYPASS_SOURCES variable."""
-    return ",".join(f'{source["address"]}:{source["module_id"]}:{source["port"]}' for source in sources)
+    items = []
+    for source in sources:
+        item = f'{source["address"]}:{source["module_id"]}:{source["port"]}'
+        if source.get("module_uuid"):
+            item += f':{source["module_uuid"]}'
+        items.append(item)
+    return ",".join(items)
+
+
+def acquire_lock():
+    """Wait for the exclusive lock of the proxy bypass and return it. The
+    lock is released when the returned file is closed or the process ends.
+    configure-module, destroy-module and the handler of the NethVoice events
+    read the saved sources and change the firewall while they hold it, so
+    one of them cannot apply a list the other has just replaced."""
+    lock = open(os.path.join(os.environ.get("AGENT_STATE_DIR", "."), LOCK_FILE), "w")
+    fcntl.flock(lock, fcntl.LOCK_EX)
+    return lock
 
 
 def listen_address(env=None):
@@ -78,13 +103,36 @@ def _redirect_key(rule):
     return frozenset(token for token in key if not token.startswith("to-port="))
 
 
-def stale_rules(applied_rules, new_rules, firewall_rules):
+def _is_managed_redirect(rule, sip_port, destination):
+    """Tell if a rule listed by the firewall has the form of the redirect of
+    a bypass source: priority, address of the proxy as destination and SIP
+    port of the proxy over UDP."""
+    if not destination or "forward-port" not in rule:
+        return False
+    fields = dict(re.findall(r'(priority|destination address|port|protocol)="?([^" ]+)"?', rule.split("to-port")[0]))
+    return (
+        fields.get("priority") == str(RULE_PRIORITY)
+        and fields.get("destination address") == destination
+        and fields.get("port") == str(sip_port)
+        and fields.get("protocol") == "udp"
+    )
+
+
+def stale_rules(applied_rules, new_rules, firewall_rules, sip_port=None, destination=""):
     """Return the rules to remove from the firewall: the applied ones that
     are not part of the new ones. The update of a NethVoice instance that
     moves its SIP port rewrites the target port of the redirect rules, so a
-    redirect is searched in the firewall whatever its target port is."""
+    redirect is searched in the firewall whatever its target port is.
+
+    That update can also add its rewritten redirect after the source was
+    removed here, when the two run at the same time. So every redirect of
+    the firewall that has the form of the ones created here, and is not one
+    of the new rules, is removed too."""
     new_keys = {sip_ports.rule_key(rule) for rule in new_rules}
-    stale = []
+    stale = [
+        listed for listed in firewall_rules
+        if sip_ports.rule_key(listed) not in new_keys and _is_managed_redirect(listed, sip_port, destination)
+    ]
     for rule in applied_rules:
         if sip_ports.rule_key(rule) in new_keys:
             continue
@@ -96,7 +144,7 @@ def stale_rules(applied_rules, new_rules, firewall_rules):
             key = sip_ports.rule_key(listed)
             if key not in new_keys and key != sip_ports.rule_key(rule) and _redirect_key(listed) == redirect:
                 stale.append(listed)
-    return stale
+    return list(dict.fromkeys(stale))
 
 
 def _applied_rules_path():
@@ -129,13 +177,14 @@ def reconcile(sources, sip_port, destination, firewall=None):
 
     applied_rules = read_applied_rules()
     new_rules = rules(sources, sip_port, destination)
-    if not applied_rules and not new_rules:
+    # A module that never had a bypass source has nothing to look for
+    if not applied_rules and not new_rules and not os.path.exists(_applied_rules_path()):
         return
     # Record the new rules before adding them: if this change fails halfway
     # the next one still knows what to remove
     write_applied_rules(applied_rules + [rule for rule in new_rules if rule not in applied_rules])
 
-    stale = stale_rules(applied_rules, new_rules, firewall.list_rich_rules(raise_on_error=True))
+    stale = stale_rules(applied_rules, new_rules, firewall.list_rich_rules(raise_on_error=True), sip_port, destination)
     if stale and not firewall.remove_rich_rules(stale):
         raise RuntimeError("Failed to remove the proxy bypass rules")
     if new_rules and not firewall.add_rich_rules(new_rules):
@@ -174,25 +223,69 @@ def validate_sources(sources, instance_ports, saved_sources=()):
     return errors
 
 
-def resolve_sources(sources, instance_ports):
-    """Return (resolved, missing): the sources with the SIP port of their
-    NethVoice instance, and the ones whose instance is not on the node."""
+def resolve_sources(sources, instance_ports, instance_uuids=None):
+    """Return (resolved, missing): the sources with the SIP port and the UUID
+    of their NethVoice instance, and the ones whose instance is not on the
+    node."""
     resolved = []
     missing = []
     for source in sources:
         port = instance_ports.get(source["module_id"])
         if port is None:
             missing.append(source)
-        else:
-            resolved.append({"address": source["address"], "module_id": source["module_id"], "port": port})
+            continue
+        item = {"address": source["address"], "module_id": source["module_id"], "port": port}
+        module_uuid = (instance_uuids or {}).get(source["module_id"])
+        if module_uuid:
+            item["module_uuid"] = module_uuid
+        resolved.append(item)
     return resolved, missing
+
+
+def restored_sources(sources, instance_uuids):
+    """Return the sources of a backup for this node. The module ID of the
+    backup can belong to another NethVoice instance here, so the instance is
+    found by its UUID and the source gets its current module ID. A source
+    whose instance is not on the node is left out."""
+    module_ids = {module_uuid: module_id for module_id, module_uuid in instance_uuids.items()}
+    return [
+        {"address": source["address"], "module_id": module_ids[source["module_uuid"]]}
+        for source in sources
+        if source.get("module_uuid") in module_ids
+    ]
+
+
+def follow_instance_ports(env, instance_ports, firewall=None):
+    """Move the rules of the saved sources to the current SIP port of their
+    NethVoice instance. env is the environment read while holding the lock.
+    Return the sources to save, or None when they did not change. The source
+    of an instance that is not on the node keeps its port: it is dropped by
+    the next configure-module."""
+    saved_sources = parse_sources(env.get("BYPASS_SOURCES"))
+    if not saved_sources and not os.path.exists(_applied_rules_path()):
+        return None
+    sources = [
+        dict(source, port=instance_ports.get(source["module_id"], source["port"]))
+        for source in saved_sources
+    ]
+    reconcile(sources, sip_ports.get_ports(env)[0], listen_address(env), firewall)
+    return None if sources == saved_sources else sources
+
+
+def local_instances():
+    """Return the SIP port over UDP and the UUID of the NethVoice instances
+    of this node, by module ID."""
+    import agent
+
+    rdb = agent.redis_connect(use_replica=True)
+    providers = agent.list_service_providers(rdb, "sip", "udp", {"node_id": os.environ["NODE_ID"]})
+    return {
+        provider["module_id"]: {"port": int(provider["port"]), "module_uuid": provider.get("module_uuid") or ""}
+        for provider in providers
+    }
 
 
 def local_instance_ports():
     """Return the SIP port over UDP of the NethVoice instances of this node,
     by module ID."""
-    import agent
-
-    rdb = agent.redis_connect(use_replica=True)
-    providers = agent.list_service_providers(rdb, "sip", "udp", {"node_id": os.environ["NODE_ID"]})
-    return {provider["module_id"]: int(provider["port"]) for provider in providers}
+    return {module_id: instance["port"] for module_id, instance in local_instances().items()}

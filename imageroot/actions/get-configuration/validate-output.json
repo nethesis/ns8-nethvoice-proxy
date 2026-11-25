@@ -106,6 +106,12 @@
             "title": "NethVoice instance that receives the traffic",
             "type": "string",
             "pattern": "^nethvoice[0-9]+$"
+          },
+          "module_uuid": {
+            "title": "UUID of the NethVoice instance",
+            "description": "Written by get-configuration for the backup. configure-module ignores it.",
+            "type": "string",
+            "format": "uuid"
           }
         }
       }
