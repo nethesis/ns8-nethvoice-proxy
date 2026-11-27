@@ -8,6 +8,7 @@ import os
 import agent
 import uuid
 import random
+import secrets
 
 module_id = os.environ["MODULE_ID"]
 tcp_ports = os.environ["TCP_PORTS"].split(',')
@@ -15,9 +16,10 @@ tcp_ports = os.environ["TCP_PORTS"].split(',')
 agent.set_env('ENV', 'prod')
 agent.set_env('POSTGRES_USER', 'postgres')
 
-#POSTGRES_PASSWORD written to passwords.env
+#POSTGRES_PASSWORD and TOPOH_MASK_KEY written to passwords.env
 password = {
-    "POSTGRES_PASSWORD": uuid.uuid4()
+    "POSTGRES_PASSWORD": uuid.uuid4(),
+    "TOPOH_MASK_KEY": secrets.token_hex(16),
 }
 agent.write_envfile("passwords.env", password)
 
