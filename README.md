@@ -105,7 +105,7 @@ Remote clients are unaffected and continue to use the SIP ports with
 the public IP in SDP.
 
 The network directly attached to `address` is detected automatically from
-the routing table. Additional subnets can be declared explicitly via
+the address and prefix of its interface. Additional subnets can be declared explicitly via
 `local_networks`.
 
 Example:

@@ -112,5 +112,31 @@ class PortForwardRulesTest(unittest.TestCase):
         self.assertIn("rule family=ipv4 source address=10.0.0.0/8 forward-port port=5071 protocol=tcp to-port=6061", rules)
 
 
+# `ip -j -4 addr show` of a cloud server: DHCP also adds the route
+# "169.254.169.254 via 192.168.120.100 dev eth0 src 192.168.120.119"
+INTERFACES = [
+    {"ifname": "lo", "addr_info": [{"family": "inet", "local": "127.0.0.1", "prefixlen": 8}]},
+    {"ifname": "eth0", "addr_info": [{"family": "inet", "local": "192.168.120.119", "prefixlen": 24}]},
+    {"ifname": "wg0", "addr_info": [{"family": "inet", "local": "10.5.4.35", "prefixlen": 32}]},
+    {"ifname": "eth1"},
+    {"ifname": "ppp0", "addr_info": [{"family": "inet", "local": "192.168.130.119", "address": "10.20.30.1", "prefixlen": 24}]},
+]
+
+
+class LocalNetworkTest(unittest.TestCase):
+    def test_network_of_the_interface(self):
+        self.assertEqual(sip_ports.local_network("192.168.120.119", INTERFACES), "192.168.120.0/24")
+
+    def test_single_address(self):
+        self.assertEqual(sip_ports.local_network("10.5.4.35", INTERFACES), "10.5.4.35/32")
+
+    def test_point_to_point_uses_the_peer_network(self):
+        self.assertEqual(sip_ports.local_network("192.168.130.119", INTERFACES), "10.20.30.0/24")
+
+    def test_unknown_address(self):
+        self.assertIsNone(sip_ports.local_network("192.168.120.1", INTERFACES))
+        self.assertIsNone(sip_ports.local_network("192.168.120.119", []))
+
+
 if __name__ == "__main__":
     unittest.main()
