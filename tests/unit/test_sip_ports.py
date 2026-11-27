@@ -119,6 +119,7 @@ INTERFACES = [
     {"ifname": "eth0", "addr_info": [{"family": "inet", "local": "192.168.120.119", "prefixlen": 24}]},
     {"ifname": "wg0", "addr_info": [{"family": "inet", "local": "10.5.4.35", "prefixlen": 32}]},
     {"ifname": "eth1"},
+    {"ifname": "ppp0", "addr_info": [{"family": "inet", "local": "192.168.130.119", "address": "10.20.30.1", "prefixlen": 24}]},
 ]
 
 
@@ -128,6 +129,9 @@ class LocalNetworkTest(unittest.TestCase):
 
     def test_single_address(self):
         self.assertEqual(sip_ports.local_network("10.5.4.35", INTERFACES), "10.5.4.35/32")
+
+    def test_point_to_point_uses_the_peer_network(self):
+        self.assertEqual(sip_ports.local_network("192.168.130.119", INTERFACES), "10.20.30.0/24")
 
     def test_unknown_address(self):
         self.assertIsNone(sip_ports.local_network("192.168.120.1", INTERFACES))

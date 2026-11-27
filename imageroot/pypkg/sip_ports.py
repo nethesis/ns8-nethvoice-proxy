@@ -118,9 +118,12 @@ def port_forward_rules(local_networks, sip_port, sips_port):
 
 def local_network(address, interfaces):
     """Return the network of the interface that holds address, or None.
-    interfaces is the output of `ip -j -4 addr show`."""
+    interfaces is the output of `ip -j -4 addr show`. On a point-to-point
+    interface the prefix belongs to the peer address, so the network is the
+    one of the peer."""
     for interface in interfaces:
         for addr_info in interface.get("addr_info", []):
             if addr_info.get("local") == address:
-                return str(ipaddress.ip_interface(f"{address}/{addr_info['prefixlen']}").network)
+                network_address = addr_info.get("address", address)
+                return str(ipaddress.ip_interface(f"{network_address}/{addr_info['prefixlen']}").network)
     return None
