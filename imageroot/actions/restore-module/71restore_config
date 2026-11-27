@@ -10,6 +10,7 @@ import os
 import time
 
 import agent
+import proxy_bypass
 
 response = agent.tasks.run(
         agent_id=os.environ['AGENT_ID'],
@@ -25,6 +26,15 @@ list_ifaces = response['output']['data']
 
 with open('config_dump.json', 'r') as f:
     config = json.load(f)
+
+    # A proxy bypass source is restored only if its NethVoice instance is on
+    # this node. The instance is found by its UUID: here its module ID can
+    # belong to another instance.
+    if config.get('bypass_sources'):
+        config['bypass_sources'] = proxy_bypass.restored_sources(
+            config['bypass_sources'],
+            {module_id: instance['module_uuid'] for module_id, instance in proxy_bypass.local_instances().items()},
+        )
 
     if any(
             addr['address'] == config['addresses']['address']

@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+
+#
+# Copyright (C) 2026 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+# A NethVoice instance published its settings: if its SIP port changed, move
+# the proxy bypass rules to the new port. Without it the redirect, which the
+# update of the instance rewrites, and the accept rule would use two
+# different ports until the next configure-module.
+
+import sys
+
+import agent
+import proxy_bypass
+
+# Read the saved sources after taking the lock, from the file: a
+# configure-module that ran in the meantime could have changed them
+bypass_lock = proxy_bypass.acquire_lock()
+sources = proxy_bypass.follow_instance_ports(agent.read_envfile("environment"), proxy_bypass.local_instance_ports())
+if sources is not None:
+    print(agent.SD_INFO + "The SIP port of a NethVoice instance changed: proxy bypass rules updated", file=sys.stderr)
+    agent.set_env("BYPASS_SOURCES", proxy_bypass.format_sources(sources))

@@ -6,3 +6,5 @@ CLAUDE.md
 docs/
 .specstory/
 tests/outputs/
+__pycache__/
+*.pyc

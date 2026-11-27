@@ -84,7 +84,27 @@
     "sips_port_reserved": "@:settings.sip_port_reserved",
     "sip_ports_must_differ": "Must be different from @:settings.sip_port",
     "sip_port_tooltip": "UDP and TCP port for phones, gateways and trunks. Provisioned phones and gateways get the new port; trunk providers and manually configured devices must be updated by hand.",
-    "sips_port_tooltip": "TLS port for phones, gateways and the mobile app. Provisioned devices and the app get the new port; manually configured devices must be updated by hand."
+    "sips_port_tooltip": "TLS port for phones, gateways and the mobile app. Provisioned devices and the app get the new port; manually configured devices must be updated by hand.",
+    "bypass_title": "Proxy bypass",
+    "bypass_tooltip": "SIP traffic over UDP from these IP addresses skips the proxy and goes directly to the selected NethVoice instance. Use it for local gateways and trunks that do not work through the proxy.",
+    "bypass_address": "IP address",
+    "bypass_address_placeholder": "e.g. 192.168.1.245",
+    "bypass_address_invalid": "Enter a valid IPv4 address",
+    "bypass_instance": "NethVoice instance",
+    "bypass_instance_placeholder": "Select instance",
+    "bypass_instance_required": "Select an instance",
+    "bypass_add": "Add IP address",
+    "bypass_remove": "Remove",
+    "bypass_cannot_load_instances": "Cannot load NethVoice instances",
+    "bypass_no_instances": "No NethVoice instance on this node",
+    "bypass_no_instances_description": "The proxy bypass sends the traffic to a NethVoice instance that runs on the same node as the proxy.",
+    "bypass_active_devices": "Devices that are already sending traffic",
+    "bypass_active_devices_description": "A device that is already sending SIP traffic keeps its current path until it stays silent for about {minutes} minutes. To apply a change at once, stop the device for that time or restart the node.",
+    "bypass_source_address_not_valid": "@:settings.bypass_address_invalid",
+    "bypass_source_duplicated": "This IP address is already in the list",
+    "bypass_source_instance_not_found": "The selected NethVoice instance is not on this node",
+    "bypass_sources_format": "@:settings.bypass_address_invalid",
+    "bypass_sources_pattern": "@:settings.bypass_source_instance_not_found"
   },
   "about": {
     "title": "About"

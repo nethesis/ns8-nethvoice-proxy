@@ -9,6 +9,7 @@ import os
 import sys
 import agent
 import sip_ports
+import proxy_bypass
 
 # Clean up any existing port forwarding rich rules.
 # LOCALNETWORKS is the marker that NAT-specific rich rules were created.
@@ -22,5 +23,10 @@ if prev_localnetworks:
         result = agent.remove_rich_rules(previous_rules)
         if not result:
             print("Warning: Failed to remove some rich rules", file=sys.stderr)
+
+# Remove the rich rules of the proxy bypass sources. A failure stops the
+# action: the rules are still recorded, so it can be run again.
+bypass_lock = proxy_bypass.acquire_lock()
+proxy_bypass.reconcile([], sip_ports.get_ports()[0], proxy_bypass.listen_address())
 
 agent.assert_exp(agent.remove_public_service(os.environ['MODULE_ID']))

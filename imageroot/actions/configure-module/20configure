@@ -11,6 +11,7 @@ import agent
 import subprocess
 import os
 import sip_ports
+import proxy_bypass
 
 data = json.load(sys.stdin)
 
@@ -22,6 +23,25 @@ local_networks = set()
 prev_sip_port, prev_sips_port = sip_ports.get_ports()
 sip_port = data.get("sip_port", prev_sip_port)
 sips_port = data.get("sips_port", prev_sips_port)
+
+# Proxy bypass sources: from the input, otherwise the saved ones. The rules
+# are created again in both cases, because they depend on the SIP port of the
+# proxy and on the one of the NethVoice instance. The lock is held until the
+# end of this step, and the saved sources are read after taking it: the
+# handler of the NethVoice events can change them.
+bypass_lock = proxy_bypass.acquire_lock()
+bypass_sources = data.get("bypass_sources", proxy_bypass.parse_sources(agent.read_envfile("environment").get("BYPASS_SOURCES")))
+if bypass_sources:
+    instances = proxy_bypass.local_instances()
+    bypass_sources, missing_sources = proxy_bypass.resolve_sources(
+        bypass_sources,
+        {module_id: instance["port"] for module_id, instance in instances.items()},
+        {module_id: instance["module_uuid"] for module_id, instance in instances.items()},
+    )
+    for source in missing_sources:
+        print(agent.SD_WARNING + f'Proxy bypass of {source["address"]} removed: {source["module_id"]} is not on this node', file=sys.stderr)
+# The redirect matches the address the proxy listens on
+listen_address = data["addresses"]["address"] if "addresses" in data else proxy_bypass.listen_address()
 
 def set_public_firewall_ports(behind_nat):
     agent.assert_exp(agent.add_public_service(
@@ -71,6 +91,7 @@ if "addresses" in data:
     new_rules = sip_ports.port_forward_rules(list(local_networks), sip_port, sips_port)
 
     replace_port_forward_rules(previous_rules, new_rules)
+    proxy_bypass.reconcile(bypass_sources, sip_port, listen_address)
     set_public_firewall_ports(bool(local_networks))
 
     # Save the addresses only after the firewall changes succeed: a retry
@@ -88,6 +109,16 @@ if "addresses" in data:
         agent.unset_env("LOCALNETWORKS")
 
     agent.set_env("DEFAULT_CONTACT", (address["address"] if "public_address" not in address else address["public_address"]) + f":{sip_port}")
+
+if "addresses" not in data:
+    proxy_bypass.reconcile(bypass_sources, sip_port, listen_address)
+
+# The rules in the firewall are recorded by reconcile: if a later step fails,
+# the next run still removes them
+if bypass_sources:
+    agent.set_env("BYPASS_SOURCES", proxy_bypass.format_sources(bypass_sources))
+else:
+    agent.unset_env("BYPASS_SOURCES")
 
 agent.set_env("SIP_PORT", str(sip_port))
 agent.set_env("SIPS_PORT", str(sips_port))
