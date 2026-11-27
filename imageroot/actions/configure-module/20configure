@@ -51,8 +51,12 @@ if "addresses" in data:
     behind_nat = "public_address" in address
 
     if behind_nat:
-        # Get local network from routing table (excluding default route)
-        detected_network = os.popen("ip route | grep -v default | grep 'src " + address["address"] + "' | awk '{print $1}'").read().strip()
+        # The network of the interface with the private address. The routing
+        # table is not reliable: DHCP can add routes with the same source
+        # address, such as the one to the metadata service of a cloud
+        # provider (169.254.169.254).
+        interfaces = json.loads(subprocess.run(["ip", "-j", "-4", "addr", "show"], capture_output=True, text=True, check=True).stdout)
+        detected_network = sip_ports.local_network(address["address"], interfaces)
         if detected_network:
             local_networks.add(detected_network)
 
